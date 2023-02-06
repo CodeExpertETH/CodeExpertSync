@@ -1,6 +1,6 @@
-# Tauri + Solid + Typescript
+# Code Expert Desktop
 
-This template should help get you started developing with Tauri, Solid and Typescript in Vite.
+This repo contains the desktop app of Code Expert, which will allow you to sync your files from the Code Expert IDE with your local file system.
 
 ## Recommended IDE Setup
 
@@ -12,7 +12,6 @@ This template should help get you started developing with Tauri, Solid and Types
  - Install dependencies: `pnpm install`
  - Start the app: `pnpm tauri dev`
 
+### Gnome
 
-## Gnome
-
-it requires https://extensions.gnome.org/extension/2890/tray-icons-reloaded/ to show system trays.
+Gnome requires https://extensions.gnome.org/extension/2890/tray-icons-reloaded/ to show system trays.
