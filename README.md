@@ -11,3 +11,8 @@ This template should help get you started developing with Tauri, Solid and Types
  - Install prerequisites: https://tauri.app/v1/guides/getting-started/prerequisites
  - Install dependencies: `pnpm install`
  - Start the app: `pnpm tauri dev`
+
+
+## Gnome
+
+it requires https://extensions.gnome.org/extension/2890/tray-icons-reloaded/ to show system trays.
