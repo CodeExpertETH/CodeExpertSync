@@ -1,9 +1,17 @@
-import { createSignal } from "solid-js";
+import { createResource, createSignal } from "solid-js";
 import logo from "./assets/logo.svg";
 import { invoke } from "@tauri-apps/api/tauri";
 import "./App.css";
+import { listen } from "@tauri-apps/api/event";
+import { getVersion } from "@tauri-apps/api/app";
+
+listen("tauri://update-status", function (res) {
+  console.log("New status: ", res);
+});
 
 function App() {
+  const [version] = createResource(getVersion); // Here we use createResource to associate from the fetchJokes promise to the results: the jokes variable
+
   const [greetMsg, setGreetMsg] = createSignal("");
   const [name, setName] = createSignal("");
 
@@ -15,6 +23,7 @@ function App() {
   return (
     <div class="container">
       <h1>Welcome to Code Expert Desktop!</h1>
+      <h2>{version}</h2>
 
       <div class="row">
         <a href="https://vitejs.dev" target="_blank">
