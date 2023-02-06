@@ -4,6 +4,8 @@ on:
     tags:
       - 'v*'
   workflow_dispatch:
+env:
+  TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
 
 jobs:
   release:
