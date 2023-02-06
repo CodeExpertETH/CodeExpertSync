@@ -8,7 +8,7 @@
   },
   "package": {
     "productName": "code_expert_desktop",
-    "version": "0.0.10"
+    "version": "0.0.11"
   },
   "tauri": {
     "allowlist": {
@@ -68,7 +68,7 @@
     "windows": [
       {
         "fullscreen": false,
-        "height": 600,
+        "height": 800,
         "resizable": true,
         "title": "code_expert_desktop",
         "width": 800

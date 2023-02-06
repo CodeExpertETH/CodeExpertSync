@@ -4,10 +4,7 @@ import { invoke } from "@tauri-apps/api/tauri";
 import "./App.css";
 import { listen } from "@tauri-apps/api/event";
 import { getVersion } from "@tauri-apps/api/app";
-
-listen("tauri://update-status", function (res) {
-  console.log("New status: ", res);
-});
+import Updater from "./Updater";
 
 function App() {
   const [version] = createResource(getVersion); // Here we use createResource to associate from the fetchJokes promise to the results: the jokes variable
@@ -53,6 +50,9 @@ function App() {
       </div>
 
       <p>{greetMsg}</p>
+      <div class="row">
+        <Updater />
+      </div>
     </div>
   );
 }
