@@ -69,9 +69,9 @@
       {
         "fullscreen": false,
         "height": 800,
-        "resizable": true,
-        "title": "code_expert_desktop",
-        "width": 800
+        "resizable": false,
+        "title": "Code Expert Desktop",
+        "width": 400
       }
     ]
   }
