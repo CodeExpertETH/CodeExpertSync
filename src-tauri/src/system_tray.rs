@@ -1,7 +1,8 @@
 use tauri::{
     AppHandle, CustomMenuItem, SystemTray, SystemTrayEvent, SystemTrayMenu, SystemTrayMenuItem, Wry,
 };
-pub(crate) mod window_helpers;
+
+use crate::utils;
 
 pub fn handle_system_tray_event(app: &AppHandle<Wry>, event: SystemTrayEvent) {
     match event {
@@ -9,7 +10,7 @@ pub fn handle_system_tray_event(app: &AppHandle<Wry>, event: SystemTrayEvent) {
             "quit" => {
                 std::process::exit(0);
             }
-            "open" => window_helpers::open_app_window(app),
+            "open" => utils::window::open_app_window(app),
             _ => {}
         },
         _ => {}

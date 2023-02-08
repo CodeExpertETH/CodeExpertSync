@@ -3,6 +3,7 @@ use tauri_plugin_positioner;
 use tauri_plugin_positioner::{Position, WindowExt};
 
 mod system_tray;
+mod utils;
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
@@ -13,7 +14,7 @@ fn greet(name: &str) -> String {
 #[tauri::command]
 fn open_window(app_handle: tauri::AppHandle<Wry>) {
     println!("open Window called");
-    system_tray::window_helpers::open_app_window(&app_handle);
+    utils::window::open_app_window(&app_handle);
 }
 
 fn main() {
