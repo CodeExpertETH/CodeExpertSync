@@ -4,7 +4,6 @@ import { invoke } from "@tauri-apps/api/tauri";
 import "./App.css";
 import { listen } from "@tauri-apps/api/event";
 
-
 function App() {
   const [greetMsg, setGreetMsg] = useState("");
   const [name, setName] = useState("");

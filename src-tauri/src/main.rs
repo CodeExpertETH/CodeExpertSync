@@ -11,6 +11,12 @@ fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
 
+#[tauri::command]
+fn open_window(app_handle: tauri::AppHandle<Wry>) {
+    println!("open Window called");
+    system_tray::window_helpers::open_app_window(&app_handle);
+}
+
 fn main() {
     // prepare() checks if it's a single instance and tries to send the args otherwise.
     // It should always be the first line in your main function (with the exception of loggers or similar)
@@ -26,13 +32,12 @@ fn main() {
         .setup(|app| {
             // This could be called right after prepare() but then you don't have access to tauri APIs
             let handle = app.handle();
-            let handle2 = app.handle();
             tauri_plugin_deep_link::register(
                 "code-expert-desktop",
                 move |request| {
                     dbg!(&request);
                     let _ = handle.emit_all("scheme-request-received", request);
-                    utils::window::open_app_window(&handle2);
+                    utils::window::open_app_window(&handle);
                 },
             )
                 .unwrap(/* If listening to the scheme is optional for your app, you don't want to unwrap here. */);
@@ -44,7 +49,7 @@ fn main() {
 
         .system_tray(system_tray::create_system_tray())
         .on_system_tray_event(system_tray::handle_system_tray_event)
-        .invoke_handler(tauri::generate_handler![greet])
+        .invoke_handler(tauri::generate_handler![greet, open_window])
         .build(tauri::generate_context!())
         .expect("error while running tauri application")
         .run(|app, event| match event {
