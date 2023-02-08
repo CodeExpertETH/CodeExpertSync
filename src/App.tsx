@@ -2,11 +2,18 @@ import { useState } from "react";
 import reactLogo from "./assets/react.svg";
 import { invoke } from "@tauri-apps/api/tauri";
 import "./App.css";
+import { listen } from "@tauri-apps/api/event";
+
 
 function App() {
   const [greetMsg, setGreetMsg] = useState("");
   const [name, setName] = useState("");
 
+  listen("scheme-request-received", async (event) => {
+    console.log(event);
+    // event.event is the event name (useful if you want to use a single callback fn for multiple event types)
+    // event.payload is the payload object
+  });
   async function greet() {
     // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
     setGreetMsg(await invoke("greet", { name }));
