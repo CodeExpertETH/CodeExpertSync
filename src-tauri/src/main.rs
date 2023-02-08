@@ -11,12 +11,6 @@ fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
 
-#[tauri::command]
-fn open_window(app_handle: tauri::AppHandle<Wry>) {
-    println!("open Window called");
-    system_tray::window_helpers::open_app_window(&app_handle);
-}
-
 fn main() {
     // prepare() checks if it's a single instance and tries to send the args otherwise.
     // It should always be the first line in your main function (with the exception of loggers or similar)
@@ -49,7 +43,7 @@ fn main() {
 
         .system_tray(system_tray::create_system_tray())
         .on_system_tray_event(system_tray::handle_system_tray_event)
-        .invoke_handler(tauri::generate_handler![greet, open_window])
+        .invoke_handler(tauri::generate_handler![greet])
         .build(tauri::generate_context!())
         .expect("error while running tauri application")
         .run(|app, event| match event {
