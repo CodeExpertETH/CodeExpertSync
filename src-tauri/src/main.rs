@@ -31,7 +31,6 @@ fn main() {
                         let _ = window.hide();
                     }
                     api.prevent_close();
-                    system_tray::set_toggle_name(app);
                 }
                 _ => {}
             },
