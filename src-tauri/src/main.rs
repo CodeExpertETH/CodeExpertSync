@@ -1,4 +1,4 @@
-use tauri::{Manager, Wry};
+use tauri::Manager;
 use tauri_plugin_positioner;
 use tauri_plugin_positioner::{Position, WindowExt};
 
@@ -20,6 +20,7 @@ fn main() {
 
     tauri::Builder::default()
         .plugin(tauri_plugin_positioner::init())
+        .plugin(tauri_plugin_store::Builder::default().build())
         .plugin(tauri_plugin_single_instance::init(|app, argv, cwd| {
             println!("{}, {argv:?}, {cwd}", app.package_info().name);
         }))
