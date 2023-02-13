@@ -1,8 +1,8 @@
 use tauri::{
-    AppHandle, CustomMenuItem, Manager, SystemTray, SystemTrayEvent, SystemTrayMenu,
-    SystemTrayMenuItem, Wry,
+    AppHandle, CustomMenuItem, SystemTray, SystemTrayEvent, SystemTrayMenu, SystemTrayMenuItem, Wry,
 };
-use tauri_plugin_positioner::{Position, WindowExt};
+
+use crate::utils;
 
 pub fn handle_system_tray_event(app: &AppHandle<Wry>, event: SystemTrayEvent) {
     match event {
@@ -10,20 +10,7 @@ pub fn handle_system_tray_event(app: &AppHandle<Wry>, event: SystemTrayEvent) {
             "quit" => {
                 std::process::exit(0);
             }
-            "open" => match app.get_window("main") {
-                Some(window) => match window.is_visible() {
-                    Ok(is_visible) => {
-                        if is_visible {
-                            let _ = window.set_focus();
-                        } else {
-                            let _ = window.show();
-                            let _ = window.move_window(Position::TopRight);
-                        }
-                    }
-                    _ => {}
-                },
-                _ => {}
-            },
+            "open" => utils::window::open_app_window(app),
             _ => {}
         },
         _ => {}
