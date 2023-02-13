@@ -1,8 +1,19 @@
 import * as option from './option';
-import {applicative, array, monoid, nonEmptyArray, number, ord, pipeable, record, semigroup, separated,} from 'fp-ts';
-import {flow, tuple} from 'fp-ts/function';
-import {Kind, Kind2, URIS, URIS2} from 'fp-ts/HKT';
-import {Refinement} from 'fp-ts/Refinement';
+import {
+  applicative,
+  array,
+  monoid,
+  nonEmptyArray,
+  number,
+  ord,
+  pipeable,
+  record,
+  semigroup,
+  separated,
+} from 'fp-ts';
+import { flow, tuple } from 'fp-ts/function';
+import { Kind, Kind2, URIS, URIS2 } from 'fp-ts/HKT';
+import { Refinement } from 'fp-ts/Refinement';
 
 export * from 'fp-ts/Array';
 

@@ -26,7 +26,9 @@ function App() {
     await store.save();
   }
 
-  void store.get<{ message: string}>('greet').then((val ) => setMessagePast(val ? val.message : ''));
+  void store
+    .get<{ message: string }>('greet')
+    .then((val) => setMessagePast(val ? val.message : ''));
 
   return (
     <div className="container">

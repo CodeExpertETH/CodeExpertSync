@@ -1,7 +1,7 @@
-import {flow, Lazy, pipe} from 'fp-ts/function';
+import { flow, Lazy, pipe } from 'fp-ts/function';
 import * as alternative from './alternative';
-import {Kind, Kind2, URIS, URIS2} from 'fp-ts/HKT';
-import {applicative, apply, option, pipeable} from 'fp-ts';
+import { Kind, Kind2, URIS, URIS2 } from 'fp-ts/HKT';
+import { applicative, apply, option, pipeable } from 'fp-ts';
 
 export * from 'fp-ts/Option';
 
@@ -9,8 +9,6 @@ export const sequenceS = apply.sequenceS(option.Apply);
 
 export const when = <A>(condition: boolean, a: Lazy<A>): option.Option<A> =>
   condition ? option.of(a()) : option.none;
-
-
 
 /**
  * Create an optional value depending on whether a condition is fulfilled.

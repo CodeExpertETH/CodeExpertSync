@@ -4,7 +4,6 @@ import { Kind, Kind2, URIS, URIS2 } from 'fp-ts/HKT';
 import { MonadThrow1, MonadThrow2 } from 'fp-ts/MonadThrow';
 import { Predicate } from 'fp-ts/Predicate';
 
-
 export function fromOption<F extends URIS2>(
   M: MonadThrow2<F>,
 ): <E>(e: Lazy<E>) => <A>(o: option.Option<A>) => Kind2<F, E, A>;
