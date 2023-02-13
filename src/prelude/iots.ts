@@ -5,7 +5,6 @@ import { formatValidationErrors } from 'io-ts-reporters';
 import * as string from './string';
 
 export * from 'io-ts';
-export * from 'io-ts/Reporter';
 export {
   date,
   nonEmptyArray,

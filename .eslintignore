@@ -1,0 +1,5 @@
+public/*
+.eslintrc.js
+dist/*
+src-tauri/*
+vite.config.ts

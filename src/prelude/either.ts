@@ -81,11 +81,6 @@ export const existsLeft = <E>(
   p: predicate.Predicate<E>,
 ): (<A>(e: either.Either<E, A>) => boolean) => flow(either.swap, either.exists(p));
 
-export const fromNullable =
-  <E>(e: Lazy<E>) =>
-  <A>(a: A): either.Either<E, NonNullable<A>> =>
-    a == null ? either.left(e()) : either.of(a);
-
 export const fromBoolean =
   <E, A>(onFalse: Lazy<E>, onTrue: Lazy<A>) =>
   (condition: boolean): either.Either<E, A> =>

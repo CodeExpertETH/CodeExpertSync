@@ -1,4 +1,4 @@
-import { iots, tagged } from './index';
+import { iots, tagged } from '../prelude';
 import { assert, describe, it } from 'vitest';
 import { either } from 'fp-ts';
 

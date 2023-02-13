@@ -1,5 +1,5 @@
 import { assert, describe, it } from 'vitest';
-import { pipe } from './index';
+import { pipe } from '../prelude';
 import { evolvePartial, renameKey } from './struct';
 
 describe('prelude/struct', () => {

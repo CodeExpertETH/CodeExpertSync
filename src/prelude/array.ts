@@ -1,20 +1,8 @@
 import * as option from './option';
-import {
-  applicative,
-  array,
-  monoid,
-  nonEmptyArray,
-  number,
-  ord,
-  pipeable,
-  predicate,
-  record,
-  semigroup,
-  separated,
-} from 'fp-ts';
-import { flow, tuple } from 'fp-ts/function';
-import { Kind, Kind2, URIS, URIS2 } from 'fp-ts/HKT';
-import { Refinement } from 'fp-ts/Refinement';
+import {applicative, array, monoid, nonEmptyArray, number, ord, pipeable, record, semigroup, separated,} from 'fp-ts';
+import {flow, tuple} from 'fp-ts/function';
+import {Kind, Kind2, URIS, URIS2} from 'fp-ts/HKT';
+import {Refinement} from 'fp-ts/Refinement';
 
 export * from 'fp-ts/Array';
 
@@ -79,12 +67,6 @@ export const lookupOrThrow = (i: number) =>
     array.lookup(i),
     option.getOrThrow(() => new Error(`Array index ${i} out of bounds`)),
   );
-
-/**
- * Tells if the provided predicate holds true at least for one element.
- */
-export const some = <A>(p: predicate.Predicate<A>): ((a: Array<A>) => a is NonEmptyArray<A>) =>
-  array.some(p);
 
 /**
  * Returns true iff the array contains exactly one element.

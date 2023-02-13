@@ -1,19 +1,15 @@
-import { either, io } from 'fp-ts';
-import { constFalse, flow, FunctionN, identity, Lazy, pipe } from 'fp-ts/function';
+import {either, io} from 'fp-ts';
+import {constFalse, flow, FunctionN, identity, pipe} from 'fp-ts/function';
 import * as Ap from 'fp-ts/Apply';
 import * as RA from 'fp-ts/ReadonlyArray';
 import * as Ei from 'fp-ts/Either';
 import * as TE from 'fp-ts/TaskEither';
-import { TaskEither } from 'fp-ts/TaskEither';
+import {TaskEither} from 'fp-ts/TaskEither';
 import * as eitherT from './eithert';
 import * as functor from './functor';
 import * as task from './task';
 
 export * from 'fp-ts/TaskEither';
-
-export const fromNullable: { <E, A>(e: Lazy<E>): (a: A) => TE.TaskEither<E, NonNullable<A>> } = (
-  e,
-) => TE.fromPredicate((a): a is NonNullable<$Unexpressable> => a != null, e);
 
 export const sequenceS = Ap.sequenceS(TE.ApplyPar);
 

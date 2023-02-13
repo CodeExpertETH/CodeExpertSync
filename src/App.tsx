@@ -12,7 +12,7 @@ function App() {
   const [name, setName] = useState('');
   const [messagePast, setMessagePast] = useState('');
 
-  listen('scheme-request-received', async (event) => {
+  void listen('scheme-request-received', (event) => {
     console.log(event);
     // event.event is the event name (useful if you want to use a single callback fn for multiple event types)
     // event.payload is the payload object
@@ -26,23 +26,20 @@ function App() {
     await store.save();
   }
 
-  store.get('greet').then((val) => {
-    // @ts-ignore
-    setMessagePast(val.message);
-  });
+  void store.get<{ message: string}>('greet').then((val ) => setMessagePast(val ? val.message : ''));
 
   return (
     <div className="container">
       <h1>Welcome to Tauri!</h1>
 
       <div className="row">
-        <a href="https://vitejs.dev" target="_blank">
+        <a href="https://vitejs.dev" target="_blank" rel="noreferrer">
           <img src="/vite.svg" className="logo vite" alt="Vite logo" />
         </a>
-        <a href="https://tauri.app" target="_blank">
+        <a href="https://tauri.app" target="_blank" rel="noreferrer">
           <img src="/tauri.svg" className="logo tauri" alt="Tauri logo" />
         </a>
-        <a href="https://reactjs.org" target="_blank">
+        <a href="https://reactjs.org" target="_blank" rel="noreferrer">
           <img src={reactLogo} className="logo react" alt="React logo" />
         </a>
       </div>

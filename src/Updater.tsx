@@ -5,7 +5,7 @@ import { listen } from '@tauri-apps/api/event';
 function Updater() {
   const [getValue, setValue] = useState('');
 
-  listen('tauri://update-status', function (res) {
+  void listen('tauri://update-status', function (res) {
     console.log(res);
     setValue(JSON.stringify(res.payload));
   });

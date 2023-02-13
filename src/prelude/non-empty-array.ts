@@ -1,11 +1,8 @@
-import { FunctionN, flow, identity, pipe } from 'fp-ts/function';
+import {FunctionN, identity, pipe} from 'fp-ts/function';
 import * as A from 'fp-ts/Array';
 import * as NEA from 'fp-ts/NonEmptyArray';
 import * as eq from 'fp-ts/Eq';
-import * as option from 'fp-ts/Option';
-import * as ord from 'fp-ts/Ord';
 import * as predicate from 'fp-ts/Predicate';
-import * as refinement from 'fp-ts/Refinement';
 
 export * from 'fp-ts/NonEmptyArray';
 
@@ -41,21 +38,21 @@ export const groupByKey =
       NEA.map((a) => f(a, k(NEA.head(a)))),
     );
 
-/**
- * {@link NEA.groupSort} was deprecated, this is our own implementation of this useful combinator
- */
-export const groupSort: <A>(
-  ord: ord.Ord<A>,
-) => (as: NonEmptyArray<A>) => NonEmptyArray<NonEmptyArray<A>> = (ord) => (as) =>
-  NEA.group(ord)(NEA.sort(ord)(as));
-
-/**
- * {@link NEA.filter} was deprecated, this is our own implementation of this useful combinator.
- */
-export const filter: {
-  <A, B extends A>(r: refinement.Refinement<A, B>): (
-    as: NonEmptyArray<A>,
-  ) => option.Option<NonEmptyArray<B>>;
-  <A>(p: predicate.Predicate<A>): (as: NonEmptyArray<A>) => option.Option<NonEmptyArray<A>>;
-} = <A, B extends A>(p: predicate.Predicate<A> | refinement.Refinement<A, B>) =>
-  flow(A.filter(p), NEA.fromArray);
+// /**
+//  * {@link NEA.groupSort} was deprecated, this is our own implementation of this useful combinator
+//  */
+// export const groupSort: <A>(
+//   ord: ord.Ord<A>,
+// ) => (as: NonEmptyArray<A>) => NonEmptyArray<NonEmptyArray<A>> = (ord) => (as) =>
+//   NEA.group(ord)(NEA.sort(ord)(as));
+//
+// /**
+//  * {@link NEA.filter} was deprecated, this is our own implementation of this useful combinator.
+//  */
+// export const filter: {
+//   <A, B extends A>(r: refinement.Refinement<A, B>): (
+//     as: NonEmptyArray<A>,
+//   ) => option.Option<NonEmptyArray<B>>;
+//   <A>(p: predicate.Predicate<A>): (as: NonEmptyArray<A>) => option.Option<NonEmptyArray<A>>;
+// } = <A, B extends A>(p: predicate.Predicate<A> | refinement.Refinement<A, B>) =>
+//   flow(A.filter(p), NEA.fromArray);

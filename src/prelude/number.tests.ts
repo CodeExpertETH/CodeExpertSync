@@ -1,5 +1,5 @@
 import { assert, describe, it } from 'vitest';
-import fc from 'fast-check';
+import { fc } from "../utils/test";
 import {
   clampUnitInterval,
   getEqAbsolute,

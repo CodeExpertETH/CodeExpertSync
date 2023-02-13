@@ -1,7 +1,7 @@
 /* eslint-disable no-lone-blocks */
 
 import { assert, describe, it } from 'vitest';
-import { tagged } from './index';
+import { tagged } from '../prelude';
 import { assert as Assert, IsExact } from 'conditional-type-checks';
 import { pipe } from 'fp-ts/function';
 import { option } from 'fp-ts';

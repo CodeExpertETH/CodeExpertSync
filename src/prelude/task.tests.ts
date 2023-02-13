@@ -1,4 +1,4 @@
-import { task } from './index';
+import * as task from './task';
 import { describe, it } from 'vitest';
 
 describe('task', () => {

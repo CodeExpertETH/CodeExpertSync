@@ -3,7 +3,6 @@ import { constant, flow, pipe } from 'fp-ts/function';
 import * as N from 'fp-ts/number';
 import { Brand } from '../utils/type-utils';
 import * as iots from 'io-ts';
-import * as t from 'io-ts';
 
 export * from 'fp-ts/number';
 
@@ -76,8 +75,8 @@ export interface UnitIntervalBrand {
 
 export type UnitInterval = iots.Branded<number, UnitIntervalBrand>;
 
-export const unitInterval = t.brand(
-  t.number,
+export const unitInterval = iots.brand(
+  iots.number,
   (n): n is UnitInterval => ord.between(N.Ord)(0, 1)(n),
   'UnitInterval',
 );

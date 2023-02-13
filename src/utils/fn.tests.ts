@@ -4,7 +4,7 @@
 import { assert, describe, it } from 'vitest';
 import * as fn from './fn';
 import { isNonEmptyRecord, isOneOf } from './fn';
-import fc from 'fast-check';
+import { fc } from './test';
 import { pipe } from '../prelude';
 
 describe('fn.js', () => {

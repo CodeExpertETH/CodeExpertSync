@@ -4,7 +4,10 @@ import App from './App';
 import './style.css';
 
 const container = document.getElementById('root');
-const root = createRoot(container!);
+if (!container) {
+    throw new Error('Container not found!')
+}
+const root = createRoot(container);
 root.render(
   <React.StrictMode>
     <App />
