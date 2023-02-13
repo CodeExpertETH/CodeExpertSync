@@ -2,6 +2,8 @@
 
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import GithubActionsReporter from 'vitest-github-actions-reporter'
+
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -30,6 +32,9 @@ export default defineConfig({
     /* for example, use global to avoid globals imports (describe, test, expect): */
     // globals: true,
     include: ["**/*.tests.{ts,tsx}"],
+    reporters: process.env.GITHUB_ACTIONS
+        ? ['default', new GithubActionsReporter()]
+        : 'default'
   },
   define: {
     'process.env': {}
