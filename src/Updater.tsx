@@ -1,11 +1,11 @@
-import { useState } from "react";
-import "./App.css";
-import { listen } from "@tauri-apps/api/event";
+import React, { useState } from 'react';
+import './App.css';
+import { listen } from '@tauri-apps/api/event';
 
 function Updater() {
-  const [getValue, setValue] = useState("");
+  const [getValue, setValue] = useState('');
 
-  listen("tauri://update-status", function (res) {
+  void listen('tauri://update-status', function (res) {
     console.log(res);
     setValue(JSON.stringify(res.payload));
   });

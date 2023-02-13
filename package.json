@@ -6,24 +6,79 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
+    "test": "vitest",
+    "test:ci": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "storybook": "storybook dev -p 6006",
     "tauri": "tauri",
-    "tsc": "tsc"
+    "prettier": "prettier --cache  --cache-strategy content --write \"./src/**/*.{js,jsx,ts,tsx,json,less,html}\"",
+    "prettier:check": "prettier --cache  --cache-strategy content --check \"./src/**/*.{js,jsx,ts,tsx,json,less,html}\"",
+    "tsc": "tsc",
+    "lint": "eslint . --cache  --cache-strategy content --ext .js,.jsx,.ts,.tsx",
+    "build-storybook": "storybook build"
   },
   "license": "MIT",
   "devDependencies": {
+    "@code-expert/configs-typescript": "^0.2.3",
+    "@code-expert/eslint-config-prettier-typescript-react": "^0.6.5",
+    "@code-expert/prettier-config": "^0.1.0",
+    "@storybook/addon-essentials": "^7.0.0-beta.46",
+    "@storybook/addon-interactions": "^7.0.0-beta.46",
+    "@storybook/addon-links": "^7.0.0-beta.46",
+    "@storybook/blocks": "^7.0.0-beta.46",
+    "@storybook/react": "^7.0.0-beta.46",
+    "@storybook/react-vite": "^7.0.0-beta.46",
+    "@storybook/testing-library": "^0.0.14-next.1",
+    "@tauri-apps/cli": "^1.2.2",
     "@types/node": "^18.7.10",
     "@types/react": "^18.0.15",
     "@types/react-dom": "^18.0.6",
     "@vitejs/plugin-react": "^3.0.0",
+    "eslint": "^8.34.0",
+    "prettier": "^2.8.4",
+    "prop-types": "^15.8.1",
+    "pure-rand": "^6.0.0",
+    "storybook": "^7.0.0-beta.46",
     "typescript": "^4.6.4",
     "vite": "^4.0.0",
-    "@tauri-apps/cli": "^1.2.2"
+    "vitest-github-actions-reporter": "^0.9.0"
   },
   "dependencies": {
+    "@ant-design/cssinjs": "^1.5.6",
     "@ant-design/icons": "git+https://github.com/CodeExpertETH/antd-fa-icons.git#effd794",
+    "@fortawesome/fontawesome-svg-core": "^6.2.1",
+    "@fortawesome/free-brands-svg-icons": "^6.2.1",
+    "@fortawesome/free-regular-svg-icons": "^6.2.1",
+    "@fortawesome/free-solid-svg-icons": "^6.2.1",
+    "@tauri-apps/api": "^1.2.0",
     "antd": "^5.2.0",
+    "conditional-type-checks": "^1.0.6",
+    "copy-to-clipboard": "^3.3.3",
+    "date-fns": "^2.29.3",
+    "eslint-plugin-storybook": "^0.6.10",
+    "fast-check": "^3.6.3",
+    "fp-ts": "^2.13.1",
+    "fp-ts-laws": "^0.3.0",
+    "io-ts": "^2.2.20",
+    "io-ts-reporters": "^2.0.1",
+    "io-ts-types": "^0.5.19",
+    "monocle-ts": "^2.3.13",
+    "nanoid": "^4.0.1",
+    "newtype-ts": "^0.3.5",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "@tauri-apps/api": "^1.2.0"
-  }
+    "react-fontawesome-svg-icon": "^1.1.2",
+    "tauri-plugin-store-api": "github:tauri-apps/tauri-plugin-store",
+    "vite-plugin-eslint": "^1.8.1",
+    "vitest": "^0.28.4"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --ext .js,.jsx,.ts,.tsx"
+    ],
+    "*.(js|jsx|html|css|md|mts|ts|tsx|less|json)": [
+      "prettier --write"
+    ]
+  },
+  "prettier": "@code-expert/prettier-config"
 }

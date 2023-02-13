@@ -1,9 +1,14 @@
+/// <reference types="vitest" />
+
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import eslint from 'vite-plugin-eslint';
+import GithubActionsReporter from 'vitest-github-actions-reporter'
+
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), eslint()],
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   // prevent vite from obscuring rust errors
@@ -24,4 +29,15 @@ export default defineConfig({
     // produce sourcemaps for debug builds
     sourcemap: !!process.env.TAURI_DEBUG,
   },
+  test: {
+    /* for example, use global to avoid globals imports (describe, test, expect): */
+    // globals: true,
+    include: ["**/*.tests.{ts,tsx}"],
+    reporters: process.env.GITHUB_ACTIONS
+        ? ['default', new GithubActionsReporter()]
+        : 'default'
+  },
+  define: {
+    'process.env': {}
+  }
 });

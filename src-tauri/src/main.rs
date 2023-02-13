@@ -1,4 +1,4 @@
-use tauri::{Manager, Wry};
+use tauri::Manager;
 use tauri_plugin_positioner;
 use tauri_plugin_positioner::{Position, WindowExt};
 
@@ -20,19 +20,19 @@ fn main() {
 
     tauri::Builder::default()
         .plugin(tauri_plugin_positioner::init())
+        .plugin(tauri_plugin_store::Builder::default().build())
         .plugin(tauri_plugin_single_instance::init(|app, argv, cwd| {
             println!("{}, {argv:?}, {cwd}", app.package_info().name);
         }))
         .setup(|app| {
             // This could be called right after prepare() but then you don't have access to tauri APIs
             let handle = app.handle();
-            let handle2 = app.handle();
             tauri_plugin_deep_link::register(
                 "code-expert-desktop",
                 move |request| {
                     dbg!(&request);
                     let _ = handle.emit_all("scheme-request-received", request);
-                    utils::window::open_app_window(&handle2);
+                    utils::window::open_app_window(&handle);
                 },
             )
                 .unwrap(/* If listening to the scheme is optional for your app, you don't want to unwrap here. */);
