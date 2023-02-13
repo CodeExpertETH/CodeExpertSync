@@ -1,17 +1,17 @@
-import React from "react";
-import { ConfigProvider, theme } from "antd";
-import { AliasToken, ColorPalettes } from "antd/es/theme/interface";
-import { ThemeConfig } from "antd/es/config-provider/context";
-import formatToken from "antd/es/theme/util/alias";
-import { ColorScheme, isLight } from "./colorScheme";
-import { PresetColors } from "antd/es/theme/internal";
-import { record } from "../../../prelude";
-import { omit } from "../../../utils/fn";
+import React from 'react';
+import { ConfigProvider, theme } from 'antd';
+import { AliasToken, ColorPalettes } from 'antd/es/theme/interface';
+import { ThemeConfig } from 'antd/es/config-provider/context';
+import formatToken from 'antd/es/theme/util/alias';
+import { ColorScheme, isLight } from './colorScheme';
+import { PresetColors } from 'antd/es/theme/internal';
+import { record } from '../../../prelude';
+import { omit } from '../../../utils/fn';
 
 type PresetColorTokens = { [K in (typeof PresetColors)[number]]: null };
 const presetColorTokens: PresetColorTokens = PresetColors.reduce(
   (acc, name) => ((acc[name] = null), acc),
-  {} as PresetColorTokens
+  {} as PresetColorTokens,
 );
 
 /**
@@ -62,31 +62,28 @@ export interface DesignTokens extends FilteredAliasToken {
   linkFocusDecoration: string;
 }
 
-const deriveDesignTokens = (
-  scheme: ColorScheme,
-  tokens: AliasToken
-): DesignTokens => {
+const deriveDesignTokens = (scheme: ColorScheme, tokens: AliasToken): DesignTokens => {
   // Filter out internal keys that should not appear in the types and documentation. This is a bit
   // of a hackery because the values are in the record but not exposed on the type level.
   const filteredTokens = omit(
     tokens as $Unexpressable,
-    record.keys(internalTokenKeys)
+    record.keys(internalTokenKeys),
   ) as FilteredAliasToken;
 
   return {
     ...filteredTokens,
-    colorIdeBg: isLight(scheme) ? "#f0f0f0" : "#22231d",
-    colorIdeBgButton: isLight(scheme) ? "#ffffff" : "#8c8c8c",
-    colorIdeBgButtonHover: isLight(scheme) ? "#ffffff" : "#595959",
-    colorIdeButtonText: isLight(scheme) ? "#22231d" : "#d2d2d2",
-    colorIdeButtonTextHover: isLight(scheme) ? tokens.colorPrimary : "#ffffff",
-    colorIdeEditorBg: isLight(scheme) ? "#ffffff" : "#272822",
-    colorIdeText: isLight(scheme) ? "#22231d" : "#d2d2d2",
-    colorIdeSelection: isLight(scheme) ? tokens.colorPrimaryBgHover : "#4a4a40",
-    colorMarkdownBg: isLight(scheme) ? "#ffffff" : "#e7e8e1",
-    colorMarkdownText: "rgba(0, 0, 0, 0.88)",
-    colorMarkdownBorder: "rgba(0, 0, 0, 0.15)",
-    fontSizeXS: "10px",
+    colorIdeBg: isLight(scheme) ? '#f0f0f0' : '#22231d',
+    colorIdeBgButton: isLight(scheme) ? '#ffffff' : '#8c8c8c',
+    colorIdeBgButtonHover: isLight(scheme) ? '#ffffff' : '#595959',
+    colorIdeButtonText: isLight(scheme) ? '#22231d' : '#d2d2d2',
+    colorIdeButtonTextHover: isLight(scheme) ? tokens.colorPrimary : '#ffffff',
+    colorIdeEditorBg: isLight(scheme) ? '#ffffff' : '#272822',
+    colorIdeText: isLight(scheme) ? '#22231d' : '#d2d2d2',
+    colorIdeSelection: isLight(scheme) ? tokens.colorPrimaryBgHover : '#4a4a40',
+    colorMarkdownBg: isLight(scheme) ? '#ffffff' : '#e7e8e1',
+    colorMarkdownText: 'rgba(0, 0, 0, 0.88)',
+    colorMarkdownBorder: 'rgba(0, 0, 0, 0.15)',
+    fontSizeXS: '10px',
     linkDecoration: tokens.linkDecoration as unknown as string,
     linkHoverDecoration: tokens.linkHoverDecoration as unknown as string,
     linkFocusDecoration: tokens.linkFocusDecoration as unknown as string,
@@ -94,9 +91,7 @@ const deriveDesignTokens = (
 };
 
 const themeConfig = (colorScheme: ColorScheme): ThemeConfig => ({
-  algorithm: isLight(colorScheme)
-    ? theme.defaultAlgorithm
-    : theme.darkAlgorithm,
+  algorithm: isLight(colorScheme) ? theme.defaultAlgorithm : theme.darkAlgorithm,
   token: {
     fontFamily: '"Open Sans", sans-serif',
   },
@@ -104,14 +99,10 @@ const themeConfig = (colorScheme: ColorScheme): ThemeConfig => ({
 
 // -------------------------------------------------------------------------------------------------
 
-type StartsWith<A extends string, P extends string> = A extends `${P}${string}`
-  ? A
-  : never;
+type StartsWith<A extends string, P extends string> = A extends `${P}${string}` ? A : never;
 
 export type ColorTokens = {
-  [K in
-    | keyof ColorPalettes
-    | StartsWith<keyof DesignTokens, "color">]: DesignTokens[K];
+  [K in keyof ColorPalettes | StartsWith<keyof DesignTokens, 'color'>]: DesignTokens[K];
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -124,11 +115,8 @@ export interface Theme {
 const defaultTokens = theme.defaultAlgorithm(theme.defaultConfig.token);
 
 const ThemeContext = React.createContext<Theme>({
-  colorScheme: "light",
-  tokens: deriveDesignTokens(
-    "light",
-    formatToken({ ...defaultTokens, override: {} })
-  ),
+  colorScheme: 'light',
+  tokens: deriveDesignTokens('light', formatToken({ ...defaultTokens, override: {} })),
 });
 
 const DerivedThemeContext = ({
@@ -136,22 +124,16 @@ const DerivedThemeContext = ({
   children,
 }: React.PropsWithChildren<{ colorScheme: ColorScheme }>) => {
   const tokens = deriveDesignTokens(colorScheme, theme.useToken().token);
-  return (
-    <ThemeContext.Provider value={{ colorScheme, tokens }}>
-      {children}
-    </ThemeContext.Provider>
-  );
+  return <ThemeContext.Provider value={{ colorScheme, tokens }}>{children}</ThemeContext.Provider>;
 };
 
 export const ThemeProvider = React.memo<{
   children?: React.ReactNode;
   colorScheme?: ColorScheme;
-}>(function ThemeProvider({ children, colorScheme = "light" }) {
+}>(function ThemeProvider({ children, colorScheme = 'light' }) {
   return (
     <ConfigProvider theme={themeConfig(colorScheme)}>
-      <DerivedThemeContext colorScheme={colorScheme}>
-        {children}
-      </DerivedThemeContext>
+      <DerivedThemeContext colorScheme={colorScheme}>{children}</DerivedThemeContext>
     </ConfigProvider>
   );
 });

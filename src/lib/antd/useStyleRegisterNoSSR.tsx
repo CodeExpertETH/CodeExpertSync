@@ -1,27 +1,25 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
-import hash from "@emotion/hash";
+import hash from '@emotion/hash';
 // eslint-disable-next-line import/no-extraneous-dependencies
-import canUseDom from "rc-util/lib/Dom/canUseDom";
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { removeCSS, updateCSS } from "rc-util/lib/Dom/dynamicCSS";
-import React from "react";
-import { Theme } from "@ant-design/cssinjs";
+import { removeCSS, updateCSS } from 'rc-util/lib/Dom/dynamicCSS';
+import React from 'react';
+import { Theme } from '@ant-design/cssinjs';
 import StyleContext, {
-  ATTR_DEV_CACHE_PATH,
   ATTR_MARK,
   ATTR_TOKEN,
   CSS_IN_JS_INSTANCE,
   CSS_IN_JS_INSTANCE_ID,
-} from "@ant-design/cssinjs/es/StyleContext";
-import useGlobalCache from "@ant-design/cssinjs/es/hooks/useGlobalCache";
+} from '@ant-design/cssinjs/es/StyleContext';
+import useGlobalCache from '@ant-design/cssinjs/es/hooks/useGlobalCache';
 import {
-  parseStyle,
-  normalizeStyle,
   CSSInterpolation,
-} from "@ant-design/cssinjs/es/hooks/useStyleRegister";
+  normalizeStyle,
+  parseStyle,
+} from '@ant-design/cssinjs/es/hooks/useStyleRegister';
 
 function uniqueHash(path: (string | number)[], styleStr: string) {
-  return hash(`${path.join("%")}${styleStr}`);
+  return hash(`${path.join('%')}${styleStr}`);
 }
 
 // Global effect style will mount once and not removed
@@ -51,16 +49,11 @@ export function useStyleRegisterNoSSR(
     hashId?: string;
     layer?: string;
   },
-  styleFn: () => CSSInterpolation
+  styleFn: () => CSSInterpolation,
 ): string {
   const { token, path, hashId, layer } = info;
-  const {
-    autoClear,
-    mock,
-    hashPriority,
-    /* FIX #2 container, */ transformers,
-    linters,
-  } = React.useContext(StyleContext);
+  const { autoClear, hashPriority, /* FIX #2 container, */ transformers, linters } =
+    React.useContext(StyleContext);
   const container = document.body; // FIX #2
   const tokenKey = token._tokenKey as string;
 
@@ -70,7 +63,7 @@ export function useStyleRegisterNoSSR(
   const isMergedClientSide = true;
 
   useGlobalCache(
-    "style",
+    'style',
     fullPath,
     // Create cache if needed
     () => {
@@ -79,7 +72,7 @@ export function useStyleRegisterNoSSR(
         hashId,
         hashPriority,
         layer,
-        path: path.join("-"),
+        path: path.join('-'),
         transformers,
         linters,
       });
@@ -89,7 +82,7 @@ export function useStyleRegisterNoSSR(
       if (isMergedClientSide) {
         const style = updateCSS(styleStr, styleId, {
           mark: ATTR_MARK,
-          prepend: "queue",
+          prepend: 'queue',
           attachTo: container as $FixMe,
         });
 
@@ -104,15 +97,11 @@ export function useStyleRegisterNoSSR(
             globalEffectStyleKeys.add(effectKey);
 
             // Inject
-            updateCSS(
-              normalizeStyle(effectStyle[effectKey]),
-              `_effect-${effectKey}`,
-              {
-                mark: ATTR_MARK,
-                prepend: "queue",
-                attachTo: container as $FixMe,
-              }
-            );
+            updateCSS(normalizeStyle(effectStyle[effectKey]), `_effect-${effectKey}`, {
+              mark: ATTR_MARK,
+              prepend: 'queue',
+              attachTo: container as $FixMe,
+            });
           }
         });
       }
@@ -124,8 +113,8 @@ export function useStyleRegisterNoSSR(
       if (fromHMR || autoClear) {
         removeCSS(styleId, { mark: ATTR_MARK });
       }
-    }
+    },
   );
 
-  return [hashId, ...path].filter(Boolean).join(" "); // FIX #1
+  return [hashId, ...path].filter(Boolean).join(' '); // FIX #1
 }

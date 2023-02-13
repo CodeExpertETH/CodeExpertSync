@@ -1,8 +1,8 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { TinyColor } from "@ctrl/tinycolor";
-import React from "react";
-import { Table, Typography as AntdTypography } from "antd";
-import { PresetColors } from "antd/es/theme/internal";
+import { TinyColor } from '@ctrl/tinycolor';
+import React from 'react';
+import { Table, Typography as AntdTypography } from 'antd';
+import { PresetColors } from 'antd/es/theme/internal';
 import {
   adt,
   array,
@@ -16,37 +16,36 @@ import {
   record,
   string,
   tuple,
-} from "../../../prelude";
-import { copyToClipboard } from "../../helper/copyToClipboard";
-import { isLight } from "./colorScheme";
+} from '../../../prelude';
+import { copyToClipboard } from '../../helper/copyToClipboard';
+import { isLight } from './colorScheme';
 
-import { internalTokenKeys, ThemeProvider, useTheme } from "./theme";
-import { assert } from "../../../prelude/monadThrow";
+import { internalTokenKeys, ThemeProvider, useTheme } from './theme';
 
 const { Text } = AntdTypography;
 
 export default {
-  title: "Foundation/Theme",
+  title: 'Foundation/Theme',
 };
 
 export const Appearance = () => (
   <ThemeProvider>
-    <TokenTable group={"Appearance"} />
+    <TokenTable group={'Appearance'} />
   </ThemeProvider>
 );
 
 export const Colors = () => (
   <ThemeProvider>
-    <TokenTable group={"Colors"} />
+    <TokenTable group={'Colors'} />
   </ThemeProvider>
 );
 
 export const ColorPalettes = () => (
   <div>
-    <ThemeProvider colorScheme={"light"}>
+    <ThemeProvider colorScheme={'light'}>
       <ColorPalette />
     </ThemeProvider>
-    <ThemeProvider colorScheme={"dark"}>
+    <ThemeProvider colorScheme={'dark'}>
       <ColorPalette />
     </ThemeProvider>
   </div>
@@ -54,25 +53,25 @@ export const ColorPalettes = () => (
 
 export const Controls = () => (
   <ThemeProvider>
-    <TokenTable group={"Controls"} />
+    <TokenTable group={'Controls'} />
   </ThemeProvider>
 );
 
 export const Layout = () => (
   <ThemeProvider>
-    <TokenTable group={"Layout"} />
+    <TokenTable group={'Layout'} />
   </ThemeProvider>
 );
 
 export const Sizes = () => (
   <ThemeProvider>
-    <TokenTable group={"Sizes"} />
+    <TokenTable group={'Sizes'} />
   </ThemeProvider>
 );
 
 export const Typography = () => (
   <ThemeProvider>
-    <TokenTable group={"Typography"} />
+    <TokenTable group={'Typography'} />
   </ThemeProvider>
 );
 
@@ -91,10 +90,10 @@ const useTokenSpecs = (filteredGroup: Group): Array<TokenSpec> => {
     array.filterMap(([name, value]) =>
       pipe(
         groupFromToken(name),
-        option.map((group) => ({ name, group, value }))
-      )
+        option.map((group) => ({ name, group, value })),
+      ),
     ),
-    array.filter(({ group }) => group === filteredGroup)
+    array.filter(({ group }) => group === filteredGroup),
   );
 };
 
@@ -105,13 +104,13 @@ const TokenTable = ({ group }: { group: Group }) => (
     dataSource={useTokenSpecs(group)}
     columns={[
       {
-        title: "Token name",
+        title: 'Token name',
         render: (_, { name }) => <Text copyable>{name}</Text>,
-        defaultSortOrder: "ascend",
+        defaultSortOrder: 'ascend',
         sorter: ordTokenName.compare,
       },
       {
-        title: "Value",
+        title: 'Value',
         render: (_, spec) => getRenderer(spec),
         sorter: ordTokenValue,
       },
@@ -121,49 +120,47 @@ const TokenTable = ({ group }: { group: Group }) => (
 
 const ColorPalette = () => {
   const { colorScheme, tokens } = useTheme();
-  const paletteSpecs = useTokenSpecs("ColorPalettes");
+  const paletteSpecs = useTokenSpecs('ColorPalettes');
   if (!array.isNonEmpty(paletteSpecs)) {
     return null;
   }
   const palettes = pipe(
     paletteSpecs,
     nonEmptyArray.group(eqTokenName),
-    nonEmptyArray.map(nonEmptyArray.sort(ordTokenName))
+    nonEmptyArray.map(nonEmptyArray.sort(ordTokenName)),
   );
   return (
     <div
       style={{
-        background: isLight(colorScheme) ? "white" : "black",
+        background: isLight(colorScheme) ? 'white' : 'black',
         padding: 64,
-        display: "grid",
-        gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr",
-        gap: "48px 24px",
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr',
+        gap: '48px 24px',
       }}
     >
       {palettes.map((palette) => (
         <div
           key={palette[0].name}
-          style={{ borderRadius: tokens.borderRadius, overflow: "hidden" }}
+          style={{ borderRadius: tokens.borderRadius, overflow: 'hidden' }}
         >
           {palette.map(({ name, value }) => {
-            const colorIndex = +name.split("-")[1];
-            const invertText = isLight(colorScheme)
-              ? colorIndex > 5
-              : colorIndex <= 5;
+            const colorIndex = +name.split('-')[1];
+            const invertText = isLight(colorScheme) ? colorIndex > 5 : colorIndex <= 5;
             return (
               // eslint-disable-next-line jsx-a11y/click-events-have-key-events,jsx-a11y/no-static-element-interactions
               <div
                 key={name}
                 style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
                   height: 44,
-                  width: "100%",
+                  width: '100%',
                   padding: 8,
                   background: value,
-                  color: invertText ? "white" : "black",
-                  cursor: "pointer",
+                  color: invertText ? 'white' : 'black',
+                  cursor: 'pointer',
                 }}
                 onClick={copyToClipboard(String(value))}
               >
@@ -182,24 +179,21 @@ const ColorPalette = () => {
 // Renderers
 
 const getRenderer = ({ name, value }: TokenSpec) => {
-  if (string.isString(value) && startsWithOneOf("boxShadow")(name))
+  if (string.isString(value) && startsWithOneOf('boxShadow')(name))
     return <BoxShadowRenderer value={value} />;
 
-  if (string.isString(value) && startsWithOneOf("#", "rgba")(value))
+  if (string.isString(value) && startsWithOneOf('#', 'rgba')(value))
     return <ColorRenderer color={value} />;
 
-  if (number.isNumber(value) && startsWithOneOf("borderRadius")(name))
+  if (number.isNumber(value) && startsWithOneOf('borderRadius')(name))
     return <RadiusRenderer radius={value} />;
 
-  if (number.isNumber(value) && startsWithOneOf("margin", "padding")(name))
+  if (number.isNumber(value) && startsWithOneOf('margin', 'padding')(name))
     return (
-      <MarginRenderer
-        type={startsWithOneOf("margin")(name) ? "margin" : "padding"}
-        value={value}
-      />
+      <MarginRenderer type={startsWithOneOf('margin')(name) ? 'margin' : 'padding'} value={value} />
     );
 
-  if (number.isNumber(value) && startsWithOneOf("fontSize")(name))
+  if (number.isNumber(value) && startsWithOneOf('fontSize')(name))
     return <FontSizeRenderer fontSize={value} />;
 
   return <div>{value}</div>;
@@ -208,11 +202,11 @@ const getRenderer = ({ name, value }: TokenSpec) => {
 const BoxShadowRenderer = ({ value }: { value: string }) => {
   const { tokens } = useTheme();
   return (
-    <div style={{ display: "flex", gap: tokens.sizeMS }}>
+    <div style={{ display: 'flex', gap: tokens.sizeMS }}>
       <div
         style={{
-          display: "grid",
-          placeItems: "center",
+          display: 'grid',
+          placeItems: 'center',
           background: tokens.colorBgLayout,
           padding: tokens.padding,
         }}
@@ -228,13 +222,13 @@ const BoxShadowRenderer = ({ value }: { value: string }) => {
       </div>
       <Text copyable={{ text: value }}>
         {pipe(
-          value.split("),").map((x) => <>{x}</>),
+          value.split('),').map((x) => <>{x}</>),
           array.intersperse(
             <>
               ),
               <br />
-            </>
-          )
+            </>,
+          ),
         )}
       </Text>
     </div>
@@ -244,14 +238,14 @@ const BoxShadowRenderer = ({ value }: { value: string }) => {
 const ColorRenderer = ({ color }: { color: string }) => {
   const { tokens } = useTheme();
   return (
-    <div style={{ display: "flex", gap: tokens.sizeMS }}>
-      <div style={{ position: "relative", width: tokens.sizeXL }}>
+    <div style={{ display: 'flex', gap: tokens.sizeMS }}>
+      <div style={{ position: 'relative', width: tokens.sizeXL }}>
         <div
           style={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
             background: color,
             height: tokens.sizeXL,
             width: tokens.sizeXL,
@@ -270,29 +264,21 @@ const ColorRenderer = ({ color }: { color: string }) => {
 const FontSizeRenderer = ({ fontSize }: { fontSize: number }) => {
   const { tokens } = useTheme();
   return (
-    <div
-      style={{ display: "flex", gap: tokens.sizeMS, alignItems: "baseline" }}
-    >
+    <div style={{ display: 'flex', gap: tokens.sizeMS, alignItems: 'baseline' }}>
       <div style={{ fontSize }}>Code Expert</div>
       <Text copyable={{ text: `${fontSize}px` }}>{fontSize}px</Text>
     </div>
   );
 };
 
-const MarginRenderer = ({
-  type,
-  value,
-}: {
-  type: "margin" | "padding";
-  value: number;
-}) => {
+const MarginRenderer = ({ type, value }: { type: 'margin' | 'padding'; value: number }) => {
   const { tokens } = useTheme();
   return (
-    <div style={{ display: "flex", gap: tokens.sizeMS }}>
+    <div style={{ display: 'flex', gap: tokens.sizeMS }}>
       <div
         style={{
-          boxSizing: "content-box",
-          background: type === "margin" ? tokens["gold-4"] : tokens["purple-4"],
+          boxSizing: 'content-box',
+          background: type === 'margin' ? tokens['gold-4'] : tokens['purple-4'],
           borderLeft: `${tokens.sizeMD}px solid ${tokens.colorInfoBg}`,
           width: value,
           height: tokens.sizeMD,
@@ -306,11 +292,11 @@ const MarginRenderer = ({
 const RadiusRenderer = ({ radius }: { radius: number }) => {
   const { tokens } = useTheme();
   return (
-    <div style={{ display: "flex", gap: tokens.sizeMS }}>
+    <div style={{ display: 'flex', gap: tokens.sizeMS }}>
       <div
         style={{
-          borderTop: "3px solid",
-          borderRight: "3px solid",
+          borderTop: '3px solid',
+          borderRight: '3px solid',
           borderColor: tokens.colorBorder,
           background: tokens.colorInfoBg,
           width: tokens.sizeMD,
@@ -341,25 +327,19 @@ type Group = adt.TypeOfKeys<typeof foldGroup>;
 
 const groupMatchers: Record<Group, (_: string) => boolean> = {
   Appearance: startsWithOneOf(
-    "boxShadow",
-    "lineType",
-    "lineWidth",
-    "motion",
-    "opacity",
-    "borderRadius"
+    'boxShadow',
+    'lineType',
+    'lineWidth',
+    'motion',
+    'opacity',
+    'borderRadius',
   ),
-  Colors: startsWithOneOf("color"),
+  Colors: startsWithOneOf('color'),
   ColorPalettes: string.startsWithOneOf(...PresetColors.map((x) => `${x}-`)),
-  Controls: startsWithOneOf("control"),
-  Layout: startsWithOneOf("margin", "padding", "screen", "zIndex"),
-  Sizes: startsWithOneOf("size"),
-  Typography: startsWithOneOf(
-    "fontFamily",
-    "fontSize",
-    "fontWeight",
-    "lineHeight",
-    "link"
-  ),
+  Controls: startsWithOneOf('control'),
+  Layout: startsWithOneOf('margin', 'padding', 'screen', 'zIndex'),
+  Sizes: startsWithOneOf('size'),
+  Typography: startsWithOneOf('fontFamily', 'fontSize', 'fontWeight', 'lineHeight', 'link'),
 };
 
 const groupFromToken = (name: string): option.Option<Group> =>
@@ -369,11 +349,11 @@ const groupFromToken = (name: string): option.Option<Group> =>
         groupMatchers,
         record.toEntries,
         array.findFirst(([, matcher]) => matcher(name)),
-        option.map(tuple.fst)
+        option.map(tuple.fst),
       );
 
 const eqTokenName = eq.fromEquals<TokenSpec>(
-  (a, b) => a.name.split("-")[0] === b.name.split("-")[0]
+  (a, b) => a.name.split('-')[0] === b.name.split('-')[0],
 );
 
 const ordTokenName = ord.contramap(({ name }: TokenSpec) => {
@@ -383,28 +363,21 @@ const ordTokenName = ord.contramap(({ name }: TokenSpec) => {
   }
   if (name.match(/(X?XS|X?XL|SM|MS|MD|LG)/)) {
     const [l, r] = name.split(/(X?XS|X?XL|SM|MS|MD|LG)/);
-    return fn.tuple(
-      l,
-      { XXS: 1, XS: 2, SM: 3, MS: 4, MD: 5, LG: 6, XL: 7, XXL: 8 }[r] ?? 0
-    );
+    return fn.tuple(l, { XXS: 1, XS: 2, SM: 3, MS: 4, MD: 5, LG: 6, XL: 7, XXL: 8 }[r] ?? 0);
   }
   return fn.tuple(name, 0);
 })(ord.tuple(string.Ord, number.Ord));
 
 const ordTokenValue = ord.contramap(({ name, value }: TokenSpec) => {
-  if (string.isString(value) && startsWithOneOf("boxShadow")(name))
-    return fn.tuple("boxShadow", 0, 0);
+  if (string.isString(value) && startsWithOneOf('boxShadow')(name))
+    return fn.tuple('boxShadow', 0, 0);
 
-  if (string.isString(value) && startsWithOneOf("#", "rgba")(value)) {
-    const { h, l } = new TinyColor(value).onBackground("white").toHsl();
-    return fn.tuple(
-      "color",
-      Math.round(h * 0.2 /* Group similar-ish */),
-      -l /* reverse */
-    );
+  if (string.isString(value) && startsWithOneOf('#', 'rgba')(value)) {
+    const { h, l } = new TinyColor(value).onBackground('white').toHsl();
+    return fn.tuple('color', Math.round(h * 0.2 /* Group similar-ish */), -l /* reverse */);
   }
 
-  if (number.isNumber(value)) return fn.tuple("number", value, 0);
+  if (number.isNumber(value)) return fn.tuple('number', value, 0);
 
   return fn.tuple(value, 0, 0);
 })(ord.tuple(string.Ord, number.Ord, number.Ord));

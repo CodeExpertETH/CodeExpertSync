@@ -1,5 +1,4 @@
-import { Refinement } from "fp-ts/Refinement";
-import * as eq from "fp-ts/Eq";
+import { Refinement } from 'fp-ts/Refinement';
 
 /**
  * Tools for working with tagged unions.
@@ -39,10 +38,7 @@ export type Tagged<T, V = undefined> = [V] extends [undefined]
  * type T = tagged.Tagged<'num', number> | tagged.Tagged<'str', string>;
  * type N = tagged.Member<T, 'num'> // tagged.Tagged<'num', number>
  */
-export type Member<A extends Tagged<string>, T extends A["_tag"]> = Extract<
-  A,
-  Tagged<T>
->;
+export type Member<A extends Tagged<string>, T extends A['_tag']> = Extract<A, Tagged<T>>;
 
 /**
  * A function that can construct an instance of a tagged union member.
@@ -51,10 +47,7 @@ export type Member<A extends Tagged<string>, T extends A["_tag"]> = Extract<
  * const num: Constructor<Num> = tagged.tag<Num>('num');
  * const one = num(1); // { _tag: 'num'; value: 1 }
  */
-export type Constructor<A extends Tagged<string>> = A extends Tagged<
-  string,
-  infer V
->
+export type Constructor<A extends Tagged<string>> = A extends Tagged<string, infer V>
   ? (value: V) => A
   : () => A;
 
@@ -67,10 +60,12 @@ export type Constructor<A extends Tagged<string>> = A extends Tagged<
  * const one = num(1);
  * //    ^? NumStr
  */
-export type WideConstructor<
-  A extends Tagged<string>,
-  AA extends A
-> = AA extends Tagged<string, infer V> ? (value: V) => A : () => A;
+export type WideConstructor<A extends Tagged<string>, AA extends A> = AA extends Tagged<
+  string,
+  infer V
+>
+  ? (value: V) => A
+  : () => A;
 
 // Constructor -----------------------------------------------------------------------------------
 
@@ -81,9 +76,7 @@ export type WideConstructor<
  * const num = tagged.tag<Num>('num');
  * const one = num(1) // { _tag: 'num', value: 1 }
  */
-export const tag: <A extends Tagged<string>>(
-  _tag: A["_tag"]
-) => Constructor<A> = (_tag) =>
+export const tag: <A extends Tagged<string>>(_tag: A['_tag']) => Constructor<A> = (_tag) =>
   ((...args: [unknown] | []) =>
     0 in args ? { _tag, value: args[0] } : { _tag }) as $Unexpressable;
 
@@ -93,9 +86,7 @@ export const tag: <A extends Tagged<string>>(
  * A folding pattern for a tagged union A and a target type B.
  */
 type Pattern<A extends Tagged<string>, B> = {
-  [T in A["_tag"]]: Member<A, T> extends Tagged<T, infer V>
-    ? (v: V) => B
-    : () => B;
+  [T in A['_tag']]: Member<A, T> extends Tagged<T, infer V> ? (v: V) => B : () => B;
 };
 
 /**
@@ -124,7 +115,7 @@ export const fold = <A extends Tagged<string>>(): FoldStrict<A> => {
       return (data: A) => foldStrict(data, pattern);
     }
     const [data, pattern] = args;
-    return pattern[data._tag as A["_tag"]]((data as $IntentionalAny).value);
+    return pattern[data._tag as A['_tag']]((data as $IntentionalAny).value);
   };
   return foldStrict;
 };
@@ -141,7 +132,7 @@ export const fold = <A extends Tagged<string>>(): FoldStrict<A> => {
  * }
  */
 export const is =
-  <A extends Tagged<string>, AA extends A>(t: AA["_tag"]): Refinement<A, AA> =>
+  <A extends Tagged<string>, AA extends A>(t: AA['_tag']): Refinement<A, AA> =>
   (a): a is AA =>
     a._tag === t;
 
@@ -155,7 +146,7 @@ export const is =
  * const hello = numStr.str('hello');
  */
 export type Constructors<A extends Tagged<string>> = {
-  readonly [T in A["_tag"]]: Constructor<Member<A, T>>;
+  readonly [T in A['_tag']]: Constructor<Member<A, T>>;
 };
 
 /**
@@ -170,7 +161,7 @@ export type Constructors<A extends Tagged<string>> = {
  * });
  */
 export type WideConstructors<A extends Tagged<string>> = {
-  readonly [T in A["_tag"]]: WideConstructor<A, Member<A, T>>;
+  readonly [T in A['_tag']]: WideConstructor<A, Member<A, T>>;
 };
 
 /**
@@ -185,7 +176,7 @@ export type WideConstructors<A extends Tagged<string>> = {
  *
  */
 export type Refinements<A extends Tagged<string>> = {
-  readonly [T in A["_tag"]]: Refinement<A, Member<A, T>>;
+  readonly [T in A['_tag']]: Refinement<A, Member<A, T>>;
 };
 
 /**
@@ -216,8 +207,8 @@ const foldInstance = fold();
 export const build = <A extends Tagged<string>>(): Algebra<A> => {
   const assertions = new Proxy({} as Refinements<A>, {
     get(asserts, prop) {
-      if (typeof prop !== "string") return Reflect.get(asserts, prop);
-      const _tag = prop as A["_tag"];
+      if (typeof prop !== 'string') return Reflect.get(asserts, prop);
+      const _tag = prop as A['_tag'];
       if (!(_tag in asserts)) {
         // eslint-disable-next-line no-param-reassign
         (asserts as $Unexpressable)[_tag] = is(_tag);
@@ -228,7 +219,7 @@ export const build = <A extends Tagged<string>>(): Algebra<A> => {
 
   const constructors = new Proxy({} as Constructors<A>, {
     get(constructors, prop) {
-      const _tag = prop as A["_tag"];
+      const _tag = prop as A['_tag'];
       if (!(_tag in constructors)) {
         // eslint-disable-next-line no-param-reassign
         (constructors as $Unexpressable)[_tag] = tag(_tag);
@@ -239,11 +230,11 @@ export const build = <A extends Tagged<string>>(): Algebra<A> => {
 
   return new Proxy({} as Algebra<A>, {
     get(algebra, prop) {
-      if (typeof prop !== "string") return Reflect.get(algebra, prop);
-      if (prop === "fold") return foldInstance;
-      if (prop === "is") return assertions;
-      if (prop === "wide") return constructors;
-      return constructors[prop as A["_tag"]];
+      if (typeof prop !== 'string') return Reflect.get(algebra, prop);
+      if (prop === 'fold') return foldInstance;
+      if (prop === 'is') return assertions;
+      if (prop === 'wide') return constructors;
+      return constructors[prop as A['_tag']];
     },
   });
 };

@@ -17,7 +17,7 @@ env:
   VITEST_SEGFAULT_RETRY: 3
 
 jobs:
-  lint:
+  lint-prettier:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -28,6 +28,8 @@ jobs:
           cache: 'yarn' # Set this to npm, yarn or pnpm.
       - name: Install app dependencies and build web
         run: yarn && yarn build
+      - name: Prettier
+        run: yarn run prettier:check
       - name: Lint
         run: yarn run lint
 
@@ -44,7 +46,6 @@ jobs:
         run: yarn && yarn build
       - name: Typecheck
         run: yarn run tsc
-
   test:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30

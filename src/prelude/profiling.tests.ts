@@ -1,10 +1,10 @@
-import { logTime } from "./profiling";
-import { array, ioRef, task } from "fp-ts";
-import { flow, pipe } from "fp-ts/function";
-import { assert, describe, it } from "vitest";
+import { logTime } from './profiling';
+import { array, ioRef, task } from 'fp-ts';
+import { flow, pipe } from 'fp-ts/function';
+import { assert, describe, it } from 'vitest';
 
-describe("logTime", () => {
-  it("should work correctly", async () => {
+describe('logTime', () => {
+  it('should work correctly', async () => {
     const ms = 1000;
 
     const longRunningTask: task.Task<void> = () =>
@@ -16,12 +16,12 @@ describe("logTime", () => {
         pipe(
           logTime(task.MonadIO, flow(array.append, log.modify, task.fromIO))(
             longRunningTask,
-            "long-running task"
+            'long-running task',
           ),
-          task.chain(() => task.fromIO(log.read))
-        )
+          task.chain(() => task.fromIO(log.read)),
+        ),
       ),
-      (t) => t()
+      (t) => t(),
     );
 
     assert.equal(log[0], 'Starting task "long-running task"');

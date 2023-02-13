@@ -1,12 +1,12 @@
-import React from "react";
-import copy from "copy-to-clipboard";
-import { io } from "../../prelude";
-import { message } from "antd";
+import React from 'react';
+import copy from 'copy-to-clipboard';
+import { io } from '../../prelude';
+import { message } from 'antd';
 
 export const copyToClipboard: (text: string) => io.IO<void> = (text) => () => {
   const didCopy = copy(text);
   if (didCopy) {
-    message.info("Copied to clipboard");
+    message.info('Copied to clipboard');
   } else {
     message.error(
       <>
@@ -14,7 +14,7 @@ export const copyToClipboard: (text: string) => io.IO<void> = (text) => () => {
         <br />
         {text}
       </>,
-      10
+      10,
     );
   }
 };

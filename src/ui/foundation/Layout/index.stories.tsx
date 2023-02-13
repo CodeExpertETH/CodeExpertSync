@@ -1,7 +1,7 @@
-import React from "react";
-import { Box } from "./Box";
-import { HStack, VStack } from "./Stack";
-import { styled, useTheme } from "../Theme";
+import React from 'react';
+import { Box } from './Box';
+import { HStack, VStack } from './Stack';
+import { styled, useTheme } from '../Theme';
 
 const StyledBox = styled(Box, ({ tokens }) => ({
   background: tokens.colorBgLayout,
@@ -9,7 +9,7 @@ const StyledBox = styled(Box, ({ tokens }) => ({
 }));
 
 export default {
-  title: "Foundation/Layout",
+  title: 'Foundation/Layout',
 };
 
 export const ExampleLayout = () => {
@@ -28,35 +28,31 @@ export const ExampleLayout = () => {
         borderRadius: tokens.borderRadiusOuter,
       }}
       gap
-      marginTrim={"block"}
+      marginTrim={'block'}
     >
-      <HStack justify={"space-between"} pt>
-        <StyledBox ml={"lg"} pa={"sm"}>
+      <HStack justify={'space-between'} pt>
+        <StyledBox ml={'lg'} pa={'sm'}>
           Logo
         </StyledBox>
-        <StyledBox mr={"lg"} pa={"sm"}>
+        <StyledBox mr={'lg'} pa={'sm'}>
           Navigation
         </StyledBox>
       </HStack>
-      <HStack fill gap={"xxl"}>
-        <StyledBox ref={ref} as={"ul"} fill ml={"lg"} mb={0} pv={"lg"}>
+      <HStack fill gap={'xxl'}>
+        <StyledBox ref={ref} as={'ul'} fill ml={'lg'} mb={0} pv={'lg'}>
           {Array.from({ length: 100 }).map((_, i) => (
             <li key={i}>Item {i}</li>
           ))}
         </StyledBox>
-        <VStack mr={"lg"} justify={"space-between"} fill>
+        <VStack mr={'lg'} justify={'space-between'} fill>
           <StyledBox>Aside header</StyledBox>
-          <VStack fill justify={"center"} align={"center"}>
+          <VStack fill justify={'center'} align={'center'}>
             Aside content
           </VStack>
           <StyledBox>Aside footer</StyledBox>
         </VStack>
       </HStack>
-      <StyledBox
-        mb={"xl" /* Ignored due to parent's marginTrim */}
-        pv={"lg"}
-        align={"center"}
-      >
+      <StyledBox mb={'xl' /* Ignored due to parent's marginTrim */} pv={'lg'} align={'center'}>
         Footer
       </StyledBox>
     </VStack>

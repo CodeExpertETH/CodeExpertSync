@@ -1,43 +1,43 @@
-import React from "react";
-import { css, DesignTokens, useTheme } from "../Theme";
+import React from 'react';
+import { css, DesignTokens, useTheme } from '../Theme';
 
-type CSSPercentage = "%";
+type CSSPercentage = '%';
 
-type CSSAbsoluteLength = "cm" | "mm" | "Q" | "in" | "pc" | "pt" | "px";
+type CSSAbsoluteLength = 'cm' | 'mm' | 'Q' | 'in' | 'pc' | 'pt' | 'px';
 
 type CSSRelativeLength =
-  | "em"
-  | "ex"
-  | "ch"
-  | "rem"
-  | "lh"
-  | "rlh"
-  | "vw"
-  | "vh"
-  | "vmin"
-  | "vmax"
-  | "vb"
-  | "vi"
-  | "svw"
-  | "svh"
-  | "lvw"
-  | "lvh"
-  | "dvw"
-  | "dvh";
+  | 'em'
+  | 'ex'
+  | 'ch'
+  | 'rem'
+  | 'lh'
+  | 'rlh'
+  | 'vw'
+  | 'vh'
+  | 'vmin'
+  | 'vmax'
+  | 'vb'
+  | 'vi'
+  | 'svw'
+  | 'svh'
+  | 'lvw'
+  | 'lvh'
+  | 'dvw'
+  | 'dvh';
 
 export type CSSUnit = CSSPercentage | CSSAbsoluteLength | CSSRelativeLength;
 
 export type CSSSize = `${number}${CSSUnit}`;
 
-export type Size = "xxs" | "xs" | "sm" | "md" | "lg" | "xl" | "xxl";
+export type Size = 'xxs' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl';
 
 export const sizeToNumber =
-  (tokens: DesignTokens, prop: "margin" | "padding" | "size") =>
+  (tokens: DesignTokens, prop: 'margin' | 'padding' | 'size') =>
   (size?: Size | CSSSize | number | boolean): number | undefined =>
     size != null
-      ? typeof size === "boolean"
+      ? typeof size === 'boolean'
         ? (tokens as $FixMe)[`${prop}`]
-        : typeof size === "number"
+        : typeof size === 'number'
         ? size
         : (tokens as $FixMe)[`${prop}${size.toUpperCase()}`] ?? size
       : undefined;
@@ -46,9 +46,9 @@ export const sizeToNumber =
  * - "m" is margin
  * - "p" is padding
  */
-export type Area = "m" | "p";
+export type Area = 'm' | 'p';
 
-const areas = ["m", "p"];
+const areas = ['m', 'p'];
 
 /**
  * - "a" is all sides
@@ -59,9 +59,9 @@ const areas = ["m", "p"];
  * - "b" is bottom
  * - "l" is left
  */
-export type Side = "a" | "v" | "h" | "t" | "r" | "b" | "l";
+export type Side = 'a' | 'v' | 'h' | 't' | 'r' | 'b' | 'l';
 
-const sides = ["a", "v", "h", "t", "r", "b", "l"];
+const sides = ['a', 'v', 'h', 't', 'r', 'b', 'l'];
 
 export type BoxArea = `${Area}${Side}`;
 
@@ -79,104 +79,101 @@ export type BoxAreaDefinition = {
 // -------------------------------------------------------------------------------------------------
 
 export type Justify =
-  | "start"
-  | "end"
-  | "center"
-  | "space-between"
-  | "space-around"
-  | "space-evenly";
+  | 'start'
+  | 'end'
+  | 'center'
+  | 'space-between'
+  | 'space-around'
+  | 'space-evenly';
 
-export type Align = "start" | "end" | "center" | "baseline" | "stretch";
+export type Align = 'start' | 'end' | 'center' | 'baseline' | 'stretch';
 
 const justifyMap = {
-  start: "flex-start",
-  end: "flex-end",
-  "space-between": "space-between",
-  "space-around": "space-around",
-  center: "center",
-  "space-evenly": "space-evenly",
+  start: 'flex-start',
+  end: 'flex-end',
+  'space-between': 'space-between',
+  'space-around': 'space-around',
+  center: 'center',
+  'space-evenly': 'space-evenly',
 };
 
 const alignMap = {
-  start: "flex-start",
-  end: "flex-end",
-  center: "center",
-  baseline: "baseline",
-  stretch: "stretch",
+  start: 'flex-start',
+  end: 'flex-end',
+  center: 'center',
+  baseline: 'baseline',
+  stretch: 'stretch',
 };
 
-export const justifyContent = (justify: Justify = "start") =>
-  justifyMap[justify];
+export const justifyContent = (justify: Justify = 'start') => justifyMap[justify];
 
-export const alignItems = (align: Align = "stretch") => alignMap[align];
+export const alignItems = (align: Align = 'stretch') => alignMap[align];
 
 // -------------------------------------------------------------------------------------------------
 
 const useStyledSystemStyles = css(() => ({
-  position: "relative",
+  position: 'relative',
   variants: {
     display: {
       block: {
-        display: "block",
+        display: 'block',
       },
       flexRow: {
-        display: "flex",
-        flexDirection: "row",
+        display: 'flex',
+        flexDirection: 'row',
       },
       flexColumn: {
-        display: "flex",
-        flexDirection: "column",
+        display: 'flex',
+        flexDirection: 'column',
       },
       grid: {
-        display: "grid",
+        display: 'grid',
       },
     },
     ellipsis: {
       true: {
-        whiteSpace: "nowrap",
-        overflow: "hidden",
-        textOverflow: "ellipsis",
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
       },
     },
     fill: {
       true: {
         flex: 1,
-        overflowBlock: "auto",
+        overflowBlock: 'auto',
       },
     },
     inline: {
       true: {
-        width: "fit-content",
-        alignSelf: "flex-start",
+        width: 'fit-content',
+        alignSelf: 'flex-start',
       },
     },
     marginTrim: {
       block: {
-        "& > :first-child": {
-          marginTop: "0 !important",
+        '& > :first-child': {
+          marginTop: '0 !important',
         },
-        "& > :last-child": {
-          marginBottom: "0 !important",
+        '& > :last-child': {
+          marginBottom: '0 !important',
         },
       },
     },
   },
 }));
 
-export type StyledSystemProp = BoxAreaDefinition &
-  Parameters<typeof useStyledSystemStyles>[0];
+export type StyledSystemProp = BoxAreaDefinition & Parameters<typeof useStyledSystemStyles>[0];
 
 const styledSystemProps = new Set([
-  "display",
-  "ellipsis",
-  "fill",
-  "inline",
-  "marginTrim",
+  'display',
+  'ellipsis',
+  'fill',
+  'inline',
+  'marginTrim',
   ...areas.flatMap((a) => sides.map((s) => `${a}${s}`)),
 ]);
 
-export const isStyledSystemProperty = (x: string): boolean =>
-  styledSystemProps.has(x);
+export const isStyledSystemProperty = (x: string): boolean => styledSystemProps.has(x);
 
 export const useStyledSystem = <A>({
   className,
@@ -206,8 +203,8 @@ export const useStyledSystem = <A>({
   style?: React.CSSProperties;
 } & StyledSystemProp) => {
   const { tokens } = useTheme();
-  const toMargin = sizeToNumber(tokens, "margin");
-  const toPadding = sizeToNumber(tokens, "padding");
+  const toMargin = sizeToNumber(tokens, 'margin');
+  const toPadding = sizeToNumber(tokens, 'padding');
   const styledClassName = useStyledSystemStyles({
     display,
     ellipsis,
@@ -218,7 +215,7 @@ export const useStyledSystem = <A>({
 
   console.assert(
     !Object.keys(rest).some(isStyledSystemProperty),
-    "Not all styled system properties are handled."
+    'Not all styled system properties are handled.',
   );
 
   return {
@@ -233,7 +230,7 @@ export const useStyledSystem = <A>({
       paddingLeft: toPadding(pl ?? ph ?? pa),
       ...style,
     },
-    className: [className, styledClassName].join(" "),
+    className: [className, styledClassName].join(' '),
     ...rest,
   };
 };

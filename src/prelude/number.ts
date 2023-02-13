@@ -1,11 +1,11 @@
-import { eq, option, ord } from "fp-ts";
-import { constant, flow, pipe } from "fp-ts/function";
-import * as N from "fp-ts/number";
-import { Brand } from "../utils/type-utils";
-import * as iots from "io-ts";
-import * as t from "io-ts";
+import { eq, option, ord } from 'fp-ts';
+import { constant, flow, pipe } from 'fp-ts/function';
+import * as N from 'fp-ts/number';
+import { Brand } from '../utils/type-utils';
+import * as iots from 'io-ts';
+import * as t from 'io-ts';
 
-export * from "fp-ts/number";
+export * from 'fp-ts/number';
 
 /**
  * Compare two `Number`s and return `true` if they are equal up to the given (absolute) precision.
@@ -16,9 +16,8 @@ export * from "fp-ts/number";
  * important to define specific Eqs for specific situations. We compare results with a relatively
  * low precision, for example.
  */
-export const getEqAbsolute: (tolerance: number) => eq.Eq<number> = (
-  tolerance
-) => eq.fromEquals((a, b) => Math.abs(a - b) <= tolerance);
+export const getEqAbsolute: (tolerance: number) => eq.Eq<number> = (tolerance) =>
+  eq.fromEquals((a, b) => Math.abs(a - b) <= tolerance);
 
 /**
  * Clamp a number to the given bounds.
@@ -46,8 +45,7 @@ export const isFinite = (x: unknown): x is number => Number.isFinite(x);
  * stripTrailingZeroes("0.0000") // => "0"
  * stripTrailingZeroes("0.0300") // => "0.03"
  */
-export const stripTrailingZeroes = (x: string) =>
-  x.replace(/(\.[0-9]*[1-9])0+$|\.0*$/, "$1");
+export const stripTrailingZeroes = (x: string) => x.replace(/(\.[0-9]*[1-9])0+$|\.0*$/, '$1');
 
 /**
  * A data last version of {@link Number.toFixed}. Clamps the digits to appear after the decimal
@@ -55,7 +53,7 @@ export const stripTrailingZeroes = (x: string) =>
  */
 export const toFixed = flow(
   clamp(0, 20),
-  (fractionDigits) => (x: number) => x.toFixed(fractionDigits)
+  (fractionDigits) => (x: number) => x.toFixed(fractionDigits),
 );
 
 /**
@@ -81,14 +79,13 @@ export type UnitInterval = iots.Branded<number, UnitIntervalBrand>;
 export const unitInterval = t.brand(
   t.number,
   (n): n is UnitInterval => ord.between(N.Ord)(0, 1)(n),
-  "UnitInterval"
+  'UnitInterval',
 );
 
 /**
  * Force a number to be within the unit interval [0, 1].
  */
-export const clampUnitInterval = (x: number): UnitInterval =>
-  clamp(0, 1)(x) as UnitInterval;
+export const clampUnitInterval = (x: number): UnitInterval => clamp(0, 1)(x) as UnitInterval;
 
 /**
  * Map a number from the domain [min, max] to a number in the unit interval [0, 1]. Numbers
@@ -97,10 +94,10 @@ export const clampUnitInterval = (x: number): UnitInterval =>
  * @throws {TypeError} if min, max, or num is NaN
  */
 export const unitIntervalFromRange = (min: number, max: number) => {
-  if (Number.isNaN(min)) throw new TypeError("min is NaN");
-  if (Number.isNaN(max)) throw new TypeError("max is NaN");
+  if (Number.isNaN(min)) throw new TypeError('min is NaN');
+  if (Number.isNaN(max)) throw new TypeError('max is NaN');
   return (num: number): UnitInterval => {
-    if (Number.isNaN(num)) throw new TypeError("num is NaN");
+    if (Number.isNaN(num)) throw new TypeError('num is NaN');
 
     if (min === max) return 0 as UnitInterval;
     return pipe(
@@ -108,7 +105,7 @@ export const unitIntervalFromRange = (min: number, max: number) => {
       min < max ? clamp(min, max) : clamp(max, min),
       (x) => (x - min) / (max - min),
       Math.abs,
-      clampUnitInterval
+      clampUnitInterval,
     );
   };
 };
@@ -129,23 +126,16 @@ export const unitIntervalToRange = (min: number, max: number) =>
  */
 export const unitIntervalFromParts = (
   numerator: number,
-  denominator: number
+  denominator: number,
 ): option.Option<UnitInterval> =>
-  pipe(
-    numerator / denominator,
-    option.fromPredicate(isFinite),
-    option.map(clampUnitInterval)
-  );
+  pipe(numerator / denominator, option.fromPredicate(isFinite), option.map(clampUnitInterval));
 
 /**
  * Variant of {@link unitIntervalFromParts} that returns a fallback value should the resulting
  * value not be finite.
  */
 export const unitIntervalFromPartsOrElse = (orElse: 0 | 1) =>
-  flow(
-    unitIntervalFromParts,
-    option.getOrElse(constant(clampUnitInterval(orElse)))
-  );
+  flow(unitIntervalFromParts, option.getOrElse(constant(clampUnitInterval(orElse))));
 
 // -------------------------------------------------------------------------------------------------
 // Percent
@@ -153,22 +143,18 @@ export const unitIntervalFromPartsOrElse = (orElse: 0 | 1) =>
 /**
  * A number that is typically in the range of [0, 100], but doesn't have to be.
  */
-export type Percent = Brand<number, "Percent">;
+export type Percent = Brand<number, 'Percent'>;
 
 /**
  * Create a {@link Percent} value out of a {@link UnitInterval}.
  */
-export const percentFromUnitInterval = (x: number): Percent =>
-  (x * 100) as Percent;
+export const percentFromUnitInterval = (x: number): Percent => (x * 100) as Percent;
 
 /**
  * Safely create a {@link Percent} from a numerator and denominator. Clamps to [0, 100] should
  * the numerator be greater than the denominator.
  */
-export const percentFromParts = flow(
-  unitIntervalFromParts,
-  option.map(percentFromUnitInterval)
-);
+export const percentFromParts = flow(unitIntervalFromParts, option.map(percentFromUnitInterval));
 
 /**
  * Variant of {@link percentFromParts} that returns a fallback value should the resulting
@@ -185,6 +171,6 @@ export const percentFromPartsOrElse = (orElse: 0 | 100) =>
 export const unsafePercentFromParts = flow(
   percentFromParts,
   option.getOrElse<Percent>(() => {
-    throw new TypeError("Division by zero.");
-  })
+    throw new TypeError('Division by zero.');
+  }),
 );

@@ -1,4 +1,4 @@
-import fc from "fast-check";
+import fc from 'fast-check';
 import {
   apply,
   array,
@@ -11,15 +11,15 @@ import {
   pipe,
   predicate,
   record,
-} from "../../prelude";
-import * as pureRand from "pure-rand";
-import { Endomorphism } from "fp-ts/Endomorphism";
+} from '../../prelude';
+import * as pureRand from 'pure-rand';
+import { Endomorphism } from 'fp-ts/Endomorphism';
 
-export const URI = "Arbitrary";
+export const URI = 'Arbitrary';
 
 export type URI = typeof URI;
 
-declare module "fp-ts/HKT" {
+declare module 'fp-ts/HKT' {
   interface URItoKind<A> {
     readonly [URI]: fc.Arbitrary<A>;
   }
@@ -38,22 +38,20 @@ export const map =
     a.map(f);
 
 export const ap: <A>(
-  fa: fc.Arbitrary<A>
+  fa: fc.Arbitrary<A>,
 ) => <B>(fab: fc.Arbitrary<(a: A) => B>) => fc.Arbitrary<B> = (fa) => (fab) =>
   fa.chain((a) => fab.map((f) => f(a)));
 
 export const of: <A>(a: A) => fc.Arbitrary<A> = fc.constant;
 
 export const chain =
-  <A, B>(
-    f: FunctionN<[A], fc.Arbitrary<B>>
-  ): FunctionN<[fc.Arbitrary<A>], fc.Arbitrary<B>> =>
+  <A, B>(f: FunctionN<[A], fc.Arbitrary<B>>): FunctionN<[fc.Arbitrary<A>], fc.Arbitrary<B>> =>
   (a) =>
     a.chain(f);
 
-const _map: functor.Functor1<URI>["map"] = (fa, f) => pipe(fa, map(f));
-const _ap: apply.Apply1<URI>["ap"] = (fab, fa) => pipe(fab, ap(fa));
-const _chain: chain_.Chain1<URI>["chain"] = (ma, f) => pipe(ma, chain(f));
+const _map: functor.Functor1<URI>['map'] = (fa, f) => pipe(fa, map(f));
+const _ap: apply.Apply1<URI>['ap'] = (fab, fa) => pipe(fab, ap(fa));
+const _chain: chain_.Chain1<URI>['chain'] = (ma, f) => pipe(ma, chain(f));
 
 export const Functor: functor.Functor1<URI> = {
   URI,
@@ -100,7 +98,7 @@ export const getEq = <A>(eq: eq.Eq<A>): eq.Eq<fc.Arbitrary<A>> => ({
         a.generate(randomA, undefined).value,
         b.generate(randomB, undefined).value,
       ]),
-      array.every(fn.tupled(eq.equals))
+      array.every(fn.tupled(eq.equals)),
     );
   },
 });
@@ -116,12 +114,9 @@ const constants = <A extends Record<string, unknown>>(a: A): Arbitraries<A> =>
 export const merge =
   <A extends Record<string, unknown>, B>(f: FunctionN<[A], Arbitraries<B>>) =>
   (arb: fc.Arbitrary<A>): fc.Arbitrary<A & B> =>
-    arb.chain((a) =>
-      fc.record({ ...constants(a), ...f(a) })
-    ) as $IntentionalAny; // FIXME cx-1551
+    arb.chain((a) => fc.record({ ...constants(a), ...f(a) })) as $IntentionalAny; // FIXME cx-1551
 
-export const noShrink = <A>(a: fc.Arbitrary<A>): fc.Arbitrary<A> =>
-  a.noShrink();
+export const noShrink = <A>(a: fc.Arbitrary<A>): fc.Arbitrary<A> => a.noShrink();
 
 export const withOverrides =
   <A>(overrides?: Partial<A>): Endomorphism<fc.Arbitrary<A>> =>

@@ -1,18 +1,18 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import { Store } from "tauri-plugin-store-api";
-import { invoke } from "@tauri-apps/api/tauri";
-import "./App.css";
-import { listen } from "@tauri-apps/api/event";
+import React, { useState } from 'react';
+import reactLogo from './assets/react.svg';
+import { Store } from 'tauri-plugin-store-api';
+import { invoke } from '@tauri-apps/api/tauri';
+import './App.css';
+import { listen } from '@tauri-apps/api/event';
 
-const store = new Store(".settings.dat");
+const store = new Store('.settings.dat');
 
 function App() {
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
-  const [messagePast, setMessagePast] = useState("");
+  const [greetMsg, setGreetMsg] = useState('');
+  const [name, setName] = useState('');
+  const [messagePast, setMessagePast] = useState('');
 
-  listen("scheme-request-received", async (event) => {
+  listen('scheme-request-received', async (event) => {
     console.log(event);
     // event.event is the event name (useful if you want to use a single callback fn for multiple event types)
     // event.payload is the payload object
@@ -20,13 +20,13 @@ function App() {
 
   async function greet() {
     // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-    const message: string = await invoke("greet", { name });
+    const message: string = await invoke('greet', { name });
     setGreetMsg(message);
-    await store.set("greet", { message });
+    await store.set('greet', { message });
     await store.save();
   }
 
-  store.get("greet").then((val) => {
+  store.get('greet').then((val) => {
     // @ts-ignore
     setMessagePast(val.message);
   });
@@ -50,7 +50,7 @@ function App() {
       <p>Click on the Tauri, Vite, and React logos to learn more.</p>
 
       <div className="row">A message from the past: {messagePast}</div>
-    <div className="row">
+      <div className="row">
         <div>
           <input
             id="greet-input"

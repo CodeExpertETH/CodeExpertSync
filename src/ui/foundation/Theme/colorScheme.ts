@@ -1,4 +1,4 @@
-import { adt } from "../../../prelude";
+import { adt } from '../../../prelude';
 
 export const foldColorScheme = adt.foldFromKeys({
   light: null,
@@ -7,7 +7,7 @@ export const foldColorScheme = adt.foldFromKeys({
 
 export type ColorScheme = adt.TypeOfKeys<typeof foldColorScheme>;
 
-export const isLight = (colorScheme: ColorScheme) => colorScheme === "light";
+export const isLight = (colorScheme: ColorScheme) => colorScheme === 'light';
 
 export const toggleColorScheme = (previousScheme: ColorScheme) =>
-  isLight(previousScheme) ? "dark" : "light";
+  isLight(previousScheme) ? 'dark' : 'light';

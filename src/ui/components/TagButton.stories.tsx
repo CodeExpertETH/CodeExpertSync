@@ -1,10 +1,8 @@
-import React from "react";
-import { StoryObj } from "@storybook/react";
-import { TagButton, TagButtonProps } from "./TagButton";
+import { TagButton } from './TagButton';
 
 export default {
   component: TagButton,
-  args: { children: "Test" },
+  args: { children: 'Test' },
 };
 
 export const Primary = {
@@ -14,20 +12,20 @@ export const Primary = {
 export const Orange = {
   args: {
     ...Primary.args,
-    color: "orange",
+    color: 'orange',
   },
 };
 
 export const Red = {
   args: {
     ...Primary.args,
-    color: "red",
+    color: 'red',
   },
 };
 
 export const Green = {
   args: {
     ...Primary.args,
-    color: "green",
+    color: 'green',
   },
 };

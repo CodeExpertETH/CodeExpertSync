@@ -11,12 +11,17 @@
     "test:coverage": "vitest run --coverage",
     "storybook": "storybook dev -p 6006",
     "tauri": "tauri",
+    "prettier": "prettier --cache  --cache-strategy content --write \"./src/**/*.{js,jsx,ts,tsx,json,less,html}\"",
+    "prettier:check": "prettier --cache  --cache-strategy content --check \"./src/**/*.{js,jsx,ts,tsx,json,less,html}\"",
     "tsc": "tsc",
-    "lint":  "echo \"Error: no lint specified\" && exit 1",
+    "lint": "echo \"Error: no lint specified\" && exit 1",
     "build-storybook": "storybook build"
   },
   "license": "MIT",
   "devDependencies": {
+    "@code-expert/configs-typescript": "^0.2.3",
+    "@code-expert/eslint-config-prettier-typescript-react": "^0.6.5",
+    "@code-expert/prettier-config": "^0.1.0",
     "@storybook/addon-essentials": "^7.0.0-beta.46",
     "@storybook/addon-interactions": "^7.0.0-beta.46",
     "@storybook/addon-links": "^7.0.0-beta.46",
@@ -29,6 +34,7 @@
     "@types/react": "^18.0.15",
     "@types/react-dom": "^18.0.6",
     "@vitejs/plugin-react": "^3.0.0",
+    "prettier": "^2.8.4",
     "prop-types": "^15.8.1",
     "storybook": "^7.0.0-beta.46",
     "typescript": "^4.6.4",
@@ -59,5 +65,14 @@
     "react-fontawesome-svg-icon": "^1.1.2",
     "tauri-plugin-store-api": "github:tauri-apps/tauri-plugin-store",
     "vitest": "^0.28.4"
-  }
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --ext .js,.jsx,.ts,.tsx"
+    ],
+    "*.(js|jsx|html|css|md|mts|ts|tsx|less|json)": [
+      "prettier --write"
+    ]
+  },
+  "prettier": "@code-expert/prettier-config"
 }

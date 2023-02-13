@@ -1,8 +1,8 @@
-import { either, option, pipe } from "../../prelude";
+import { either, option, pipe } from '../../prelude';
 
-export * as fc from "./fast-check";
-export * as arbitrary from "./arbitrary";
-export * as laws from "./laws";
+export * as fc from './fast-check';
+export * as arbitrary from './arbitrary';
+export * as laws from './laws';
 
 /**
  * Fold over Options nested within Eithers.
@@ -21,7 +21,7 @@ export const eitherOptionMatrix = <L, R, A, B>(
     leftSome: (l: L, s: A) => B;
     rightNone: (r: R) => B;
     rightSome: (r: R, s: A) => B;
-  }
+  },
 ) =>
   pipe(
     outer,
@@ -31,18 +31,18 @@ export const eitherOptionMatrix = <L, R, A, B>(
           getLeftInner(l),
           option.fold(
             () => matrix.leftNone(l),
-            (s) => matrix.leftSome(l, s)
-          )
+            (s) => matrix.leftSome(l, s),
+          ),
         ),
       (r) =>
         pipe(
           getRightInner(r),
           option.fold(
             () => matrix.rightNone(r),
-            (s) => matrix.rightSome(r, s)
-          )
-        )
-    )
+            (s) => matrix.rightSome(r, s),
+          ),
+        ),
+    ),
   );
 
 /**

@@ -1,10 +1,10 @@
-import { option, these } from "../../prelude";
-import fc from "fast-check";
-import { IRawProperty } from "fast-check/lib/types/check/property/IRawProperty";
-import { Arbitrary } from "fast-check/lib/types/check/arbitrary/definition/Arbitrary";
-import { Parameters } from "fast-check/lib/types/check/runner/configuration/Parameters";
+import { option, these } from '../../prelude';
+import fc from 'fast-check';
+import { IRawProperty } from 'fast-check/lib/types/check/property/IRawProperty';
+import { Arbitrary } from 'fast-check/lib/types/check/arbitrary/definition/Arbitrary';
+import { Parameters } from 'fast-check/lib/types/check/runner/configuration/Parameters';
 
-export * from "fast-check";
+export * from 'fast-check';
 
 export const constFalse = fc.constant<false>(false);
 export const constTrue = fc.constant<true>(true);
@@ -15,7 +15,7 @@ export const constUndefined = fc.constant(undefined);
  */
 export const sampleOne = <A>(
   generator: IRawProperty<A> | Arbitrary<A>,
-  params?: Omit<Parameters<A>, "numRuns">
+  params?: Omit<Parameters<A>, 'numRuns'>,
 ): A => fc.sample(generator, { seed: 0, ...params, numRuns: 1 })[0];
 
 /**
@@ -29,32 +29,23 @@ export const humanEmailAddress = (): fc.Arbitrary<string> =>
         .lorem({ maxCount: 2 })
         .chain((domainWords) =>
           fc.constant(
-            `${nameWords.replace(/\s+/, "-")}@${domainWords.replace(
-              /\s+/,
-              "."
-            )}.example.com`
-          )
-        )
+            `${nameWords.replace(/\s+/, '-')}@${domainWords.replace(/\s+/, '.')}.example.com`,
+          ),
+        ),
     );
 
-export const optional = <A>(
-  arb: fc.Arbitrary<A>
-): fc.Arbitrary<A | undefined> => fc.option(arb, { nil: undefined });
+export const optional = <A>(arb: fc.Arbitrary<A>): fc.Arbitrary<A | undefined> =>
+  fc.option(arb, { nil: undefined });
 
-export const optionArb = <A>(
-  arb: fc.Arbitrary<A>
-): fc.Arbitrary<option.Option<A>> =>
-  fc
-    .tuple(fc.boolean(), arb)
-    .map(([isSome, x]) => (isSome ? option.some(x) : option.none));
+export const optionArb = <A>(arb: fc.Arbitrary<A>): fc.Arbitrary<option.Option<A>> =>
+  fc.tuple(fc.boolean(), arb).map(([isSome, x]) => (isSome ? option.some(x) : option.none));
 
 export const theseArb = <E, A>(
   eArb: fc.Arbitrary<E>,
-  aArb: fc.Arbitrary<A>
+  aArb: fc.Arbitrary<A>,
 ): fc.Arbitrary<these.These<E, A>> =>
   fc.constantFrom<0 | 1 | 2>(0, 1, 2).chain((choice) => {
-    if (choice === 2)
-      return fc.tuple(eArb, aArb).map(([e, a]) => these.both(e, a));
+    if (choice === 2) return fc.tuple(eArb, aArb).map(([e, a]) => these.both(e, a));
     if (choice === 1) return eArb.map(these.left);
     return aArb.map(these.right);
   });
@@ -77,43 +68,32 @@ export const dateRange = (options?: { min?: Date; max?: Date }) =>
 
 const DATE_MAX = new Date(8640000000000000);
 const DATE_MIN = new Date(-8640000000000000);
-export const dateRangeStrict = ({
-  min,
-  max,
-}: { min?: Date; max?: Date } = {}): fc.Arbitrary<[Date, Date]> => {
+export const dateRangeStrict = ({ min, max }: { min?: Date; max?: Date } = {}): fc.Arbitrary<
+  [Date, Date]
+> => {
   if (min != null && min.getTime() === DATE_MAX.getTime())
-    throw new TypeError(
-      `dateRangeStrict min can not be DATE_MAX (${DATE_MAX.toISOString()})`
-    );
+    throw new TypeError(`dateRangeStrict min can not be DATE_MAX (${DATE_MAX.toISOString()})`);
   if (max != null && max.getTime() === DATE_MIN.getTime())
-    throw new TypeError(
-      `dateRangeStrict min can not be DATE_MAX (${DATE_MAX.toISOString()})`
-    );
+    throw new TypeError(`dateRangeStrict min can not be DATE_MAX (${DATE_MAX.toISOString()})`);
   if (min != null && max != null && min.getTime() === max.getTime())
-    throw new TypeError("dateRangeStrict max must be greater than min");
+    throw new TypeError('dateRangeStrict max must be greater than min');
 
-  return fc
-    .tuple(fc.date({ min, max }), fc.date({ min, max }))
-    .map(([a, b]): [Date, Date] => {
-      if (a.getTime() === b.getTime()) {
-        // if we're touching the upper bound, we need to subtract
-        if (max != null && a.getTime() === max.getTime())
-          return [new Date(a.getTime() - 1), a];
+  return fc.tuple(fc.date({ min, max }), fc.date({ min, max })).map(([a, b]): [Date, Date] => {
+    if (a.getTime() === b.getTime()) {
+      // if we're touching the upper bound, we need to subtract
+      if (max != null && a.getTime() === max.getTime()) return [new Date(a.getTime() - 1), a];
 
-        // in all other cases, we can increase
-        return [a, new Date(a.getTime() + 1)];
-      }
-      return a.getTime() < b.getTime() ? [a, b] : [b, a];
-    });
+      // in all other cases, we can increase
+      return [a, new Date(a.getTime() + 1)];
+    }
+    return a.getTime() < b.getTime() ? [a, b] : [b, a];
+  });
 };
 
 export const nonEmptyArray = <T>(
   arb: fc.Arbitrary<T>,
-  { minLength = 1, maxLength }: fc.ArrayConstraints = {}
+  { minLength = 1, maxLength }: fc.ArrayConstraints = {},
 ) => {
-  if (minLength < 1)
-    throw new TypeError("nonEmptyArray minLength must be greater than 0");
-  return fc.array(arb, { minLength, maxLength }) as fc.Arbitrary<
-    NonEmptyArray<T>
-  >;
+  if (minLength < 1) throw new TypeError('nonEmptyArray minLength must be greater than 0');
+  return fc.array(arb, { minLength, maxLength }) as fc.Arbitrary<NonEmptyArray<T>>;
 };
