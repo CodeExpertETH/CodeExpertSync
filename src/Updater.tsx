@@ -1,19 +1,19 @@
-import { createSignal } from "solid-js";
+import { useState } from "react";
 import "./App.css";
 import { listen } from "@tauri-apps/api/event";
 
 function Updater() {
-  const [getValue, setValue] = createSignal("");
+  const [getValue, setValue] = useState("");
 
   listen("tauri://update-status", function (res) {
     console.log(res);
     setValue(JSON.stringify(res.payload));
   });
   return (
-    <div class="container">
+    <div className="container">
       <h1>Update status</h1>
 
-      <div class="row">{getValue()}</div>
+      <div className="row">{getValue}</div>
     </div>
   );
 }

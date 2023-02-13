@@ -30,19 +30,13 @@ jobs:
         uses: swatinem/rust-cache@v2
         with:
           workspaces: './src-tauri -> target'
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 7
-          run_install: false
       - name: Sync node version and setup cache
         uses: actions/setup-node@v3
         with:
           node-version: 'lts/*'
-          cache: 'pnpm' # Set this to npm, yarn or pnpm.
-
+          cache: 'yarn' # Set this to npm, yarn or pnpm.
       - name: Install app dependencies and build web
-        run: pnpm install
+        run: yarn && yarn build
 
       - name: Build the app
         uses: tauri-apps/tauri-action@dev

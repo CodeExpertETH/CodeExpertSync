@@ -9,8 +9,8 @@ This repo contains the desktop app of Code Expert, which will allow you to sync 
 ## Setup
 
  - Install prerequisites: https://tauri.app/v1/guides/getting-started/prerequisites
- - Install dependencies: `pnpm install`
- - Start the app: `pnpm tauri dev`
+ - Install dependencies: `yarn`
+ - Start the app: `yarn tauri dev`
 
 ### Gnome
 

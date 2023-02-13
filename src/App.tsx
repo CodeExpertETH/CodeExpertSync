@@ -1,42 +1,36 @@
-import { createResource, createSignal } from "solid-js";
-import logo from "./assets/logo.svg";
+import { useState } from "react";
+import reactLogo from "./assets/react.svg";
 import { invoke } from "@tauri-apps/api/tauri";
 import "./App.css";
-import { listen } from "@tauri-apps/api/event";
-import { getVersion } from "@tauri-apps/api/app";
-import Updater from "./Updater";
 
 function App() {
-  const [version] = createResource(getVersion); // Here we use createResource to associate from the fetchJokes promise to the results: the jokes variable
-
-  const [greetMsg, setGreetMsg] = createSignal("");
-  const [name, setName] = createSignal("");
+  const [greetMsg, setGreetMsg] = useState("");
+  const [name, setName] = useState("");
 
   async function greet() {
     // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-    setGreetMsg(await invoke("greet", { name: name() }));
+    setGreetMsg(await invoke("greet", { name }));
   }
 
   return (
-    <div class="container">
-      <h1>Welcome to Code Expert Desktop!</h1>
-      <h2>{version}</h2>
+    <div className="container">
+      <h1>Welcome to Tauri!</h1>
 
-      <div class="row">
+      <div className="row">
         <a href="https://vitejs.dev" target="_blank">
-          <img src="/vite.svg" class="logo vite" alt="Vite logo" />
+          <img src="/vite.svg" className="logo vite" alt="Vite logo" />
         </a>
         <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" class="logo tauri" alt="Tauri logo" />
+          <img src="/tauri.svg" className="logo tauri" alt="Tauri logo" />
         </a>
-        <a href="https://solidjs.com" target="_blank">
-          <img src={logo} class="logo solid" alt="Solid logo" />
+        <a href="https://reactjs.org" target="_blank">
+          <img src={reactLogo} className="logo react" alt="React logo" />
         </a>
       </div>
 
-      <p>Click on the Tauri, Vite, and Solid logos to learn more.</p>
+      <p>Click on the Tauri, Vite, and React logos to learn more.</p>
 
-      <div class="row">
+      <div className="row">
         <div>
           <input
             id="greet-input"
@@ -48,11 +42,7 @@ function App() {
           </button>
         </div>
       </div>
-
       <p>{greetMsg}</p>
-      <div class="row">
-        <Updater />
-      </div>
     </div>
   );
 }
