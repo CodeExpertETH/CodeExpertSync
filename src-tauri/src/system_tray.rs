@@ -3,7 +3,6 @@ use tauri::{
 };
 
 use crate::utils;
-pub(crate) mod window_helpers;
 
 pub fn handle_system_tray_event(app: &AppHandle<Wry>, event: SystemTrayEvent) {
     match event {

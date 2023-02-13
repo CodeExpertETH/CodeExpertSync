@@ -20,7 +20,7 @@ function App() {
 
   async function greet() {
     // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-    const message: string = await invoke("greet", { name: name() });
+    const message: string = await invoke("greet", { name });
     setGreetMsg(message);
     await store.set("greet", { message });
     await store.save();

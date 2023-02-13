@@ -2243,6 +2243,12 @@ supports-preserve-symlinks-flag@^1.0.0:
   resolved "https://registry.yarnpkg.com/supports-preserve-symlinks-flag/-/supports-preserve-symlinks-flag-1.0.0.tgz#6eda4bd344a3c94aea376d4cc31bc77311039e09"
   integrity sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==
 
+"tauri-plugin-store-api@github:tauri-apps/tauri-plugin-store":
+  version "0.0.0"
+  resolved "https://codeload.github.com/tauri-apps/tauri-plugin-store/tar.gz/c71665bf5dcf48ae70a88d622eb38b2548b60a5d"
+  dependencies:
+    "@tauri-apps/api" "^1.2.0"
+
 throttle-debounce@^5.0.0:
   version "5.0.0"
   resolved "https://registry.yarnpkg.com/throttle-debounce/-/throttle-debounce-5.0.0.tgz#a17a4039e82a2ed38a5e7268e4132d6960d41933"
