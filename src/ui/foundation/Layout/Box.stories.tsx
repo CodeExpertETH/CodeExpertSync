@@ -1,7 +1,7 @@
 import React from "react";
 import { useTheme } from "../Theme";
 import { Box, BoxProps } from "./Box";
-import { Story } from "@storybook/react/types-6-0";
+import { Story } from "@storybook/react";
 
 export default {
   title: "Foundation/Layout/Box",

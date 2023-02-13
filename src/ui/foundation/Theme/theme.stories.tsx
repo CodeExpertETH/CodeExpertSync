@@ -21,6 +21,7 @@ import { copyToClipboard } from "../../helper/copyToClipboard";
 import { isLight } from "./colorScheme";
 
 import { internalTokenKeys, ThemeProvider, useTheme } from "./theme";
+import { assert } from "../../../prelude/monadThrow";
 
 const { Text } = AntdTypography;
 
@@ -121,6 +122,9 @@ const TokenTable = ({ group }: { group: Group }) => (
 const ColorPalette = () => {
   const { colorScheme, tokens } = useTheme();
   const paletteSpecs = useTokenSpecs("ColorPalettes");
+  if (!array.isNonEmpty(paletteSpecs)) {
+    return null;
+  }
   const palettes = pipe(
     paletteSpecs,
     nonEmptyArray.group(eqTokenName),

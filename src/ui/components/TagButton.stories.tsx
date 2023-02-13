@@ -1,25 +1,33 @@
 import React from "react";
-import { Story } from "@storybook/react";
+import { StoryObj } from "@storybook/react";
 import { TagButton, TagButtonProps } from "./TagButton";
 
 export default {
-  title: "components/TagButton",
   component: TagButton,
+  args: { children: "Test" },
 };
 
-const Template: Story<TagButtonProps> = ({ color, ...props }) => (
-  <TagButton color={color} {...props}>
-    Test
-  </TagButton>
-);
+export const Primary = {
+  args: {},
+};
 
-export const Default = Template.bind({});
-Default.args = {};
-export const Orange = Template.bind({});
-Orange.args = { color: "orange" };
+export const Orange = {
+  args: {
+    ...Primary.args,
+    color: "orange",
+  },
+};
 
-export const Red = Template.bind({});
-Red.args = { color: "red" };
+export const Red = {
+  args: {
+    ...Primary.args,
+    color: "red",
+  },
+};
 
-export const Green = Template.bind({});
-Green.args = { color: "green" };
+export const Green = {
+  args: {
+    ...Primary.args,
+    color: "green",
+  },
+};
