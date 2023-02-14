@@ -66,9 +66,6 @@ jobs:
         run: yarn run test:ci
   rust-check:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./src-tauri
     steps:
       - uses: actions/checkout@v3
       - name: Install dependencies
@@ -86,14 +83,11 @@ jobs:
         uses: swatinem/rust-cache@v2
         with:
           workspaces: './src-tauri -> target'
-      - uses: actions-rs/cargo@v1
-        with:
-          command: check
+      - name: Run rust check
+        working-directory: src-tauri
+        run: cargo check
   rust-tests:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./src-tauri
     steps:
       - uses: actions/checkout@v3
       - name: Install dependencies
@@ -118,15 +112,11 @@ jobs:
           cache: 'yarn' # Set this to npm, yarn or pnpm.
       - name: Install app dependencies and build web
         run: yarn && yarn build
-      - name: Run tests
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
+      - name: Run rust test
+        working-directory: src-tauri
+        run: cargo test
   rust-fmt:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./src-tauri
     steps:
       - uses: actions/checkout@v3
       - name: Install dependencies
@@ -145,15 +135,11 @@ jobs:
         with:
           workspaces: './src-tauri -> target'
       - run: rustup component add rustfmt
-      - uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check
+      - name: Run rust fmt
+        working-directory: src-tauri
+        run: cargo fmt --all --check
   rust-clippy:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./src-tauri
     steps:
       - uses: actions/checkout@v3
       - name: Install dependencies
@@ -172,7 +158,6 @@ jobs:
         with:
           workspaces: './src-tauri -> target'
       - run: rustup component add clippy
-      - uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: -- -D warnings
+      - name: Run clippy
+        working-directory: src-tauri
+        run: cargo clippy -D warnings
