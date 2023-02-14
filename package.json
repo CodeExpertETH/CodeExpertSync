@@ -1,6 +1,6 @@
 {
   "name": "code_expert_desktop",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "description": "",
   "scripts": {
     "dev": "vite",
@@ -83,6 +83,5 @@
     ]
   },
   "prettier": "@code-expert/prettier-config",
-  "readme": "ERROR: No README data found!",
-  "_id": "code_expert_desktop@0.0.16"
+  "readme": "ERROR: No README data found!"
 }
