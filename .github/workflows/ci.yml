@@ -17,7 +17,7 @@ env:
   VITEST_SEGFAULT_RETRY: 3
 
 jobs:
-  lint-prettier:
+  web:lint-prettier:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -33,7 +33,7 @@ jobs:
       - name: Lint
         run: yarn run lint
 
-  typecheck:
+  web:typecheck:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -46,7 +46,7 @@ jobs:
         run: yarn && yarn build
       - name: Typecheck
         run: yarn run tsc
-  test:
+  web:test:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     strategy:
@@ -85,8 +85,8 @@ jobs:
         with:
           workspaces: './src-tauri -> target'
       - uses: actions-rs/cargo@v1
-        working-directory: ./src-tauri
         with:
+          working-directory: ./src-tauri
           command: check
   rust:tests:
     runs-on: ubuntu-latest
@@ -116,8 +116,8 @@ jobs:
         run: yarn && yarn build
       - name: Run tests
         uses: actions-rs/cargo@v1
-        working-directory: ./src-tauri
         with:
+          working-directory: ./src-tauri
           command: test
   rust:fmt:
     runs-on: ubuntu-latest
@@ -140,8 +140,8 @@ jobs:
           workspaces: './src-tauri -> target'
       - run: rustup component add rustfmt
       - uses: actions-rs/cargo@v1
-        working-directory: ./src-tauri
         with:
+          working-directory: ./src-tauri
           command: fmt
           args: --all -- --check
   rust:clippy:
@@ -165,7 +165,7 @@ jobs:
           workspaces: './src-tauri -> target'
       - run: rustup component add clippy
       - uses: actions-rs/cargo@v1
-        working-directory: ./src-tauri
         with:
+          working-directory: ./src-tauri
           command: clippy
           args: -- -D warnings
