@@ -1,6 +1,6 @@
 {
   "name": "code_expert_desktop",
-  "version": "0.0.0",
+  "version": "0.0.15",
   "description": "",
   "scripts": {
     "dev": "vite",

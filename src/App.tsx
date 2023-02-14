@@ -4,6 +4,7 @@ import { Store } from 'tauri-plugin-store-api';
 import { invoke } from '@tauri-apps/api/tauri';
 import './App.css';
 import { listen } from '@tauri-apps/api/event';
+import { getVersion } from '@tauri-apps/api/app';
 
 const store = new Store('.settings.dat');
 
@@ -19,7 +20,11 @@ function App() {
   });
 
   async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
+      const appVersion = await getVersion();
+
+      console.log(appVersion);
+
+      // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
     const message: string = await invoke('greet', { name });
     setGreetMsg(message);
     await store.set('greet', { message });
