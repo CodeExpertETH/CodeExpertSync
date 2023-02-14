@@ -83,6 +83,13 @@ jobs:
         uses: swatinem/rust-cache@v2
         with:
           workspaces: './src-tauri -> target'
+      - name: Sync node version and setup cache
+        uses: actions/setup-node@v3
+        with:
+          node-version: 'lts/*'
+          cache: 'yarn' # Set this to npm, yarn or pnpm.
+      - name: Install app dependencies and build web
+        run: yarn && yarn build
       - name: Run rust check
         working-directory: src-tauri
         run: cargo check
@@ -158,6 +165,13 @@ jobs:
         with:
           workspaces: './src-tauri -> target'
       - run: rustup component add clippy
+      - name: Sync node version and setup cache
+        uses: actions/setup-node@v3
+        with:
+          node-version: 'lts/*'
+          cache: 'yarn' # Set this to npm, yarn or pnpm.
+      - name: Install app dependencies and build web
+        run: yarn && yarn build
       - name: Run clippy
         working-directory: src-tauri
         run: cargo clippy
