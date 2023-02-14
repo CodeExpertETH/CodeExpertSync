@@ -27,7 +27,7 @@ export default defineConfig({
     // don't minify for debug builds
     minify: !process.env.TAURI_DEBUG ? "esbuild" : false,
     // produce sourcemaps for debug builds
-    sourcemap: process.env.GITHUB_ACTIONS ? false : !!process.env.TAURI_DEBUG,
+    sourcemap: !!process.env.TAURI_DEBUG,
   },
   test: {
     /* for example, use global to avoid globals imports (describe, test, expect): */
