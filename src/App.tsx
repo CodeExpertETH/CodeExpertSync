@@ -20,11 +20,11 @@ function App() {
   });
 
   async function greet() {
-      const appVersion = await getVersion();
+    const appVersion = await getVersion();
 
-      console.log(appVersion);
+    console.log(appVersion);
 
-      // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
+    // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
     const message: string = await invoke('greet', { name });
     setGreetMsg(message);
     await store.set('greet', { message });
