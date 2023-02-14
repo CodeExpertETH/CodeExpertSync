@@ -66,6 +66,9 @@ jobs:
         run: yarn run test:ci
   rust-check:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./src-tauri
     steps:
       - uses: actions/checkout@v3
       - name: Install dependencies
@@ -85,10 +88,12 @@ jobs:
           workspaces: './src-tauri -> target'
       - uses: actions-rs/cargo@v1
         with:
-          working-directory: ./src-tauri
           command: check
   rust-tests:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./src-tauri
     steps:
       - uses: actions/checkout@v3
       - name: Install dependencies
@@ -116,10 +121,12 @@ jobs:
       - name: Run tests
         uses: actions-rs/cargo@v1
         with:
-          working-directory: ./src-tauri
           command: test
   rust-fmt:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./src-tauri
     steps:
       - uses: actions/checkout@v3
       - name: Install dependencies
@@ -140,11 +147,13 @@ jobs:
       - run: rustup component add rustfmt
       - uses: actions-rs/cargo@v1
         with:
-          working-directory: ./src-tauri
           command: fmt
           args: --all -- --check
   rust-clippy:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./src-tauri
     steps:
       - uses: actions/checkout@v3
       - name: Install dependencies
@@ -165,6 +174,5 @@ jobs:
       - run: rustup component add clippy
       - uses: actions-rs/cargo@v1
         with:
-          working-directory: ./src-tauri
           command: clippy
           args: -- -D warnings
