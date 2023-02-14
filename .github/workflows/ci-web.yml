@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  VITEST_SEGFAULT_RETRY: 3
+
+jobs:
+  web-lint-prettier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Sync node version and setup cache
+        uses: actions/setup-node@v3
+        with:
+          node-version: 'lts/*'
+          cache: 'yarn' # Set this to npm, yarn or pnpm.
+      - name: Install app dependencies and build web
+        run: yarn && yarn build
+      - name: Prettier
+        run: yarn run prettier:check
+      - name: Lint
+        run: yarn run lint
+  web-typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Sync node version and setup cache
+        uses: actions/setup-node@v3
+        with:
+          node-version: 'lts/*'
+          cache: 'yarn' # Set this to npm, yarn or pnpm.
+      - name: Install app dependencies and build web
+        run: yarn && yarn build
+      - name: Typecheck
+        run: yarn run tsc
+  web-test:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        node_version: [16, 18]
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v3
+      - name: Sync node version and setup cache
+        uses: actions/setup-node@v3
+        with:
+          node-version: 'lts/*'
+          cache: 'yarn' # Set this to npm, yarn or pnpm.
+      - name: Install app dependencies and build web
+        run: yarn && yarn build
+      - name: Test
+        run: yarn run test:ci
