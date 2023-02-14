@@ -11,6 +11,16 @@ fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
 
+#[cfg(test)]
+mod tests {
+    use crate::greet;
+
+    #[test]
+    fn greet_returns() {
+        assert_eq!(greet("blub"), "Hello, blub! You've been greeted from Rust!");
+    }
+}
+
 fn main() {
     // prepare() checks if it's a single instance and tries to send the args otherwise.
     // It should always be the first line in your main function (with the exception of loggers or similar)
