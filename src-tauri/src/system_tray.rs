@@ -5,15 +5,14 @@ use tauri::{
 use crate::utils;
 
 pub fn handle_system_tray_event(app: &AppHandle<Wry>, event: SystemTrayEvent) {
-    match event {
-        SystemTrayEvent::MenuItemClick { id, .. } => match id.as_str() {
+    if let SystemTrayEvent::MenuItemClick { id, .. } = event {
+        match id.as_str() {
             "quit" => {
                 std::process::exit(0);
             }
             "open" => utils::window::open_app_window(app),
             _ => {}
-        },
-        _ => {}
+        }
     }
 }
 

@@ -1,5 +1,4 @@
 use tauri::Manager;
-use tauri_plugin_positioner;
 use tauri_plugin_positioner::{Position, WindowExt};
 
 mod system_tray;
@@ -9,6 +8,16 @@ mod utils;
 #[tauri::command]
 fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::greet;
+
+    #[test]
+    fn greet_returns() {
+        assert_eq!(greet("blub"), "Hello, blub! You've been greeted from Rust!");
+    }
 }
 
 fn main() {
@@ -48,14 +57,11 @@ fn main() {
         .build(tauri::generate_context!())
         .expect("error while running tauri application")
         .run(|app, event| match event {
-            tauri::RunEvent::WindowEvent { event, .. } => match event {
-                tauri::WindowEvent::CloseRequested { api, .. } => {
+            tauri::RunEvent::WindowEvent { event:  tauri::WindowEvent::CloseRequested { api, .. }, .. } =>  {
                     if let Some(window) = app.get_window("main") {
                         let _ = window.hide();
                     }
                     api.prevent_close();
-                }
-                _ => {}
             },
             tauri::RunEvent::ExitRequested { api, .. } => {
                 api.prevent_exit();

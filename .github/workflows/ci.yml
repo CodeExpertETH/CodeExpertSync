@@ -17,7 +17,7 @@ env:
   VITEST_SEGFAULT_RETRY: 3
 
 jobs:
-  lint-prettier:
+  web-lint-prettier:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -32,8 +32,7 @@ jobs:
         run: yarn run prettier:check
       - name: Lint
         run: yarn run lint
-
-  typecheck:
+  web-typecheck:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -46,7 +45,7 @@ jobs:
         run: yarn && yarn build
       - name: Typecheck
         run: yarn run tsc
-  test:
+  web-test:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     strategy:
@@ -54,7 +53,6 @@ jobs:
         os: [ubuntu-latest]
         node_version: [16, 18]
       fail-fast: false
-
     steps:
       - uses: actions/checkout@v3
       - name: Sync node version and setup cache
@@ -66,3 +64,85 @@ jobs:
         run: yarn && yarn build
       - name: Test
         run: yarn run test:ci
+  rust-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install dependencies
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: libgtk-3-dev libwebkit2gtk-4.0-dev libayatana-appindicator3-dev librsvg2-dev
+          version: 1.0
+      - name: Rust setup
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+      - name: Sync node version and setup cache
+        uses: actions/setup-node@v3
+        with:
+          node-version: 'lts/*'
+          cache: 'yarn' # Set this to npm, yarn or pnpm.
+      - name: Install app dependencies and build web
+        run: yarn && yarn build
+      - name: Run rust test
+        working-directory: src-tauri
+        run: cargo test
+  rust-fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install dependencies
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: libgtk-3-dev libwebkit2gtk-4.0-dev libayatana-appindicator3-dev librsvg2-dev
+          version: 1.0
+      - name: Rust setup
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+      - run: rustup component add rustfmt
+      - name: Run rust fmt
+        working-directory: src-tauri
+        run: cargo fmt --all --check
+  rust-clippy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install dependencies
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: libgtk-3-dev libwebkit2gtk-4.0-dev libayatana-appindicator3-dev librsvg2-dev
+          version: 1.0
+      - name: Rust setup
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+      - run: rustup component add clippy
+      - name: Sync node version and setup cache
+        uses: actions/setup-node@v3
+        with:
+          node-version: 'lts/*'
+          cache: 'yarn' # Set this to npm, yarn or pnpm.
+      - name: Install app dependencies and build web
+        run: yarn && yarn build
+      - name: Run clippy
+        working-directory: src-tauri
+        run: cargo clippy
