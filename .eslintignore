@@ -3,3 +3,4 @@ public/*
 dist/*
 src-tauri/*
 vite.config.ts
+/storybook-static
