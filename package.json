@@ -15,7 +15,8 @@
     "prettier:check": "prettier --cache  --cache-strategy content --check \"./src/**/*.{js,jsx,ts,tsx,json,less,html}\"",
     "tsc": "tsc",
     "lint": "eslint . --cache  --cache-strategy content --ext .js,.jsx,.ts,.tsx",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "chromatic": "npx chromatic --project-token=af98efe0a6a9"
   },
   "license": "MIT",
   "devDependencies": {
@@ -34,6 +35,7 @@
     "@types/react": "^18.0.15",
     "@types/react-dom": "^18.0.6",
     "@vitejs/plugin-react": "^3.0.0",
+    "chromatic": "^6.17.0",
     "eslint": "^8.34.0",
     "prettier": "^2.8.4",
     "prop-types": "^15.8.1",
@@ -80,5 +82,7 @@
       "prettier --write"
     ]
   },
-  "prettier": "@code-expert/prettier-config"
+  "prettier": "@code-expert/prettier-config",
+  "readme": "ERROR: No README data found!",
+  "_id": "code_expert_desktop@0.0.16"
 }
