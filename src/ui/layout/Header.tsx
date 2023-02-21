@@ -3,6 +3,16 @@ import { Layout, Menu } from 'antd';
 import { ItemType } from 'antd/es/menu/hooks/useItems';
 import codeExpertLogo from '../../assets/logo_invert.png';
 import { Icon } from '../foundation/Icons';
+import { styled } from '../foundation/Theme';
+import { HStack } from '../foundation/Layout';
+
+const StyledLayoutHeader = styled(Layout.Header, ({ tokens }) => ({
+  padding: `0 ${tokens.paddingSM}px !important`,
+  position: 'sticky',
+  top: '0 !important',
+  zIndex: 1,
+  width: '100%',
+}));
 
 export function TopNavLayoutWrapper({
   menu,
@@ -10,26 +20,18 @@ export function TopNavLayoutWrapper({
 }: React.PropsWithChildren<{ menu: ItemType[] }>) {
   return (
     <Layout>
-      <Layout.Header style={{ position: 'sticky', top: 0, zIndex: 1, width: '100%' }}>
-        <div
-          style={{
-            float: 'left',
-            width: 221,
-            height: 40,
-            margin: '12px 24px 12px 0',
-          }}
-        >
+      <StyledLayoutHeader>
+        <HStack justify={'space-between'} align="center">
           <img src={codeExpertLogo} height="40" alt="Code Expert" />
-        </div>
-        <Menu
-          theme="dark"
-          mode="horizontal"
-          selectedKeys={[]}
-          triggerSubMenuAction="click"
-          style={{ float: 'right' }}
-          items={menu}
-        />
-      </Layout.Header>
+          <Menu
+            theme="dark"
+            mode="horizontal"
+            selectedKeys={[]}
+            triggerSubMenuAction="click"
+            items={menu}
+          />
+        </HStack>
+      </StyledLayoutHeader>
       {children}
     </Layout>
   );

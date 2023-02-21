@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import './App.css';
 import { listen } from '@tauri-apps/api/event';
 
 function Updater() {
