@@ -3,7 +3,6 @@ import reactLogo from './assets/react.svg';
 import { Store } from 'tauri-plugin-store-api';
 import { invoke } from '@tauri-apps/api/tauri';
 import './App.css';
-import { listen } from '@tauri-apps/api/event';
 import { getVersion } from '@tauri-apps/api/app';
 
 const store = new Store('.settings.dat');
@@ -12,12 +11,6 @@ function App() {
   const [greetMsg, setGreetMsg] = useState('');
   const [name, setName] = useState('');
   const [messagePast, setMessagePast] = useState('');
-
-  void listen('scheme-request-received', (event) => {
-    console.log(event);
-    // event.event is the event name (useful if you want to use a single callback fn for multiple event types)
-    // event.payload is the payload object
-  });
 
   async function greet() {
     const appVersion = await getVersion();

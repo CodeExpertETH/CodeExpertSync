@@ -15,7 +15,6 @@ tauri-build = { version = "1.2", features = [] }
 
 [dependencies]
 tauri-plugin-positioner = { version = "1.0.4", features = [] }
-tauri-plugin-deep-link = { git = "https://github.com/FabianLars/tauri-plugin-deep-link" }
 tauri-plugin-single-instance = { git = "https://github.com/tauri-apps/tauri-plugin-single-instance" }
 tauri-plugin-store = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "dev" }
 
