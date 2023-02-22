@@ -1,6 +1,7 @@
 use tauri::Manager;
 use tauri_plugin_positioner::{Position, WindowExt};
 
+mod commands;
 mod system_tray;
 mod utils;
 
@@ -35,7 +36,10 @@ fn main() {
         })
         .system_tray(system_tray::create_system_tray())
         .on_system_tray_event(system_tray::handle_system_tray_event)
-        .invoke_handler(tauri::generate_handler![greet])
+        .invoke_handler(tauri::generate_handler![
+            greet,
+            commands::system_info::system_info
+        ])
         .build(tauri::generate_context!())
         .expect("error while running tauri application")
         .run(|app, event| match event {
