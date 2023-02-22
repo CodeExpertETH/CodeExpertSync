@@ -2,11 +2,8 @@ import React, { useEffect } from 'react';
 import equal from 'fast-deep-equal';
 import { AuthToken } from '../../domain/identity';
 import { constVoid } from '../../prelude';
-import { Store } from 'tauri-plugin-store-api';
+import { api, Store } from 'api';
 import Loading from './Loading';
-
-// -------------------------------------------------------------------------------------------------
-const _store = new Store('.settings.dat');
 
 export interface GlobalContext {
   readonly authToken?: AuthToken;
@@ -19,7 +16,7 @@ type MandatoryFields = keyof Pick<GlobalContext, 'authToken'>;
 
 export function initialState({
   currentPage = 'main',
-  store = _store,
+  store = api.store,
   ...defaults
 }: Pick<GlobalContext, MandatoryFields> &
   Partial<Omit<GlobalContext, MandatoryFields>>): GlobalContext {
@@ -43,7 +40,7 @@ const reducer = (state: GlobalContext | undefined, action: Action & { _init?: Gl
 const context = React.createContext<[GlobalContext, React.Dispatch<Action>]>([
   initialState({
     currentPage: 'main',
-    store: _store,
+    store: api.store,
     authToken: undefined,
   }),
   constVoid,
@@ -55,7 +52,7 @@ export const GlobalContextProvider = React.memo(function GlobalContextProvider({
   const [state, stateDispatch] = React.useReducer(reducer, undefined);
 
   useEffect(() => {
-    void _store.get('authToken').then((val) => {
+    void api.store.get('authToken').then((val) => {
       const nextState = {
         authToken: val == null ? undefined : (val as AuthToken),
       };

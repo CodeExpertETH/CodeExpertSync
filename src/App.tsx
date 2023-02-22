@@ -1,17 +1,16 @@
 import React, { useState } from 'react';
-import { getVersion } from '@tauri-apps/api/app';
+import { api } from 'api';
 import { Header } from './ui/layout/Header';
 import { GlobalContextProvider } from './ui/components/GlobalContext';
 import AuthTokenManager from './AuthToken';
-import { invoke } from '@tauri-apps/api';
 
 function App() {
   const [greetMsg, setGreetMsg] = useState('');
   const [name, setName] = useState('');
 
   async function greet() {
-    const appVersion = await getVersion();
-    const message: string = await invoke('greet', { name });
+    const appVersion = await api.getVersion();
+    const message: string = await api.greet(name);
     setGreetMsg(message);
     console.log(appVersion);
   }
