@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import equal from 'fast-deep-equal';
-import { AuthToken } from '../../domain';
+import { AuthToken } from '../../domain/identity';
 import { constVoid } from '../../prelude';
 import { Store } from 'tauri-plugin-store-api';
 import Loading from './Loading';

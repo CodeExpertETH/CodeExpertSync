@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useGlobalContextWithActions } from './ui/components/GlobalContext';
-import { AuthToken } from './domain';
+import { AuthToken } from './domain/identity';
 
 function AuthTokenManager() {
   const [state, setState] = useGlobalContextWithActions();
