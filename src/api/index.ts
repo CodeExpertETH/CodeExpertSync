@@ -1,7 +1,7 @@
 import { getVersion } from '@tauri-apps/api/app';
 import { invoke } from '@tauri-apps/api';
 import { Store as TauriStore } from 'tauri-plugin-store-api';
-import { constUndefined, iots, option, pipe, task, taskOption } from '../prelude';
+import { iots, option, pipe, task, taskOption } from '../prelude';
 
 const store = new TauriStore('.settings.dat');
 
@@ -20,5 +20,5 @@ export const api: Api = {
   settingWrite: (key, value) => () =>
     value != null
       ? store.set(key, value).then(() => store.save())
-      : store.delete(key).then(constUndefined),
+      : store.delete(key).then(() => store.save()),
 };
