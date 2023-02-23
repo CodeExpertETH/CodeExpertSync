@@ -1,16 +1,25 @@
-import React, { useState } from 'react';
+import React, { useRef } from 'react';
+import { message } from 'antd';
 import { useGlobalContextWithActions } from './ui/components/GlobalContext';
-import { AuthToken } from './domain/identity';
+import { AuthToken } from './domain/AuthToken';
+import { either, pipe } from './prelude';
 
-function AuthTokenManager() {
+export const AuthTokenManager = () => {
+  const ref = useRef<HTMLInputElement>(null);
   const [state, setState] = useGlobalContextWithActions();
-  const [token, setToken] = useState('');
 
-  async function save() {
-    await state.store.set('authToken', token);
-    await state.store.save();
-    setState({ authToken: token as AuthToken });
-  }
+  const save = () =>
+    pipe(
+      ref.current?.value,
+      AuthToken.decode,
+      either.fold(
+        (err) => {
+          void message.warning('Invalid token');
+          console.error(err);
+        },
+        (authToken) => setState({ authToken }),
+      ),
+    );
 
   return (
     <div className="container">
@@ -19,18 +28,12 @@ function AuthTokenManager() {
       <div className="row">{state.authToken}</div>
       <div className="row">
         <div>
-          <input
-            id="greet-input"
-            onChange={(e) => setToken(e.currentTarget.value)}
-            placeholder="Enter a token..."
-          />
-          <button type="button" onClick={() => save()}>
+          <input ref={ref} id="greet-input" placeholder="Enter a token …" />
+          <button type="button" onClick={save}>
             Save
           </button>
         </div>
       </div>
     </div>
   );
-}
-
-export default AuthTokenManager;
+};

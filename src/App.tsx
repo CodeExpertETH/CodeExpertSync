@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { api } from 'api';
 import { Header } from './ui/layout/Header';
 import { GlobalContextProvider } from './ui/components/GlobalContext';
-import AuthTokenManager from './AuthToken';
+import { AuthTokenManager } from './AuthToken';
 
 function App() {
   const [greetMsg, setGreetMsg] = useState('');
