@@ -1,18 +1,14 @@
-import type { Api, Store } from '../../src/api';
-import { constUndefined } from '../../src/prelude';
+import { taskOption } from '../../src/prelude';
+import type { Api } from '../../src/api';
 
-export const store = ((): Store => {
-  const TestStore = new Map();
-  return {
-    get: (key) => Promise.resolve(TestStore.get(key)),
-    set: (key, value) => Promise.resolve(TestStore.set(key, value)).then(constUndefined),
-    save: () => Promise.resolve(undefined),
-    delete: (key) => Promise.resolve(TestStore.delete(key)),
-  };
-})();
+const store = new Map();
 
 export const api: Api = {
   getVersion: () => Promise.resolve('Version: Storybook'),
   greet: (name) => Promise.resolve(`Hello from Storybook, ${name}!`),
-  store,
+  settingRead: (key) => taskOption.fromIO(() => store.get(key)),
+  settingWrite: (key, value) => () => {
+    store.set(key, value);
+    return Promise.resolve(undefined);
+  },
 };

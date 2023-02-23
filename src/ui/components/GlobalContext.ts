@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import equal from 'fast-deep-equal';
 import { api } from 'api';
 import { AuthToken } from '../../domain/AuthToken';
-import { constUndefined, constVoid, either, pipe, task } from '../../prelude';
+import { constVoid, option, pipe, task } from '../../prelude';
 import Loading from './Loading';
 
 export interface GlobalContext {
@@ -29,7 +29,7 @@ const reducer = (state: GlobalContext | undefined, action: Action & { _init?: Gl
   if (state == null) return undefined;
   if ('authToken' in action) {
     // It's ok to eventually persist the token, no need to wait until it happened.
-    void task.run(writePersistedAuthToken(action.authToken));
+    void task.run(api.settingWrite('authToken', action.authToken));
   }
 
   const nextState = { ...state, ...action };
@@ -54,7 +54,8 @@ export const GlobalContextProvider = React.memo(function GlobalContextProvider({
   useEffect(() => {
     if (state == null) {
       void pipe(
-        readPersistedAuthToken,
+        api.settingRead('authToken', AuthToken),
+        task.map(option.toUndefined),
         task.map((authToken) => stateDispatch({ _init: initialState({ authToken }) })),
         task.run,
       );
@@ -71,15 +72,3 @@ export const GlobalContextProvider = React.memo(function GlobalContextProvider({
 export const useGlobalContext = () => React.useContext(context)[0];
 
 export const useGlobalContextWithActions = () => React.useContext(context);
-
-export const readPersistedAuthToken: task.Task<AuthToken | undefined> = pipe(
-  task.fromIO(() => api.store.get('authToken')),
-  task.map(AuthToken.decode),
-  task.map(either.getOrElseW(constUndefined)),
-);
-
-export const writePersistedAuthToken: (_: AuthToken | undefined) => task.Task<void> =
-  (authToken) => () =>
-    authToken != null
-      ? api.store.set('authToken', authToken).then(() => api.store.save())
-      : api.store.delete('authToken').then(constUndefined);

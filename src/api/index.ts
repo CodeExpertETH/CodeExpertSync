@@ -1,17 +1,24 @@
 import { getVersion } from '@tauri-apps/api/app';
 import { invoke } from '@tauri-apps/api';
 import { Store as TauriStore } from 'tauri-plugin-store-api';
+import { constUndefined, iots, option, pipe, task, taskOption } from '../prelude';
 
-export type Store = Pick<TauriStore, 'delete' | 'get' | 'set' | 'save'>;
+const store = new TauriStore('.settings.dat');
 
 export interface Api {
   getVersion(): Promise<string>;
   greet(name: string): Promise<string>;
-  store: Store;
+  settingRead<T>(key: string, decoder: iots.Decoder<unknown, T>): taskOption.TaskOption<T>;
+  settingWrite(key: string, value: unknown): task.Task<void>;
 }
 
 export const api: Api = {
   getVersion,
   greet: (name) => invoke('greet', { name }),
-  store: new TauriStore('.settings.dat'),
+  settingRead: (key, decoder) =>
+    pipe(() => store.get(key), task.map(decoder.decode), task.map(option.fromEither)),
+  settingWrite: (key, value) => () =>
+    value != null
+      ? store.set(key, value).then(() => store.save())
+      : store.delete(key).then(constUndefined),
 };
