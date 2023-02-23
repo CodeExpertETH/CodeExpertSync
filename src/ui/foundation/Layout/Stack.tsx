@@ -1,17 +1,18 @@
 import React from 'react';
+
 import { useTheme } from '../Theme';
-import { PolymorphicComponentPropWithRef, PolymorphicRef } from './type-utils';
+import { BoxProps } from './Box';
 import {
   Align,
-  alignItems,
   Justify,
-  justifyContent,
   Size,
-  sizeToNumber,
   StyledSystemProp,
+  alignItems,
+  justifyContent,
+  sizeToNumber,
   useStyledSystem,
 } from './styled-system';
-import { BoxProps } from './Box';
+import { PolymorphicComponentPropWithRef, PolymorphicRef } from './type-utils';
 
 export type StackProps<C extends React.ElementType> = PolymorphicComponentPropWithRef<
   C,

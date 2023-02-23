@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import reactLogo from './assets/react.svg';
-import { Store } from 'tauri-plugin-store-api';
-import { invoke } from '@tauri-apps/api/tauri';
-import './App.css';
 import { getVersion } from '@tauri-apps/api/app';
+import { invoke } from '@tauri-apps/api/tauri';
+import React, { useState } from 'react';
+import { Store } from 'tauri-plugin-store-api';
+
+import './App.css';
+import reactLogo from './assets/react.svg';
 
 const store = new Store('.settings.dat');
 

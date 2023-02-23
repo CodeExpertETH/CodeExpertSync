@@ -1,11 +1,11 @@
-import type { Ord } from 'fp-ts/Ord';
 import * as array from 'fp-ts/Array';
 import * as monoid from 'fp-ts/Monoid';
 import * as option from 'fp-ts/Option';
+import type { Ord } from 'fp-ts/Ord';
 import { sign } from 'fp-ts/Ordering';
-import * as string from 'fp-ts/string';
-import { flow, pipe } from 'fp-ts/function';
 import { not } from 'fp-ts/Predicate';
+import { flow, pipe } from 'fp-ts/function';
+import * as string from 'fp-ts/string';
 
 export * from 'fp-ts/string';
 

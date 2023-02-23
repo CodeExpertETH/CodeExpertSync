@@ -1,6 +1,7 @@
 import React from 'react';
-import { PolymorphicComponentPropWithRef, PolymorphicRef } from './type-utils';
+
 import { StyledSystemProp, useStyledSystem } from './styled-system';
+import { PolymorphicComponentPropWithRef, PolymorphicRef } from './type-utils';
 
 export type BoxProps<C extends React.ElementType> = PolymorphicComponentPropWithRef<
   C,

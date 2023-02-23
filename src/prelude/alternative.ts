@@ -1,6 +1,7 @@
-import * as alt from './alt';
 import * as alternative from 'fp-ts/Alternative';
 import { HKT, Kind, Kind2, URIS, URIS2 } from 'fp-ts/HKT';
+
+import * as alt from './alt';
 
 export * from 'fp-ts/Alternative';
 

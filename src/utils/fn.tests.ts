@@ -1,11 +1,12 @@
 /* eslint-env mocha */
-/* eslint-disable no-unused-expressions,max-classes-per-file */
 
+/* eslint-disable no-unused-expressions,max-classes-per-file */
 import { assert, describe, it } from 'vitest';
+
+import { pipe } from '../prelude';
 import * as fn from './fn';
 import { isNonEmptyRecord, isOneOf } from './fn';
 import { fc } from './test';
-import { pipe } from '../prelude';
 
 describe('fn.js', () => {
   describe('difference', () => {

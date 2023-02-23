@@ -1,10 +1,11 @@
 import { either, io } from 'fp-ts';
-import { constFalse, flow, FunctionN, identity, pipe } from 'fp-ts/function';
 import * as Ap from 'fp-ts/Apply';
-import * as RA from 'fp-ts/ReadonlyArray';
 import * as Ei from 'fp-ts/Either';
+import * as RA from 'fp-ts/ReadonlyArray';
 import * as TE from 'fp-ts/TaskEither';
 import { TaskEither } from 'fp-ts/TaskEither';
+import { FunctionN, constFalse, flow, identity, pipe } from 'fp-ts/function';
+
 import * as eitherT from './eithert';
 import * as functor from './functor';
 import * as task from './task';

@@ -1,6 +1,7 @@
-import { iots, tagged } from '../prelude';
-import { assert, describe, it } from 'vitest';
 import { either } from 'fp-ts';
+import { assert, describe, it } from 'vitest';
+
+import { iots, tagged } from '../prelude';
 
 describe('prelude/iots', () => {
   describe('tagged', () => {

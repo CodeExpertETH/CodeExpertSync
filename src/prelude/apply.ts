@@ -1,7 +1,7 @@
-import { Kind, Kind2, URIS, URIS2 } from 'fp-ts/HKT';
-import * as apply from 'fp-ts/Apply';
-import { FunctionN, pipe, tupled } from 'fp-ts/function';
 import { pipeable } from 'fp-ts';
+import * as apply from 'fp-ts/Apply';
+import { Kind, Kind2, URIS, URIS2 } from 'fp-ts/HKT';
+import { FunctionN, pipe, tupled } from 'fp-ts/function';
 
 export * from 'fp-ts/Apply';
 

@@ -1,8 +1,8 @@
-import { FunctionN, identity, pipe } from 'fp-ts/function';
 import * as A from 'fp-ts/Array';
-import * as NEA from 'fp-ts/NonEmptyArray';
 import * as eq from 'fp-ts/Eq';
+import * as NEA from 'fp-ts/NonEmptyArray';
 import * as predicate from 'fp-ts/Predicate';
+import { FunctionN, identity, pipe } from 'fp-ts/function';
 
 export * from 'fp-ts/NonEmptyArray';
 

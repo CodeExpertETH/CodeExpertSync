@@ -1,8 +1,8 @@
 import { option } from 'fp-ts';
-import { Lazy } from 'fp-ts/function';
 import { Kind, Kind2, URIS, URIS2 } from 'fp-ts/HKT';
 import { MonadThrow1, MonadThrow2 } from 'fp-ts/MonadThrow';
 import { Predicate } from 'fp-ts/Predicate';
+import { Lazy } from 'fp-ts/function';
 
 export function fromOption<F extends URIS2>(
   M: MonadThrow2<F>,

@@ -1,6 +1,6 @@
 import { CSSInterpolation } from '../../../lib/antd';
-import { isObject } from '../../../utils/fn';
 import { array, either, fn, pipe, record, separated } from '../../../prelude';
+import { isObject } from '../../../utils/fn';
 
 /**
  * "false" is not allowed

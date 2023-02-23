@@ -1,6 +1,7 @@
 import { task } from 'fp-ts';
-import * as apply from './apply';
 import { flow } from 'fp-ts/function';
+
+import * as apply from './apply';
 
 export * from 'fp-ts/Task';
 

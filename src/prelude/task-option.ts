@@ -1,4 +1,5 @@
 import { eq, option, predicate, taskOption } from 'fp-ts';
+
 import * as task from './task';
 
 export * from 'fp-ts/TaskOption';

@@ -1,6 +1,7 @@
-import { Kind, Kind2, URIS, URIS2 } from 'fp-ts/HKT';
 import { functor, monad, optionT, pipeable, predicate } from 'fp-ts';
-import { flow, FunctionN, Lazy } from 'fp-ts/function';
+import { Kind, Kind2, URIS, URIS2 } from 'fp-ts/HKT';
+import { FunctionN, Lazy, flow } from 'fp-ts/function';
+
 import * as option from './option';
 
 export * from 'fp-ts/OptionT';

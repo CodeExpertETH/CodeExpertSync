@@ -1,8 +1,9 @@
 import { array, ord, tuple } from 'fp-ts';
 import { Kind, Kind2, URIS, URIS2 } from 'fp-ts/HKT';
+import { flow } from 'fp-ts/function';
+
 import * as apply from './apply';
 import { fn } from './function';
-import { flow } from 'fp-ts/function';
 
 export * from 'fp-ts/Tuple';
 

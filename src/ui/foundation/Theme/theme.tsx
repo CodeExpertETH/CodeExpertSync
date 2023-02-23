@@ -1,12 +1,13 @@
-import React from 'react';
 import { ConfigProvider, theme } from 'antd';
-import { AliasToken, ColorPalettes } from 'antd/es/theme/interface';
 import { ThemeConfig } from 'antd/es/config-provider/context';
-import formatToken from 'antd/es/theme/util/alias';
-import { ColorScheme, isLight } from './colorScheme';
+import { AliasToken, ColorPalettes } from 'antd/es/theme/interface';
 import { PresetColors } from 'antd/es/theme/internal';
+import formatToken from 'antd/es/theme/util/alias';
+import React from 'react';
+
 import { record } from '../../../prelude';
 import { omit } from '../../../utils/fn';
+import { ColorScheme, isLight } from './colorScheme';
 
 type PresetColorTokens = { [K in (typeof PresetColors)[number]]: null };
 const presetColorTokens: PresetColorTokens = PresetColors.reduce(

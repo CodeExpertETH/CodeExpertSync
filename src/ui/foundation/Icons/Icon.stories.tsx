@@ -1,9 +1,9 @@
 /* eslint-disable storybook/default-exports */
-
-import React from 'react';
 import { Table, Typography } from 'antd';
-import Icon, { IconName, iconNames } from './Icon';
+import React from 'react';
+
 import { getColumnSearchPropsAcc } from '../../components/TableSearchFilter';
+import Icon, { IconName, iconNames } from './Icon';
 
 export default {
   title: 'Foundation/Icons/Icon',

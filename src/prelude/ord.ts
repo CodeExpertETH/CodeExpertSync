@@ -1,5 +1,5 @@
-import * as O from 'fp-ts/Ord';
 import * as monoid from 'fp-ts/Monoid';
+import * as O from 'fp-ts/Ord';
 
 export * from 'fp-ts/Ord';
 

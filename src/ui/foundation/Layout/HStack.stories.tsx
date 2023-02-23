@@ -1,7 +1,8 @@
-import React from 'react';
 import { Story } from '@storybook/react';
+import React from 'react';
+
 import * as BoxStories from './Box.stories';
-import { StackProps, HStack } from './Stack';
+import { HStack, StackProps } from './Stack';
 
 export default {
   title: 'Foundation/Layout/HStack',

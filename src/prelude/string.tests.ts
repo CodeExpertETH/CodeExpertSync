@@ -1,9 +1,10 @@
 /* eslint-disable no-restricted-imports */
-import { assert, describe, it } from 'vitest';
 import fc from 'fast-check';
-import * as string from './string';
-import { identity, pipe } from 'fp-ts/function';
 import { array, monoid } from 'fp-ts';
+import { identity, pipe } from 'fp-ts/function';
+import { assert, describe, it } from 'vitest';
+
+import * as string from './string';
 
 describe('string', () => {
   describe('isBlank', () => {

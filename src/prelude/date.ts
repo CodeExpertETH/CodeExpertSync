@@ -1,35 +1,35 @@
-import { pipe, flow } from 'fp-ts/function';
-import * as io from 'fp-ts/IO';
-import * as date from 'fp-ts/Date';
-import * as ord from './ord';
-import * as number from 'fp-ts/number';
-import * as array from 'fp-ts/Array';
-
+import add from 'date-fns/fp/add';
+import differenceInCalendarDays from 'date-fns/fp/differenceInCalendarDays';
+import differenceInDays from 'date-fns/fp/differenceInDays';
+import differenceInHours from 'date-fns/fp/differenceInHours';
+import differenceInMilliseconds from 'date-fns/fp/differenceInMilliseconds';
+import differenceInSeconds from 'date-fns/fp/differenceInSeconds';
+import endOfDay from 'date-fns/fp/endOfDay';
+import endOfMinute from 'date-fns/fp/endOfMinute';
+import formatDuration from 'date-fns/fp/formatDuration';
+import intervalToDuration from 'date-fns/fp/intervalToDuration';
 import isAfter from 'date-fns/fp/isAfter';
+import isBefore from 'date-fns/fp/isBefore';
 import isDate_ from 'date-fns/fp/isDate';
 import isEqual from 'date-fns/fp/isEqual';
-import isBefore from 'date-fns/fp/isBefore';
 import isSameDay from 'date-fns/fp/isSameDay';
 import isSameHour from 'date-fns/fp/isSameHour';
-import endOfDay from 'date-fns/fp/endOfDay';
+import isWithinInterval from 'date-fns/fp/isWithinInterval';
 import set from 'date-fns/fp/set';
 import setDay from 'date-fns/fp/setDay';
 import setHours from 'date-fns/fp/setHours';
 import setMinutes from 'date-fns/fp/setMinutes';
 import setSeconds from 'date-fns/fp/setSeconds';
 import startOfDay from 'date-fns/fp/startOfDay';
-import add from 'date-fns/fp/add';
-import sub from 'date-fns/fp/sub';
-import endOfMinute from 'date-fns/fp/endOfMinute';
-import intervalToDuration from 'date-fns/fp/intervalToDuration';
 import startOfMinute from 'date-fns/fp/startOfMinute';
-import isWithinInterval from 'date-fns/fp/isWithinInterval';
-import formatDuration from 'date-fns/fp/formatDuration';
-import differenceInCalendarDays from 'date-fns/fp/differenceInCalendarDays';
-import differenceInDays from 'date-fns/fp/differenceInDays';
-import differenceInHours from 'date-fns/fp/differenceInHours';
-import differenceInSeconds from 'date-fns/fp/differenceInSeconds';
-import differenceInMilliseconds from 'date-fns/fp/differenceInMilliseconds';
+import sub from 'date-fns/fp/sub';
+import * as array from 'fp-ts/Array';
+import * as date from 'fp-ts/Date';
+import * as io from 'fp-ts/IO';
+import { flow, pipe } from 'fp-ts/function';
+import * as number from 'fp-ts/number';
+
+import * as ord from './ord';
 
 export * from 'fp-ts/Date';
 

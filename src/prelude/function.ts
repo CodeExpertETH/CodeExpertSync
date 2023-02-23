@@ -1,5 +1,4 @@
 /* eslint-disable prefer-destructuring */
-
 import * as F from 'fp-ts/function';
 
 export type { FunctionN, Lazy } from 'fp-ts/function';

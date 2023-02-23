@@ -1,6 +1,7 @@
-import { DistributiveKeyof, DistributivePick, PathOf, PickPath } from './type-utils';
-import { IsExact, assert, IsNever, Has, NotHas } from 'conditional-type-checks';
+import { Has, IsExact, IsNever, NotHas, assert } from 'conditional-type-checks';
 import { describe, expect, it } from 'vitest';
+
+import { DistributiveKeyof, DistributivePick, PathOf, PickPath } from './type-utils';
 
 // -------------------------------------------------------------------------------------------------
 // DistributivePick
