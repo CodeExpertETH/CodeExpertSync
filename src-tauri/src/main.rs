@@ -28,8 +28,6 @@ fn main() {
             println!("{}, {argv:?}, {cwd}", app.package_info().name);
         }))
         .setup(|app| {
-            // This could be called right after prepare() but then you don't have access to tauri APIs
-            let handle = app.handle();
             if let Some(window) = app.get_window("main") {
                 let _ = window.move_window(Position::TopRight);
             }

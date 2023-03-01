@@ -1,0 +1,28 @@
+import React from 'react';
+import { Spin } from 'antd';
+import { Delayed } from './Delayed';
+import { styled } from '../foundation/Theme';
+
+const StyledSpinContainer = styled('div', () => ({
+  textAlign: 'center',
+  background: 'rgba(0, 0, 0, 0.05)',
+  borderRadius: '4px',
+  padding: '30px 50px',
+  margin: '20px 0',
+}));
+
+interface LoadingProps {
+  text?: string;
+  delayTime?: number;
+  style?: React.CSSProperties;
+}
+
+const Loading = ({ delayTime = 0, text, style }: LoadingProps) => (
+  <Delayed waitBeforeShow={delayTime}>
+    <StyledSpinContainer>
+      <Spin style={style} tip={text} />
+    </StyledSpinContainer>
+  </Delayed>
+);
+
+export default Loading;

@@ -7,7 +7,10 @@
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react"
+    "jsx": "react",
+    "paths": {
+      "api": ["./src/api/index.ts"]
+    }
   },
   "include": ["src"],
   "references": [{ "path": "./tsconfig.node.json" }]

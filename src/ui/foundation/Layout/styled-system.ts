@@ -140,7 +140,7 @@ const useStyledSystemStyles = css(() => ({
     fill: {
       true: {
         flex: 1,
-        overflowBlock: 'auto',
+        overflowY: 'auto',
       },
     },
     inline: {

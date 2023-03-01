@@ -3,3 +3,4 @@ dist
 .eslintcache
 *.log
 /storybook-static
+.idea

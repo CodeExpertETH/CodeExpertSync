@@ -17,10 +17,10 @@ pub fn handle_system_tray_event(app: &AppHandle<Wry>, event: SystemTrayEvent) {
 }
 
 fn create_tray_menu() -> SystemTrayMenu {
-    let hide = CustomMenuItem::new("open".to_string(), "Open");
+    let open = CustomMenuItem::new("open".to_string(), "Open");
     let quit = CustomMenuItem::new("quit".to_string(), "Quit");
     SystemTrayMenu::new()
-        .add_item(hide)
+        .add_item(open)
         .add_native_item(SystemTrayMenuItem::Separator)
         .add_item(quit)
 }
