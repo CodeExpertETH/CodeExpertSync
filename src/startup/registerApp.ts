@@ -2,6 +2,7 @@ import { invoke } from '@tauri-apps/api';
 import { getName, getVersion } from '@tauri-apps/api/app';
 import { getUniqueAppId } from './uniqueAppId';
 import { constVoid } from '../prelude';
+import { digestMessage } from '../utils/crypto';
 
 const registerApp = async () => {
   const osName = await invoke('system_info');
@@ -11,7 +12,7 @@ const registerApp = async () => {
 
   const requestBody = {
     osName,
-    appId,
+    appId: digestMessage(appId as string),
     appName,
     appVersion,
   };

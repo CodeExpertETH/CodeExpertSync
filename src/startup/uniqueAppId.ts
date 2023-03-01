@@ -1,16 +1,16 @@
-import { Store } from 'tauri-plugin-store-api';
-import { v4 as uuidv4 } from 'uuid';
-
-const store = new Store('.settings.dat');
+import { generateRandomId } from '../utils/crypto';
+import { option, pipe, task } from '../prelude';
+import { api } from 'api';
+import { AppId } from '../domain/AppId';
 
 const createUniqeAppId = async () => {
-  const appId = uuidv4();
-  await store.set('appId', appId);
-  await store.save();
+  const appId = generateRandomId(64);
+  await task.run(api.settingWrite('appId', appId));
 };
 export const getUniqueAppId = async () => {
-  if (!(await store.has('appId'))) {
+  const appId = await pipe(api.settingRead('appId', AppId), task.map(option.toUndefined), task.run);
+  if (!appId) {
     await createUniqeAppId();
   }
-  return await store.get('appId');
+  return appId;
 };
