@@ -2,18 +2,21 @@ import React, { useEffect } from 'react';
 import equal from 'fast-deep-equal';
 import { api } from 'api';
 import { AccessToken } from '../../domain/AuthToken';
-import { constVoid, option, pipe, task } from '../../prelude';
+import { constVoid, option, pipe, tagged, task } from '../../prelude';
 import Loading from './Loading';
+
+export type Routes = tagged.Tagged<'notAuthorized'> | tagged.Tagged<'main'>;
+export const routes = tagged.build<Routes>();
 
 export interface GlobalContext {
   readonly accessToken?: AccessToken;
-  readonly currentPage: string;
+  readonly currentPage: Routes;
 }
 
 type MandatoryFields = keyof Pick<GlobalContext, 'accessToken'>;
 
 export function initialState({
-  currentPage = 'main',
+  currentPage = routes.notAuthorized(),
   ...defaults
 }: Pick<GlobalContext, MandatoryFields> &
   Partial<Omit<GlobalContext, MandatoryFields>>): GlobalContext {
@@ -40,7 +43,7 @@ const reducer = (state: GlobalContext | undefined, action: Action & { _init?: Gl
 
 const context = React.createContext<[GlobalContext, React.Dispatch<Action>]>([
   initialState({
-    currentPage: 'main',
+    currentPage: routes.notAuthorized(),
     accessToken: undefined,
   }),
   constVoid,
