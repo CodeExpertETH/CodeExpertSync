@@ -10,7 +10,6 @@ import { digestMessage, pkceChallenge } from '../../utils/crypto';
 
 function NotAuthorized() {
   const { code_verifier, code_challenge } = pkceChallenge();
-  sessionStorage.setItem('pkceVerifier', code_verifier);
   const appIdentifier = useAsync(
     () =>
       pipe(
@@ -29,28 +28,33 @@ function NotAuthorized() {
     [],
   );
 
+  const onButtonClick = () => {
+    sessionStorage.setItem('pkceVerifier', code_verifier);
+    //todo redirect to wait for authorization page
+    console.log('button clicked');
+  };
+
   return (
     <GuardRemoteData
       value={appIdentifier}
-      render={(appIdentifier) => {
-        return (
-          <Result
-            title="Code Expert Desktop is not authorized"
-            subTitle="To authorize click the button below and authorize the Code Expert Desktop App in Code Expert"
-            extra={
-              <Button
-                type="primary"
-                href={`https://expert.ethz.ch/app/authorize?appIdentifier=${digestMessage(
-                  appIdentifier,
-                )}&code_challange=${code_challenge}`}
-                target="_blank"
-              >
-                Authorize Code Expert Desktop
-              </Button>
-            }
-          />
-        );
-      }}
+      render={(appIdentifier) => (
+        <Result
+          title="Code Expert Desktop is not authorized"
+          subTitle="To authorize click the button below and authorize the Code Expert Desktop App in Code Expert"
+          extra={
+            <Button
+              type="primary"
+              href={`http://localhost:3000/app/authorize?appIdentifier=${digestMessage(
+                appIdentifier,
+              )}&code_challenge=${code_challenge}`}
+              onClick={onButtonClick}
+              target="_blank"
+            >
+              Authorize Code Expert Desktop
+            </Button>
+          }
+        />
+      )}
     />
   );
 }
