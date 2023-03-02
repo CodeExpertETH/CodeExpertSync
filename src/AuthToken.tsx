@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import { message } from 'antd';
 import { useGlobalContextWithActions } from './ui/components/GlobalContext';
-import { AuthToken } from './domain/AuthToken';
+import { AccessToken } from './domain/AuthToken';
 import { either, pipe } from './prelude';
 
 export const AuthTokenManager = () => {
@@ -11,13 +11,13 @@ export const AuthTokenManager = () => {
   const save = () =>
     pipe(
       ref.current?.value,
-      AuthToken.decode,
+      AccessToken.decode,
       either.fold(
         (err) => {
           void message.warning('Invalid token');
           console.error(err);
         },
-        (authToken) => setState({ authToken }),
+        (accessToken) => setState({ accessToken }),
       ),
     );
 
@@ -25,7 +25,7 @@ export const AuthTokenManager = () => {
     <div className="container">
       <h1>AuthToken</h1>
 
-      <div className="row">{state.authToken}</div>
+      <div className="row">{state.accessToken}</div>
       <div className="row">
         <div>
           <input ref={ref} id="greet-input" placeholder="Enter a token …" />

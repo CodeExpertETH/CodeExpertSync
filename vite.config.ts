@@ -43,6 +43,7 @@ export default defineConfig({
   test: {
     /* for example, use global to avoid globals imports (describe, test, expect): */
     // globals: true,
+    environment: 'jsdom',
     include: ['**/*.tests.{ts,tsx}'],
     reporters: process.env.GITHUB_ACTIONS ? ['default', new GithubActionsReporter()] : 'default',
   },
