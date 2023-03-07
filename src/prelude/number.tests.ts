@@ -1,12 +1,13 @@
 import { assert, describe, it } from 'vitest';
+
 import { fc } from '../utils/test';
 import {
+  UnitInterval,
   clampUnitInterval,
   getEqAbsolute,
   stripTrailingZeroes,
   toFixed,
   toFixedZ,
-  UnitInterval,
   unitIntervalFromRange,
   unitIntervalToRange,
 } from './number';

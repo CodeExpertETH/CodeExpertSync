@@ -1,7 +1,8 @@
 import React from 'react';
+
+import { Exception, fromError } from '../../domain/exception';
 import { flow, remoteData, task } from '../../prelude';
 import { useRaceState } from './useRaceState';
-import { Exception, fromError } from '../../domain/exception';
 
 /**
  * Run a `Task` and represent the states before, during and after as `RemoteData`.

@@ -1,4 +1,3 @@
-import * as option from './option';
 import {
   applicative,
   array,
@@ -11,9 +10,11 @@ import {
   semigroup,
   separated,
 } from 'fp-ts';
-import { flow, tuple } from 'fp-ts/function';
 import { Kind, Kind2, URIS, URIS2 } from 'fp-ts/HKT';
 import { Refinement } from 'fp-ts/Refinement';
+import { flow, tuple } from 'fp-ts/function';
+
+import * as option from './option';
 
 export * from 'fp-ts/Array';
 

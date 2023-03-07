@@ -1,8 +1,10 @@
 /* eslint-env mocha */
-/* eslint-disable no-unused-expressions */
-/* eslint-disable import/no-extraneous-dependencies */
 
-import { describe, it, assert } from 'vitest';
+/* eslint-disable no-unused-expressions */
+
+/* eslint-disable import/no-extraneous-dependencies */
+import { assert, describe, it } from 'vitest';
+
 import { remoteData } from '../prelude';
 
 describe('RemoteData', () => {

@@ -1,9 +1,9 @@
 import * as apply from 'fp-ts/Apply';
 import * as either from 'fp-ts/Either';
+import { NonEmptyArray, getSemigroup } from 'fp-ts/NonEmptyArray';
 import * as predicate from 'fp-ts/Predicate';
 import * as refinement from 'fp-ts/Refinement';
-import { getSemigroup, NonEmptyArray } from 'fp-ts/NonEmptyArray';
-import { flow, identity, pipe, Lazy, constUndefined } from 'fp-ts/function';
+import { Lazy, constUndefined, flow, identity, pipe } from 'fp-ts/function';
 
 export * from 'fp-ts/Either';
 

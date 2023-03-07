@@ -1,5 +1,4 @@
 // See https://blog.logrocket.com/build-strongly-typed-polymorphic-components-react-typescript/
-
 import React from 'react';
 
 type AsProp<C extends React.ElementType> = {

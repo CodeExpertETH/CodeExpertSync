@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-
 import React from 'react';
-import { css, GetStyles, keyframes, styled } from './styled';
+
+import { GetStyles, css, keyframes, styled } from './styled';
 
 export default {
   title: 'Foundation/Theme/styled',

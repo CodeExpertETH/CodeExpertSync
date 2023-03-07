@@ -1,5 +1,4 @@
 // @see https://samhh.github.io/fp-ts-std/modules/DOM.ts.html
-
 import { io, nonEmptyArray, option } from 'fp-ts';
 import { pipe } from 'fp-ts/function';
 

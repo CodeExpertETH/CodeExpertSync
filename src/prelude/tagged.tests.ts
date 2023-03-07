@@ -1,10 +1,10 @@
 /* eslint-disable no-lone-blocks */
-
-import { assert, describe, it } from 'vitest';
-import { tagged } from '../prelude';
 import { assert as Assert, IsExact } from 'conditional-type-checks';
-import { pipe } from 'fp-ts/function';
 import { option } from 'fp-ts';
+import { pipe } from 'fp-ts/function';
+import { assert, describe, it } from 'vitest';
+
+import { tagged } from '../prelude';
 
 describe('prelude/tagged', () => {
   type Num = tagged.Tagged<'num', number>;

@@ -1,6 +1,7 @@
-import React, { useEffect } from 'react';
-import equal from 'fast-deep-equal';
 import { api } from 'api';
+import equal from 'fast-deep-equal';
+import React, { useEffect } from 'react';
+
 import { AccessToken } from '../../domain/AuthToken';
 import { constVoid, option, pipe, tagged, task } from '../../prelude';
 import Loading from './Loading';

@@ -1,7 +1,8 @@
-import { flow, Lazy, pipe } from 'fp-ts/function';
-import * as alternative from './alternative';
-import { Kind, Kind2, URIS, URIS2 } from 'fp-ts/HKT';
 import { applicative, apply, option, pipeable } from 'fp-ts';
+import { Kind, Kind2, URIS, URIS2 } from 'fp-ts/HKT';
+import { Lazy, flow, pipe } from 'fp-ts/function';
+
+import * as alternative from './alternative';
 
 export * from 'fp-ts/Option';
 

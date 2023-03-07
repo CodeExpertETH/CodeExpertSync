@@ -1,5 +1,6 @@
-import * as task from './task';
 import { describe, it } from 'vitest';
+
+import * as task from './task';
 
 describe('task', () => {
   describe('fromPromiseK', () => {

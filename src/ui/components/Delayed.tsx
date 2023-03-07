@@ -1,4 +1,5 @@
 import React from 'react';
+
 import useTimeout from '../hooks/useTimeout';
 
 /**

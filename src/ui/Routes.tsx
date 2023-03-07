@@ -1,4 +1,5 @@
 import React from 'react';
+
 import { routes, useGlobalContext } from './components/GlobalContext';
 import Main from './pages/Main';
 import NotAuthorized from './pages/NotAuthorized';

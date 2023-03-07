@@ -1,8 +1,9 @@
 import { invoke } from '@tauri-apps/api';
 import { getName, getVersion } from '@tauri-apps/api/app';
-import { getUniqueAppId } from './uniqueAppId';
+
 import { constVoid } from '../prelude';
 import { digestMessage } from '../utils/crypto';
+import { getUniqueAppId } from './uniqueAppId';
 
 const registerApp = async () => {
   const osName = await invoke('system_info');

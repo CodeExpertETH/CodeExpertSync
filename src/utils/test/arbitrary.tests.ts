@@ -1,6 +1,8 @@
-import { arbitrary, fc, laws } from '.';
-import { string } from '../../prelude';
 import { assert, describe, it } from 'vitest';
+
+import { string } from '../../prelude';
+
+import { arbitrary, fc, laws } from '.';
 
 describe('Arbitrary', () => {
   describe('eq', () => {

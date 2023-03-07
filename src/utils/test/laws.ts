@@ -1,5 +1,6 @@
-import { Semigroup } from 'fp-ts/Semigroup';
 import { Eq } from 'fp-ts/Eq';
+import { Semigroup } from 'fp-ts/Semigroup';
+
 import { fc } from '../test';
 
 export * from 'fp-ts-laws';

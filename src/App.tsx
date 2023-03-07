@@ -1,10 +1,11 @@
+import { Result } from 'antd';
 import React from 'react';
-import { Header } from './ui/layout/Header';
+
+import { boolean, pipe } from './prelude';
+import Routes from './ui/Routes';
 import { GlobalContextProvider } from './ui/components/GlobalContext';
 import useNetworkState from './ui/hooks/useNetwork';
-import { boolean, pipe } from './prelude';
-import { Result } from 'antd';
-import Routes from './ui/Routes';
+import { Header } from './ui/layout/Header';
 
 function App() {
   const { online } = useNetworkState();

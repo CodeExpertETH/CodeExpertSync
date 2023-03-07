@@ -1,17 +1,18 @@
+import { theme as antdTheme } from 'antd';
 import { nanoid } from 'nanoid/non-secure';
 import React, {
   Attributes,
   CElement,
   ClassAttributes,
+  ClassType,
   ClassicComponent,
   ClassicComponentClass,
-  ClassType,
   Component,
   ComponentClass,
   ComponentState,
-  DetailedReactHTMLElement,
   DOMAttributes,
   DOMElement,
+  DetailedReactHTMLElement,
   FunctionComponent,
   FunctionComponentElement,
   HTMLAttributes,
@@ -22,14 +23,14 @@ import React, {
   ReactSVGElement,
   SVGAttributes,
 } from 'react';
-import { isObject } from '../../../utils/fn';
-import { theme as antdTheme } from 'antd';
+
 import { CSSInterpolation, Keyframes, useStyleRegisterNoSSR } from '../../../lib/antd';
+import { isObject } from '../../../utils/fn';
 import { Theme, useTheme } from './theme';
 import {
-  classListFromProps,
   CSSWithVariants,
   ExtractVariantProps,
+  classListFromProps,
   rulesFromStyles,
   separateVariantProps,
 } from './variants';

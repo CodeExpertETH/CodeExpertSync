@@ -1,6 +1,7 @@
+import { describe, it } from 'vitest';
+
 import * as fc from './fast-check';
 
-import { describe, it } from 'vitest';
 describe('fast-check extensions', () => {
   it('dateRangeStrict', () => {
     const prop = ([a, b]: [Date, Date]) => b.getTime() > a.getTime();

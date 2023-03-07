@@ -1,5 +1,5 @@
-import { Lazy } from 'fp-ts/function';
 import { applicative, apply, io, ioOption, option } from 'fp-ts';
+import { Lazy } from 'fp-ts/function';
 import { Kind, Kind2, URIS, URIS2 } from 'fp-ts/lib/HKT';
 
 export * from 'fp-ts/IOOption';

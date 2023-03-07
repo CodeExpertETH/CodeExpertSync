@@ -1,6 +1,7 @@
-import { either, iots, pipe } from '../prelude';
-import { Buffer } from 'buffer';
 import base64url from 'base64url';
+import { Buffer } from 'buffer';
+
+import { either, iots, pipe } from '../prelude';
 
 export interface Base64UrlBrand {
   readonly Base64Url: unique symbol;

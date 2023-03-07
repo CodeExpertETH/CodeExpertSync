@@ -1,7 +1,8 @@
-import { logTime } from './profiling';
 import { array, ioRef, task } from 'fp-ts';
 import { flow, pipe } from 'fp-ts/function';
 import { assert, describe, it } from 'vitest';
+
+import { logTime } from './profiling';
 
 describe('logTime', () => {
   it('should work correctly', async () => {

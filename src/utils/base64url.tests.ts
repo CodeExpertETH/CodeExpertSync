@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { Uint8ArrayToBase64Url } from './base64url';
+
 import { either } from '../prelude';
+import { Uint8ArrayToBase64Url } from './base64url';
 
 describe('base64.ts', () => {
   it('should encode base64 string to uint8array', () => {

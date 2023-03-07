@@ -1,6 +1,7 @@
 import { Button, Input, InputRef } from 'antd';
-import React from 'react';
 import { ColumnGroupType, ColumnType } from 'antd/es/table';
+import React from 'react';
+
 import { pipe, string } from '../../prelude';
 import { Icon } from '../foundation/Icons';
 

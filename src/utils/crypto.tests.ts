@@ -1,7 +1,8 @@
-import { describe, expect, it } from 'vitest';
-import { digestMessage, pkceChallenge } from './crypto';
-import { Uint8ArrayToBase64Url } from './base64url';
 import { sha256 } from '@noble/hashes/sha256';
+import { describe, expect, it } from 'vitest';
+
+import { Uint8ArrayToBase64Url } from './base64url';
+import { digestMessage, pkceChallenge } from './crypto';
 
 describe('crypto.ts', () => {
   describe('digestMessage', () => {

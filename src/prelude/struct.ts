@@ -1,5 +1,5 @@
-import { identity } from 'fp-ts/function';
 import * as R from 'fp-ts/Record';
+import { identity } from 'fp-ts/function';
 
 export * from 'fp-ts/struct';
 

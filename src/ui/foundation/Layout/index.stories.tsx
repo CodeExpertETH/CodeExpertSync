@@ -1,7 +1,8 @@
 import React from 'react';
+
+import { styled, useTheme } from '../Theme';
 import { Box } from './Box';
 import { HStack, VStack } from './Stack';
-import { styled, useTheme } from '../Theme';
 
 const StyledBox = styled(Box, ({ tokens }) => ({
   background: tokens.colorBgLayout,

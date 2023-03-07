@@ -3,7 +3,7 @@ import * as E from 'fp-ts/Either';
 import * as IO from 'fp-ts/IO';
 import * as IOe from 'fp-ts/IOEither';
 import * as IOo from 'fp-ts/IOOption';
-import { constFalse, constTrue, flow, Lazy, pipe } from 'fp-ts/function';
+import { Lazy, constFalse, constTrue, flow, pipe } from 'fp-ts/function';
 
 export * from 'fp-ts/IOEither';
 

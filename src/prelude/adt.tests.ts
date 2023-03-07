@@ -1,10 +1,12 @@
 /* eslint-env mocha */
-/* eslint-disable no-unused-expressions, no-underscore-dangle */
 
+/* eslint-disable no-unused-expressions, no-underscore-dangle */
 import { assert, describe, it } from 'vitest';
-import { pipe } from '.';
-import * as adt from './adt';
+
 import { DistributivePick } from '../utils/type-utils';
+import * as adt from './adt';
+
+import { pipe } from '.';
 
 describe('prelude/adt', () => {
   describe('foldFromTags', () => {

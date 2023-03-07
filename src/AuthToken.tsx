@@ -1,8 +1,9 @@
-import React, { useRef } from 'react';
 import { message } from 'antd';
-import { useGlobalContextWithActions } from './ui/components/GlobalContext';
+import React, { useRef } from 'react';
+
 import { AccessToken } from './domain/AuthToken';
 import { either, pipe } from './prelude';
+import { useGlobalContextWithActions } from './ui/components/GlobalContext';
 
 export const AuthTokenManager = () => {
   const ref = useRef<HTMLInputElement>(null);

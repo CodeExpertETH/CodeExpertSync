@@ -1,5 +1,5 @@
-import { pipe } from 'fp-ts/function';
 import * as RD from '@devexperts/remote-data-ts';
+import { pipe } from 'fp-ts/function';
 
 /**
  * The order of parameters `next` and `current` comes from the fact that this is a similar operation

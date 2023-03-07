@@ -1,19 +1,20 @@
 import fc from 'fast-check';
+import { Endomorphism } from 'fp-ts/Endomorphism';
+import * as pureRand from 'pure-rand';
+
 import {
+  FunctionN,
   apply,
   array,
   chain as chain_,
   eq,
   fn,
-  FunctionN,
   functor,
   monad,
   pipe,
   predicate,
   record,
 } from '../../prelude';
-import * as pureRand from 'pure-rand';
-import { Endomorphism } from 'fp-ts/Endomorphism';
 
 export const URI = 'Arbitrary';
 

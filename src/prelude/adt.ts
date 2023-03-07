@@ -7,7 +7,6 @@
 // @see https://github.com/sledorze/morphic-ts/blob/master/packages/morphic-adt
 // @see https://github.com/pfgray/ts-adt/
 // -------------------------------------------------------------------------------------------------
-
 import { Lazy } from 'fp-ts/function';
 
 // -------------------------------------------------------------------------------------------------

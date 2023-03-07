@@ -1,8 +1,9 @@
 import { option, string } from 'fp-ts';
+import { pipe } from 'fp-ts/function';
 import { assert, describe, it } from 'vitest';
+
 import * as eitherT from './eithert';
 import * as ioEither from './io-either';
-import { pipe } from 'fp-ts/function';
 
 describe('prelude/eitherT', () => {
   describe('sequence2', () => {

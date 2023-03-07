@@ -1,9 +1,9 @@
 // ui/hooks/useRemoteData.stories.tsx
-
-import React from 'react';
 import { Story } from '@storybook/react';
-import { adt, pipe, remoteData, task } from '../../prelude';
+import React from 'react';
+
 import { UncaughtException } from '../../domain/exception';
+import { adt, pipe, remoteData, task } from '../../prelude';
 import { useCachedRemoteData, useRemoteData } from './useRemoteData';
 
 const foldMeteorCallType = adt.foldFromKeys({ resolve: null, reject: null, throw: null });

@@ -1,6 +1,7 @@
 import { assert, describe, it } from 'vitest';
-import { fc } from '../utils/test/';
+
 import { array, option, ord, pipe, string } from '../prelude';
+import { fc } from '../utils/test/';
 
 export const optional = <A>(arb: fc.Arbitrary<A>): fc.Arbitrary<A | undefined> =>
   fc.option(arb, { nil: undefined });

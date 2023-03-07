@@ -1,8 +1,8 @@
+import * as RD from '@devexperts/remote-data-ts';
 import * as Ap from 'fp-ts/Apply';
 import * as predicate from 'fp-ts/Predicate';
 import * as refinement from 'fp-ts/Refinement';
 import { FunctionN } from 'fp-ts/function';
-import * as RD from '@devexperts/remote-data-ts';
 
 export * from '@devexperts/remote-data-ts';
 export * from './refresh-remote-data';

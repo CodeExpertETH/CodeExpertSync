@@ -1,8 +1,9 @@
 import { eq, option, ord } from 'fp-ts';
 import { constant, flow, pipe } from 'fp-ts/function';
 import * as N from 'fp-ts/number';
-import { Brand } from '../utils/type-utils';
 import * as iots from 'io-ts';
+
+import { Brand } from '../utils/type-utils';
 
 export * from 'fp-ts/number';
 

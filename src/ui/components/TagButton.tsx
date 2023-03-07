@@ -1,5 +1,6 @@
-import React from 'react';
 import { Button, ButtonProps } from 'antd';
+import React from 'react';
+
 import { styled } from '../foundation/Theme';
 
 const StyledTagButton = styled(Button, () => ({

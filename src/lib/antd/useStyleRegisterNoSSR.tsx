@@ -1,9 +1,4 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
-import hash from '@emotion/hash';
-// eslint-disable-next-line import/no-extraneous-dependencies
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { removeCSS, updateCSS } from 'rc-util/lib/Dom/dynamicCSS';
-import React from 'react';
 import { Theme } from '@ant-design/cssinjs';
 import StyleContext, {
   ATTR_MARK,
@@ -17,6 +12,11 @@ import {
   normalizeStyle,
   parseStyle,
 } from '@ant-design/cssinjs/es/hooks/useStyleRegister';
+import hash from '@emotion/hash';
+// eslint-disable-next-line import/no-extraneous-dependencies
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { removeCSS, updateCSS } from 'rc-util/lib/Dom/dynamicCSS';
+import React from 'react';
 
 function uniqueHash(path: (string | number)[], styleStr: string) {
   return hash(`${path.join('%')}${styleStr}`);

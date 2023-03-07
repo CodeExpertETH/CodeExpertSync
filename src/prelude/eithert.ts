@@ -1,10 +1,11 @@
-import { Kind, Kind2, URIS, URIS2 } from 'fp-ts/HKT';
 import { apply, functor, monad, option, pipeable, pointed, predicate } from 'fp-ts';
-import { Endomorphism } from 'fp-ts/Endomorphism';
-import { flow, FunctionN, Lazy, pipe, tupled } from 'fp-ts/function';
 import { Applicative1, Applicative2 } from 'fp-ts/Applicative';
 import * as eitherT from 'fp-ts/EitherT';
 import { EitherT1, EitherT2 } from 'fp-ts/EitherT';
+import { Endomorphism } from 'fp-ts/Endomorphism';
+import { Kind, Kind2, URIS, URIS2 } from 'fp-ts/HKT';
+import { FunctionN, Lazy, flow, pipe, tupled } from 'fp-ts/function';
+
 import * as either from './either';
 
 export * from 'fp-ts/EitherT';

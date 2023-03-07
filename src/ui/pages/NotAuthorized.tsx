@@ -1,14 +1,15 @@
-import React from 'react';
 import { Button, Result } from 'antd';
 import { api } from 'api';
+import React from 'react';
+
 import { AppId } from '../../domain/AppId';
-import { GuardRemoteData } from '../components/GuardRemoteData';
-import { option, pipe, task } from '../../prelude';
-import { useAsync } from '../hooks/useAsync';
 import { EntityNotFoundException } from '../../domain/exception';
+import { option, pipe, task } from '../../prelude';
 import { digestMessage, pkceChallenge } from '../../utils/crypto';
 import { routes, useGlobalContextWithActions } from '../components/GlobalContext';
+import { GuardRemoteData } from '../components/GuardRemoteData';
 import { Icon } from '../foundation/Icons';
+import { useAsync } from '../hooks/useAsync';
 
 function NotAuthorized() {
   const [, dispatchContext] = useGlobalContextWithActions();

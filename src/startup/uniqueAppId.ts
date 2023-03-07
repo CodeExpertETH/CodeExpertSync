@@ -1,7 +1,8 @@
-import { generateRandomId } from '../utils/crypto';
-import { option, pipe, task } from '../prelude';
 import { api } from 'api';
+
 import { AppId } from '../domain/AppId';
+import { option, pipe, task } from '../prelude';
+import { generateRandomId } from '../utils/crypto';
 
 const createUniqeAppId = async () => {
   const appId = generateRandomId(64);

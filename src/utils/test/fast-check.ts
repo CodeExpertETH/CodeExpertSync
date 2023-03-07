@@ -1,8 +1,9 @@
-import { option, these } from '../../prelude';
 import fc from 'fast-check';
-import { IRawProperty } from 'fast-check/lib/types/check/property/IRawProperty';
 import { Arbitrary } from 'fast-check/lib/types/check/arbitrary/definition/Arbitrary';
+import { IRawProperty } from 'fast-check/lib/types/check/property/IRawProperty';
 import { Parameters } from 'fast-check/lib/types/check/runner/configuration/Parameters';
+
+import { option, these } from '../../prelude';
 
 export * from 'fast-check';
 

@@ -1,5 +1,6 @@
-import React from 'react';
 import { Button, Result } from 'antd';
+import React from 'react';
+
 import { routes, useGlobalContextWithActions } from '../components/GlobalContext';
 import { Icon } from '../foundation/Icons';
 

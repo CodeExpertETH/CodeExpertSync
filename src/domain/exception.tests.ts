@@ -1,6 +1,7 @@
+import { assert, describe, it } from 'vitest';
+
 import { ValidationException } from '../domain/exception';
-import { either, iots, pipe, monoid, string } from '../prelude';
-import { describe, it, assert } from 'vitest';
+import { either, iots, monoid, pipe, string } from '../prelude';
 
 describe('ValidationException', () => {
   it('should emit validation errors', () => {

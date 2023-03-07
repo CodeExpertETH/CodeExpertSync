@@ -1,7 +1,7 @@
+import { functor, pipeable } from 'fp-ts';
 import { Functor1, Functor2 } from 'fp-ts/Functor';
 import { Kind, Kind2, URIS, URIS2 } from 'fp-ts/HKT';
-import { functor, pipeable } from 'fp-ts';
-import { constVoid, FunctionN } from 'fp-ts/function';
+import { FunctionN, constVoid } from 'fp-ts/function';
 
 export * from 'fp-ts/Functor';
 

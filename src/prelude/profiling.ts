@@ -1,7 +1,7 @@
-import { date, monadIO, pipeable } from 'fp-ts';
-import { FunctionN, pipe } from 'fp-ts/function';
-import { Kind, Kind2, URIS, URIS2 } from 'fp-ts/HKT';
 import differenceInMilliseconds from 'date-fns/fp/differenceInMilliseconds';
+import { date, monadIO, pipeable } from 'fp-ts';
+import { Kind, Kind2, URIS, URIS2 } from 'fp-ts/HKT';
+import { FunctionN, pipe } from 'fp-ts/function';
 
 type MeasureTime = {
   <F extends URIS2, E>(F: monadIO.MonadIO2<F>): <A>(fa: Kind2<F, E, A>) => Kind2<F, E, [A, number]>;

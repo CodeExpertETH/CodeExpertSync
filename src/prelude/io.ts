@@ -1,4 +1,5 @@
 import { apply, io } from 'fp-ts';
+
 import * as functor from './functor';
 
 export * from 'fp-ts/IO';
