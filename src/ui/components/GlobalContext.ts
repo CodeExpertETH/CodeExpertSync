@@ -5,7 +5,10 @@ import { AccessToken } from '../../domain/AuthToken';
 import { constVoid, option, pipe, tagged, task } from '../../prelude';
 import Loading from './Loading';
 
-export type Routes = tagged.Tagged<'notAuthorized'> | tagged.Tagged<'main'>;
+export type Routes =
+  | tagged.Tagged<'notAuthorized'>
+  | tagged.Tagged<'main'>
+  | tagged.Tagged<'waitingForAuthorization'>;
 export const routes = tagged.build<Routes>();
 
 export interface GlobalContext {
