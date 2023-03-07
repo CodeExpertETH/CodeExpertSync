@@ -45,6 +45,12 @@ const rules = {
       devDependencies: [...testFiles, ...testUtilFiles],
     },
   ],
+  'react-hooks/exhaustive-deps': [
+    'warn',
+    {
+      additionalHooks: 'useAsync',
+    },
+  ],
   'no-restricted-imports': [
     'error',
     {
@@ -52,15 +58,7 @@ const rules = {
         ...noRestrictedImportsBase,
         ...noRestrictedImportsTest,
         {
-          group: [
-            'date-fns',
-            'date-fns/*',
-            'fp-ts',
-            'fp-ts-*',
-            'fp-ts/*',
-            'io-ts',
-            'io-ts-*'
-          ],
+          group: ['date-fns', 'date-fns/*', 'fp-ts', 'fp-ts-*', 'fp-ts/*', 'io-ts', 'io-ts-*'],
           message: "Import through 'prelude'.",
         },
       ],

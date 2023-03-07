@@ -49,12 +49,15 @@
   "dependencies": {
     "@ant-design/cssinjs": "^1.5.6",
     "@ant-design/icons": "git+https://github.com/CodeExpertETH/antd-fa-icons.git#effd794",
+    "@devexperts/remote-data-ts": "^2.1.1",
     "@fortawesome/fontawesome-svg-core": "^6.2.1",
     "@fortawesome/free-brands-svg-icons": "^6.2.1",
     "@fortawesome/free-regular-svg-icons": "^6.2.1",
     "@fortawesome/free-solid-svg-icons": "^6.2.1",
+    "@noble/hashes": "^1.2.0",
     "@tauri-apps/api": "^1.2.0",
     "antd": "^5.2.0",
+    "base64url": "^3.0.1",
     "conditional-type-checks": "^1.0.6",
     "copy-to-clipboard": "^3.3.3",
     "date-fns": "^2.29.3",
@@ -72,7 +75,6 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-fontawesome-svg-icon": "^1.1.2",
-    "sha3": "^2.1.4",
     "tauri-plugin-store-api": "github:tauri-apps/tauri-plugin-store",
     "vite-plugin-eslint": "^1.8.1",
     "vitest": "^0.28.4"

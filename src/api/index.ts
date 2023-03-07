@@ -10,6 +10,7 @@ export interface Api {
   greet(name: string): Promise<string>;
   settingRead<T>(key: string, decoder: iots.Decoder<unknown, T>): taskOption.TaskOption<T>;
   settingWrite(key: string, value: unknown): task.Task<void>;
+  CXUrl: string;
 }
 
 export const api: Api = {
@@ -21,4 +22,5 @@ export const api: Api = {
     value != null
       ? store.set(key, value).then(() => store.save())
       : store.delete(key).then(() => store.save()),
+  CXUrl: 'https://expert.ethz.ch',
 };

@@ -29,6 +29,7 @@ import * as ordering from 'fp-ts/Ordering';
 import * as pipeable from 'fp-ts/pipeable';
 import * as predicate from 'fp-ts/Predicate';
 import * as profiling from './profiling';
+import * as remoteData from './remote-data';
 import * as readonlyArray from 'fp-ts/ReadonlyArray';
 import * as readonlySet from 'fp-ts/ReadonlySet';
 import * as readonlyTuple from 'fp-ts/ReadonlyTuple';
@@ -86,6 +87,7 @@ export {
   pipeable,
   predicate,
   profiling,
+  remoteData,
   readonlyArray,
   readonlySet,
   readonlyTuple,
