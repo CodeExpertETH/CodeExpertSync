@@ -49,7 +49,7 @@ function NotAuthorized() {
           extra={
             <Button
               type="primary"
-              href={`http://localhost:3000/app/authorize?appIdentifier=${digestMessage(
+              href={`${api.CXUrl}/app/authorize?appIdentifier=${digestMessage(
                 appIdentifier,
               )}&code_challenge=${code_challenge}`}
               onClick={onButtonClick}
