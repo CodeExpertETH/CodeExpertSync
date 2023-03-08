@@ -1,6 +1,8 @@
 import { constVoid } from '@code-expert/prelude';
 import { invoke } from '@tauri-apps/api';
 import { getName, getVersion } from '@tauri-apps/api/app';
+import { Body, ResponseType, getClient } from '@tauri-apps/api/http';
+import { api } from 'api';
 
 import { digestMessage } from '../utils/crypto';
 import { getUniqueAppId } from './uniqueAppId';
@@ -19,6 +21,11 @@ const registerApp = async () => {
   };
   //TODO send this request to registration endpoint
   console.log(requestBody);
+  const client = await getClient();
+  const response = await client.post(`${api.APIUrl}/app/register`, Body.json(requestBody), {
+    responseType: ResponseType.Text,
+  });
+  console.log(response);
 };
 
 // ignore promise due to safari 13 target
