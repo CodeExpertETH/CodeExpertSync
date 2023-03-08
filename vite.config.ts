@@ -1,8 +1,7 @@
 /// <reference types="vitest" />
-
+import react from '@vitejs/plugin-react';
 import Path from 'path';
 import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
 import eslint from 'vite-plugin-eslint';
 import GithubActionsReporter from 'vitest-github-actions-reporter';
 
@@ -38,6 +37,9 @@ export default defineConfig({
   resolve: {
     alias: {
       api: Path.resolve(__dirname, './src/api'),
+      '@code-expert/prelude': Path.resolve(__dirname, './packages/prelude'),
+      '@code-expert/test-utils': Path.resolve(__dirname, './packages/test-utils'),
+      '@code-expert/type-utils': Path.resolve(__dirname, './packages/type-utils'),
     },
   },
   test: {

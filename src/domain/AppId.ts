@@ -1,4 +1,5 @@
-import { iots } from '../prelude';
+import { iots } from '@code-expert/prelude';
+
 import { Base64Url } from '../utils/base64url';
 
 export interface AppIdBrand {

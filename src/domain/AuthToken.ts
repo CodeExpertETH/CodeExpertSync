@@ -1,4 +1,4 @@
-import { iots } from '../prelude';
+import { iots } from '@code-expert/prelude';
 
 const base64Regex = /^(?=(.{4})*$)[A-Za-z0-9+/]*={0,2}$/;
 

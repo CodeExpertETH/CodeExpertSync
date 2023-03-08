@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.options.json",
+  "compilerOptions": {
+    "outDir": "./build",
+    "paths": {
+      "@code-expert/type-utils": ["../type-utils"]
+    }
+  },
+  "include": ["**/*"],
+  "exclude": ["build"],
+  "references": [
+    { "path": "../type-utils" },
+  ]
+}

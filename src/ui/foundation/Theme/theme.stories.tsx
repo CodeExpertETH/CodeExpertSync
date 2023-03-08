@@ -1,9 +1,4 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { TinyColor } from '@ctrl/tinycolor';
-import { Typography as AntdTypography, Table } from 'antd';
-import { PresetColors } from 'antd/es/theme/internal';
-import React from 'react';
-
 import {
   adt,
   array,
@@ -17,7 +12,12 @@ import {
   record,
   string,
   tuple,
-} from '../../../prelude';
+} from '@code-expert/prelude';
+import { TinyColor } from '@ctrl/tinycolor';
+import { Typography as AntdTypography, Table } from 'antd';
+import { PresetColors } from 'antd/es/theme/internal';
+import React from 'react';
+
 import { copyToClipboard } from '../../helper/copyToClipboard';
 import { isLight } from './colorScheme';
 import { ThemeProvider, internalTokenKeys, useTheme } from './theme';

@@ -1,0 +1,22 @@
+{
+  "extends": "../tsconfig.options.json",
+  "compilerOptions": {
+    "allowJs": false,
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "emitDeclarationOnly": false,
+    "noEmit": true,
+    "jsx": "react",
+    "paths": {
+      "api": ["./api/index.ts"],
+      "@code-expert/prelude": ["../packages/prelude"],
+      "@code-expert/test-utils": ["../packages/test-utils"],
+      "@code-expert/type-utils": ["../packages/type-utils"]
+    }
+  },
+  "include": ["**/*"],
+  "references": [
+    { "path": "../packages/prelude" },
+    { "path": "../packages/test-utils" },
+    { "path": "../packages/type-utils" }
+  ]
+}

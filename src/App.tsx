@@ -1,7 +1,7 @@
+import { boolean, pipe } from '@code-expert/prelude';
 import { Result } from 'antd';
 import React from 'react';
 
-import { boolean, pipe } from './prelude';
 import Routes from './ui/Routes';
 import { GlobalContextProvider } from './ui/components/GlobalContext';
 import useNetworkState from './ui/hooks/useNetwork';

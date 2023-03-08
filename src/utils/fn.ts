@@ -1,4 +1,4 @@
-import { nonEmptyArray } from '../prelude';
+import { nonEmptyArray } from '@code-expert/prelude';
 
 /**
  * Find items that are in the first array but not in the second

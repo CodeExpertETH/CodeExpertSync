@@ -1,8 +1,8 @@
+import { pipe, remoteData } from '@code-expert/prelude';
 import { Result } from 'antd';
 import React from 'react';
 
 import { Exception } from '../../domain/exception';
-import { pipe, remoteData } from '../../prelude';
 import Loading from './Loading';
 
 const renderLoading = () => <Loading delayTime={200} />;

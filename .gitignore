@@ -4,3 +4,5 @@ dist
 *.log
 /storybook-static
 .idea
+build/
+*.tsbuildinfo
