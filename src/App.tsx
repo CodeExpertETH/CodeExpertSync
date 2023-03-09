@@ -20,7 +20,7 @@ function App() {
               <Result
                 status="warning"
                 title="No internet connection."
-                subTitle="Code Expert requires a active internet connection to be able to work correct."
+                subTitle="Code Expert requires an active internet connection to be able to work correctly."
               />
             ),
             () => <Routes />,
