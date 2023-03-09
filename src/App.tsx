@@ -5,14 +5,14 @@ import { boolean, pipe } from './prelude';
 import Routes from './ui/Routes';
 import { GlobalContextProvider } from './ui/components/GlobalContext';
 import useNetworkState from './ui/hooks/useNetwork';
-import { Header } from './ui/layout/Header';
+import { AppLayout } from './ui/layout';
 
 function App() {
   const { online } = useNetworkState();
 
   return (
     <GlobalContextProvider>
-      <Header>
+      <AppLayout>
         {pipe(
           online,
           boolean.fold(
@@ -26,7 +26,7 @@ function App() {
             () => <Routes />,
           ),
         )}
-      </Header>
+      </AppLayout>
     </GlobalContextProvider>
   );
 }
