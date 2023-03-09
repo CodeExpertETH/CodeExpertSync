@@ -21,18 +21,18 @@ export const TopNav = () => (
             {
               key: 'settings',
               label: (
-                <>
+                <HStack gap={'xs'} align="center">
                   <Icon name="cog" /> Settings
-                </>
+                </HStack>
               ),
             },
             { type: 'divider' },
             {
               key: 'logout',
               label: (
-                <>
+                <HStack gap={'xs'} align="center">
                   <Icon name="sign-out-alt" /> Logout
-                </>
+                </HStack>
               ),
             },
           ],
