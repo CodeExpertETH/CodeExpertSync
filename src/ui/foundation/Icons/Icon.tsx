@@ -1,4 +1,5 @@
 /* eslint-disable no-restricted-imports */
+import { array, pipe, record, string } from '@code-expert/prelude';
 import type { IconName as FaIconName, IconDefinition } from '@fortawesome/fontawesome-common-types';
 import '@fortawesome/fontawesome-svg-core/styles.css';
 import { faDocker } from '@fortawesome/free-brands-svg-icons/faDocker';
@@ -165,8 +166,6 @@ import { faVideo } from '@fortawesome/free-solid-svg-icons/faVideo';
 import { faXmark } from '@fortawesome/free-solid-svg-icons/faXmark';
 import React from 'react';
 import { FontAwesomeSvgIcon, FontAwesomeSvgIconProps } from 'react-fontawesome-svg-icon';
-
-import { array, pipe, record, string } from '../../../prelude';
 
 const icons_ = {
   'align-justify': faAlignJustify,

@@ -1,10 +1,10 @@
+import { option, pipe, task } from '@code-expert/prelude';
 import { Button, Result } from 'antd';
 import { api } from 'api';
 import React from 'react';
 
 import { AppId } from '../../domain/AppId';
 import { EntityNotFoundException } from '../../domain/exception';
-import { option, pipe, task } from '../../prelude';
 import { digestMessage, pkceChallenge } from '../../utils/crypto';
 import { routes, useGlobalContextWithActions } from '../components/GlobalContext';
 import { GuardRemoteData } from '../components/GuardRemoteData';

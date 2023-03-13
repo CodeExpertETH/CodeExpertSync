@@ -1,4 +1,4 @@
-import { adt } from '../../../prelude';
+import { adt } from '@code-expert/prelude';
 
 export const foldColorScheme = adt.foldFromKeys({
   light: null,

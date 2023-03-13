@@ -4,7 +4,7 @@
   "description": "",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "yarn tsc && vite build",
     "preview": "vite preview",
     "test": "vitest",
     "test:ci": "vitest",
@@ -13,7 +13,7 @@
     "tauri": "tauri",
     "prettier": "prettier --cache  --cache-strategy content --write \"./src/**/*.{js,jsx,ts,tsx,json,less,html}\"",
     "prettier:check": "prettier --cache  --cache-strategy content --check \"./src/**/*.{js,jsx,ts,tsx,json,less,html}\"",
-    "tsc": "tsc",
+    "tsc": "tsc --build --verbose",
     "lint": "eslint . --cache  --cache-strategy content --ext .js,.jsx,.ts,.tsx",
     "build-storybook": "storybook build",
     "chromatic": "npx chromatic --project-token=af98efe0a6a9"
@@ -38,6 +38,7 @@
     "@vitejs/plugin-react": "^3.0.0",
     "chromatic": "^6.17.0",
     "eslint": "^8.34.0",
+    "eslint-import-resolver-typescript": "^3.5.3",
     "jsdom": "^21.1.0",
     "prettier": "^2.8.4",
     "prop-types": "^15.8.1",
@@ -50,6 +51,7 @@
   "dependencies": {
     "@ant-design/cssinjs": "^1.5.6",
     "@ant-design/icons": "git+https://github.com/CodeExpertETH/antd-fa-icons.git#effd794",
+    "@ctrl/tinycolor": "^3.6.0",
     "@devexperts/remote-data-ts": "^2.1.1",
     "@emotion/hash": "^0.9.0",
     "@fortawesome/fontawesome-svg-core": "^6.2.1",

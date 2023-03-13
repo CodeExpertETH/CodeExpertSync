@@ -1,8 +1,7 @@
+import { iots, option, pipe, task, taskOption } from '@code-expert/prelude';
 import { invoke } from '@tauri-apps/api';
 import { getVersion } from '@tauri-apps/api/app';
 import { Store as TauriStore } from 'tauri-plugin-store-api';
-
-import { iots, option, pipe, task, taskOption } from '../prelude';
 
 const store = new TauriStore('.settings.dat');
 

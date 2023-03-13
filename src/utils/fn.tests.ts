@@ -1,12 +1,12 @@
 /* eslint-env mocha */
 
 /* eslint-disable no-unused-expressions,max-classes-per-file */
+import { pipe } from '@code-expert/prelude';
+import { fc } from '@code-expert/test-utils';
 import { assert, describe, it } from 'vitest';
 
-import { pipe } from '../prelude';
 import * as fn from './fn';
 import { isNonEmptyRecord, isOneOf } from './fn';
-import { fc } from './test';
 
 describe('fn.js', () => {
   describe('difference', () => {

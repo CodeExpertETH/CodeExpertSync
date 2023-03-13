@@ -1,17 +1,10 @@
 {
-  "extends": "@code-expert/configs-typescript/base.json",
-  "compilerOptions": {
-    "allowJs": false,
-    "target": "ESNext",
-    "module": "ESNext",
-    "lib": ["DOM", "DOM.Iterable", "ESNext"],
-    "isolatedModules": true,
-    "noEmit": true,
-    "jsx": "react",
-    "paths": {
-      "api": ["./src/api/index.ts"]
-    }
-  },
-  "include": ["src"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "extends": "./tsconfig.options.json",
+  "references": [
+    { "path": "./packages/prelude" },
+    { "path": "./packages/test-utils" },
+    { "path": "./packages/type-utils" },
+    { "path": "./src" }
+  ],
+  "files": []
 }

@@ -1,5 +1,6 @@
+import { array, either, fn, pipe, record, separated } from '@code-expert/prelude';
+
 import { CSSInterpolation } from '../../../lib/antd';
-import { array, either, fn, pipe, record, separated } from '../../../prelude';
 import { isObject } from '../../../utils/fn';
 
 /**

@@ -1,8 +1,8 @@
+import { either, pipe } from '@code-expert/prelude';
 import { message } from 'antd';
 import React, { useRef } from 'react';
 
 import { AccessToken } from './domain/AuthToken';
-import { either, pipe } from './prelude';
 import { useGlobalContextWithActions } from './ui/components/GlobalContext';
 
 export const AuthTokenManager = () => {

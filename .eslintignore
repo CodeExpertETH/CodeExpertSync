@@ -1,6 +1,7 @@
 public/*
 .eslintrc.js
-dist/*
+build/
+dist/
 src-tauri/*
-vite.config.ts
+/vite.config.ts
 /storybook-static
