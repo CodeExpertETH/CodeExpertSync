@@ -1,11 +1,20 @@
 import { api } from 'api';
 
-import { AppId } from '../domain/AppId';
+import { getAccessToken } from './getAccessToken';
 
-export const listenForAuthTokens = (appId: AppId) => {
-  const sse = new EventSource(`${api.APIUrl}/app/listenForAuthToken/${appId}`);
-  sse.onmessage = function (event) {
-    console.log('New message', event.data);
-    // will log 3 times for the data stream above
-  };
+export const listenForAuthTokens = (appId: string) => {
+  const sse = new EventSource(`${api.APIUrl}/app/oauth/listenForAuthToken/${appId}`);
+  console.log('waiting for events');
+  sse.addEventListener(
+    'authToken',
+    async ({ data }) => {
+      const authToken = data;
+      if (authToken != null) {
+        console.log('AuthToken', authToken);
+        await getAccessToken(authToken);
+        sse.close();
+      }
+    },
+    { once: true },
+  );
 };

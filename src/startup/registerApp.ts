@@ -27,7 +27,7 @@ const registerApp = async () => {
     responseType: ResponseType.Text,
   });
   console.log(response);
-  listenForAuthTokens(appId);
+  listenForAuthTokens(requestBody.appId);
 };
 
 // ignore promise due to safari 13 target
