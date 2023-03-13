@@ -5,7 +5,6 @@ import { Body, ResponseType, getClient } from '@tauri-apps/api/http';
 import { api } from 'api';
 
 import { digestMessage } from '../utils/crypto';
-import { listenForAuthTokens } from './listenForAuthToken';
 import { getUniqueAppId } from './uniqueAppId';
 
 const registerApp = async () => {
@@ -27,7 +26,6 @@ const registerApp = async () => {
     responseType: ResponseType.Text,
   });
   console.log(response);
-  listenForAuthTokens(requestBody.appId);
 };
 
 // ignore promise due to safari 13 target

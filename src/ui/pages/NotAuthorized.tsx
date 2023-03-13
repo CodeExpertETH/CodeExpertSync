@@ -1,8 +1,9 @@
-import { option, pipe, task } from '@code-expert/prelude';
+import { either, option, pipe, task } from '@code-expert/prelude';
 import { Button, Result } from 'antd';
 import { api } from 'api';
 import React from 'react';
 
+import { listenForAuthTokens } from '../../api/oauth/listenForAuthToken';
 import { AppId } from '../../domain/AppId';
 import { EntityNotFoundException } from '../../domain/exception';
 import { digestMessage, pkceChallenge } from '../../utils/crypto';
@@ -13,8 +14,8 @@ import { useAsync } from '../hooks/useAsync';
 
 function NotAuthorized() {
   const [, dispatchContext] = useGlobalContextWithActions();
-
   const { code_verifier, code_challenge } = pkceChallenge();
+
   const appIdentifier = useAsync(
     () =>
       pipe(
@@ -34,7 +35,23 @@ function NotAuthorized() {
   );
 
   const onButtonClick = () => {
-    sessionStorage.setItem('code_verifier', code_verifier);
+    void listenForAuthTokens(
+      code_verifier,
+      pipe(
+        either.fold(
+          (e) => {
+            //todo show error
+            console.log(e);
+          },
+          (accessToken) =>
+            dispatchContext({
+              accessToken,
+              currentPage: routes.main(),
+            }),
+        ),
+      ),
+    );
+
     dispatchContext({ currentPage: routes.waitingForAuthorization() });
   };
 
