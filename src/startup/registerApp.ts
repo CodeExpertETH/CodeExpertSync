@@ -1,7 +1,7 @@
 import { constVoid } from '@code-expert/prelude';
 import { invoke } from '@tauri-apps/api';
 import { getName, getVersion } from '@tauri-apps/api/app';
-import { Body, ResponseType, getClient } from '@tauri-apps/api/http';
+import { Body, ResponseType, fetch } from '@tauri-apps/api/http';
 import { api } from 'api';
 
 import { digestMessage } from '../utils/crypto';
@@ -19,13 +19,14 @@ const registerApp = async () => {
     appName,
     appVersion,
   };
-  //TODO send this request to registration endpoint
-  console.log(requestBody);
-  const client = await getClient();
-  const response = await client.post(`${api.APIUrl}/app/register`, Body.json(requestBody), {
+  const response = await fetch(`${api.APIUrl}/app/register`, {
+    method: 'POST',
+    body: Body.json(requestBody),
     responseType: ResponseType.Text,
   });
-  console.log(response);
+  if (!response.ok) {
+    throw new Error('App could not register during startup');
+  }
 };
 
 // ignore promise due to safari 13 target

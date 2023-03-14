@@ -1,18 +1,13 @@
-import { either, iots, pipe } from '@code-expert/prelude';
+import { either, pipe } from '@code-expert/prelude';
 import { Body, ResponseType, fetch } from '@tauri-apps/api/http';
 import { api } from 'api';
 
+import { AppId } from '../../domain/AppId';
 import { AccessToken } from '../../domain/AuthToken';
-import { getUniqueAppId } from '../../startup/uniqueAppId';
+import { fromError } from '../../domain/exception';
 import { digestMessage } from '../../utils/crypto';
 
-export const getAccessToken = async (
-  code_verifier: string,
-  authToken: string,
-  dispatch: (accessToken: either.Either<Error | iots.Errors, AccessToken>) => void,
-) => {
-  const appId = await getUniqueAppId();
-
+export const getAccessToken = async (appId: AppId, code_verifier: string, authToken: string) => {
   const requestBody = {
     appId: digestMessage(appId as string),
     authToken,
@@ -24,11 +19,10 @@ export const getAccessToken = async (
     body: Body.json(requestBody),
     responseType: ResponseType.JSON,
   });
-  dispatch(
-    pipe(
-      response.data.accessToken,
-      either.fromNullable(Error('No access token returned')),
-      either.chainW(AccessToken.decode),
-    ),
+  return pipe(
+    response.data.accessToken,
+    either.fromNullable(Error('No access token returned')),
+    either.chainW(AccessToken.decode),
+    either.getOrThrow(fromError),
   );
 };

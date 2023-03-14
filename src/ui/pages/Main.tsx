@@ -3,7 +3,8 @@ import { api } from 'api';
 import React, { useState } from 'react';
 
 import { AuthTokenManager } from '../../AuthToken';
-import { routes, useGlobalContextWithActions } from '../components/GlobalContext';
+import { globalAuthState } from '../components/AuthState';
+import { useGlobalContextWithActions } from '../components/GlobalContext';
 
 function Main() {
   const [, dispatchContext] = useGlobalContextWithActions();
@@ -19,7 +20,7 @@ function Main() {
   }
 
   const onButtonClick = () => {
-    dispatchContext({ currentPage: routes.notAuthorized() });
+    dispatchContext({ authState: globalAuthState.notAuthorized() });
   };
 
   return (

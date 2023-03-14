@@ -1,21 +1,55 @@
-import { either, option, pipe, task } from '@code-expert/prelude';
+import { option, pipe, task } from '@code-expert/prelude';
 import { Button, Result } from 'antd';
 import { api } from 'api';
 import React from 'react';
 
-import { listenForAuthTokens } from '../../api/oauth/listenForAuthToken';
 import { AppId } from '../../domain/AppId';
 import { EntityNotFoundException } from '../../domain/exception';
-import { digestMessage, pkceChallenge } from '../../utils/crypto';
-import { routes, useGlobalContextWithActions } from '../components/GlobalContext';
+import { authState, globalAuthState, useAuthState } from '../components/AuthState';
+import { useGlobalContextWithActions } from '../components/GlobalContext';
 import { GuardRemoteData } from '../components/GuardRemoteData';
 import { Icon } from '../foundation/Icons';
 import { useAsync } from '../hooks/useAsync';
 
-function NotAuthorized() {
-  const [, dispatchContext] = useGlobalContextWithActions();
-  const { code_verifier, code_challenge } = pkceChallenge();
+const Comp = ({ appIdentifier }: { appIdentifier: AppId }) => {
+  const [, dispatch] = useGlobalContextWithActions();
 
+  const { state, startAuthorization, cancelAuthorization } = useAuthState(
+    appIdentifier,
+    (accessToken) => {
+      dispatch({ authState: globalAuthState.authorized({ accessToken }) });
+    },
+  );
+
+  return authState.fold(state, {
+    startingAuthorization: ({ redirectLink, code_verifier }) => (
+      <Result
+        title="Code Expert Desktop is not authorized"
+        subTitle="To authorize click the button below and authorize the Code Expert Desktop App in Code Expert"
+        icon={<Icon name="lock" size="4x" />}
+        extra={
+          <Button
+            type="primary"
+            href={redirectLink}
+            onClick={() => startAuthorization(code_verifier)}
+            target="_blank"
+          >
+            Authorize Code Expert Desktop
+          </Button>
+        }
+      />
+    ),
+    waitingForAuthorization: () => (
+      <Result
+        title="Code Expert Desktop is waiting for authorization"
+        subTitle="Please authorize Code Expert Desktop in Code Expert"
+        icon={<Icon name="clock-regular" size="4x" />}
+        extra={<Button onClick={cancelAuthorization}>Cancel authorize request</Button>}
+      />
+    ),
+  });
+};
+function NotAuthorized() {
   const appIdentifier = useAsync(
     () =>
       pipe(
@@ -34,47 +68,10 @@ function NotAuthorized() {
     [],
   );
 
-  const onButtonClick = () => {
-    void listenForAuthTokens(
-      code_verifier,
-      either.fold(
-        (e) => {
-          //todo show error
-          console.log(e);
-        },
-        (accessToken) =>
-          dispatchContext({
-            accessToken,
-            currentPage: routes.main(),
-          }),
-      ),
-    );
-
-    dispatchContext({ currentPage: routes.waitingForAuthorization() });
-  };
-
   return (
     <GuardRemoteData
       value={appIdentifier}
-      render={(appIdentifier) => (
-        <Result
-          title="Code Expert Desktop is not authorized"
-          subTitle="To authorize click the button below and authorize the Code Expert Desktop App in Code Expert"
-          icon={<Icon name="lock" size="4x" />}
-          extra={
-            <Button
-              type="primary"
-              href={`${api.CXUrl}/app/authorize?appIdentifier=${digestMessage(
-                appIdentifier,
-              )}&code_challenge=${code_challenge}`}
-              onClick={onButtonClick}
-              target="_blank"
-            >
-              Authorize Code Expert Desktop
-            </Button>
-          }
-        />
-      )}
+      render={(appIdentifier) => <Comp appIdentifier={appIdentifier} />}
     />
   );
 }

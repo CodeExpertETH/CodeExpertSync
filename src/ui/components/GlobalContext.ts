@@ -4,28 +4,22 @@ import equal from 'fast-deep-equal';
 import React, { useEffect } from 'react';
 
 import { AccessToken } from '../../domain/AuthToken';
+import { GlobalAuthState, globalAuthState } from './AuthState';
 import Loading from './Loading';
 
-export type Routes =
-  | tagged.Tagged<'notAuthorized'>
-  | tagged.Tagged<'main'>
-  | tagged.Tagged<'waitingForAuthorization'>;
+export type Routes = tagged.Tagged<'main'> | tagged.Tagged<'settings'>;
 
-export type AuthState =
-  | tagged.Tagged<'notAuthorized'>
-  | tagged.Tagged<'waitingForAuthorization', { code_verifier: string }>
-  | tagged.Tagged<'authorized', { accessToken: AccessToken }>;
 export const routes = tagged.build<Routes>();
 
 export interface GlobalContext {
-  readonly accessToken?: AccessToken;
+  readonly authState: GlobalAuthState;
   readonly currentPage: Routes;
 }
 
-type MandatoryFields = keyof Pick<GlobalContext, 'accessToken'>;
+type MandatoryFields = keyof Pick<GlobalContext, 'authState'>;
 
 export function initialState({
-  currentPage = routes.notAuthorized(),
+  currentPage = routes.main(),
   ...defaults
 }: Pick<GlobalContext, MandatoryFields> &
   Partial<Omit<GlobalContext, MandatoryFields>>): GlobalContext {
@@ -39,9 +33,11 @@ export type Action = Partial<GlobalContext>;
 const reducer = (state: GlobalContext | undefined, action: Action & { _init?: GlobalContext }) => {
   if (action._init) return action._init;
   if (state == null) return undefined;
-  if ('accessToken' in action) {
-    // It's ok to eventually persist the token, no need to wait until it happened.
-    void task.run(api.settingWrite('accessToken', action.accessToken));
+  if ('authState' in action) {
+    if (action.authState != null && globalAuthState.is.authorized(action.authState)) {
+      // It's ok to eventually persist the token, no need to wait until it happened.
+      void task.run(api.settingWrite('accessToken', action.authState.value.accessToken));
+    }
   }
 
   const nextState = { ...state, ...action };
@@ -52,8 +48,8 @@ const reducer = (state: GlobalContext | undefined, action: Action & { _init?: Gl
 
 const context = React.createContext<[GlobalContext, React.Dispatch<Action>]>([
   initialState({
-    currentPage: routes.notAuthorized(),
-    accessToken: undefined,
+    currentPage: routes.main(),
+    authState: globalAuthState.notAuthorized(),
   }),
   constVoid,
 ]);
@@ -68,7 +64,15 @@ export const GlobalContextProvider = React.memo(function GlobalContextProvider({
       void pipe(
         api.settingRead('accessToken', AccessToken),
         task.map(option.toUndefined),
-        task.map((accessToken) => stateDispatch({ _init: initialState({ accessToken }) })),
+        task.map((accessToken) =>
+          stateDispatch({
+            _init: initialState({
+              authState: accessToken
+                ? globalAuthState.authorized({ accessToken })
+                : globalAuthState.notAuthorized(),
+            }),
+          }),
+        ),
         task.run,
       );
     }

@@ -1,17 +1,20 @@
 import React from 'react';
 
+import { globalAuthState } from './components/AuthState';
 import { routes, useGlobalContext } from './components/GlobalContext';
 import Main from './pages/Main';
 import NotAuthorized from './pages/NotAuthorized';
-import WaitingForAuthorization from './pages/WaitingForAuthorization';
 
 function Routes() {
-  const { currentPage } = useGlobalContext();
+  const { currentPage, authState } = useGlobalContext();
 
-  return routes.fold(currentPage, {
+  return globalAuthState.fold(authState, {
     notAuthorized: () => <NotAuthorized />,
-    waitingForAuthorization: () => <WaitingForAuthorization />,
-    main: () => <Main />,
+    authorized: () =>
+      routes.fold(currentPage, {
+        settings: () => <span>Settings</span>,
+        main: () => <Main />,
+      }),
   });
 }
 
