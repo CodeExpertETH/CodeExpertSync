@@ -1,9 +1,13 @@
+import { Button } from 'antd';
 import { api } from 'api';
 import React, { useState } from 'react';
 
 import { AuthTokenManager } from '../../AuthToken';
+import { routes, useGlobalContextWithActions } from '../components/GlobalContext';
 
 function Main() {
+  const [, dispatchContext] = useGlobalContextWithActions();
+
   const [greetMsg, setGreetMsg] = useState('');
   const [name, setName] = useState('');
 
@@ -13,6 +17,10 @@ function Main() {
     setGreetMsg(message);
     console.log(appVersion);
   }
+
+  const onButtonClick = () => {
+    dispatchContext({ currentPage: routes.notAuthorized() });
+  };
 
   return (
     <div>
@@ -28,6 +36,7 @@ function Main() {
           <button type="button" onClick={() => greet()}>
             Greet
           </button>
+          <Button onClick={onButtonClick}>Go back to authorize Code Expert Desktop</Button>
         </div>
       </div>
       <p>{greetMsg}</p>

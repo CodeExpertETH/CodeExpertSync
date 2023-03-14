@@ -10,6 +10,11 @@ export type Routes =
   | tagged.Tagged<'notAuthorized'>
   | tagged.Tagged<'main'>
   | tagged.Tagged<'waitingForAuthorization'>;
+
+export type AuthState =
+  | tagged.Tagged<'notAuthorized'>
+  | tagged.Tagged<'waitingForAuthorization', { code_verifier: string }>
+  | tagged.Tagged<'authorized', { accessToken: AccessToken }>;
 export const routes = tagged.build<Routes>();
 
 export interface GlobalContext {

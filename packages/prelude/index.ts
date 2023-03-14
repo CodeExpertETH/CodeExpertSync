@@ -33,6 +33,7 @@ import * as ioOption from './io-option';
 import * as iots from './iots';
 import * as monadThrow from './monadThrow';
 import * as nat from './nat';
+import * as naturalTransformation from './naturalTransformation';
 import * as nonEmptyArray from './non-empty-array';
 import * as number from './number';
 import * as option from './option';
@@ -81,6 +82,7 @@ export {
   nat,
   number,
   nonEmptyArray,
+  naturalTransformation,
   option,
   optionT,
   ord,

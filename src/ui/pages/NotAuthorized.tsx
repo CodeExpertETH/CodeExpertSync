@@ -37,18 +37,16 @@ function NotAuthorized() {
   const onButtonClick = () => {
     void listenForAuthTokens(
       code_verifier,
-      pipe(
-        either.fold(
-          (e) => {
-            //todo show error
-            console.log(e);
-          },
-          (accessToken) =>
-            dispatchContext({
-              accessToken,
-              currentPage: routes.main(),
-            }),
-        ),
+      either.fold(
+        (e) => {
+          //todo show error
+          console.log(e);
+        },
+        (accessToken) =>
+          dispatchContext({
+            accessToken,
+            currentPage: routes.main(),
+          }),
       ),
     );
 
