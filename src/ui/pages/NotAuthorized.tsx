@@ -39,6 +39,22 @@ const Comp = ({ appIdentifier }: { appIdentifier: AppId }) => {
         }
       />
     ),
+    deniedAuthorization: () => (
+      <Result
+        title="The access for this app was denied in Code Expert"
+        subTitle="To gain access you need to authorize the app in Code Expert."
+        icon={<Icon name="user-lock" size="4x" />}
+        extra={<Button onClick={cancelAuthorization}>Authorize app again</Button>}
+      />
+    ),
+    timeoutAuthorization: () => (
+      <Result
+        title="Timeout of authorization request"
+        subTitle="To gain access you need to authorize the app in Code Expert."
+        icon={<Icon name="clock-solid" size="4x" />}
+        extra={<Button onClick={cancelAuthorization}>Authorize app again</Button>}
+      />
+    ),
     waitingForAuthorization: () => (
       <Result
         title="Code Expert Desktop is waiting for authorization"

@@ -6,6 +6,7 @@ import { getAccessToken } from '../../api/oauth/getAccessToken';
 import { AppId } from '../../domain/AppId';
 import { AccessToken } from '../../domain/AuthToken';
 import { digestMessage, pkceChallenge } from '../../utils/crypto';
+import useTimeout from '../hooks/useTimeout';
 
 export type GlobalAuthState =
   | tagged.Tagged<'notAuthorized'>
@@ -14,7 +15,9 @@ export const globalAuthState = tagged.build<GlobalAuthState>();
 
 export type AuthState =
   | tagged.Tagged<'startingAuthorization', { code_verifier: string; redirectLink: string }>
-  | tagged.Tagged<'waitingForAuthorization', { code_verifier: string }>;
+  | tagged.Tagged<'waitingForAuthorization', { code_verifier: string }>
+  | tagged.Tagged<'deniedAuthorization'>
+  | tagged.Tagged<'timeoutAuthorization'>;
 export const authState = tagged.build<AuthState>();
 
 const startingAuthorization = (
@@ -32,9 +35,11 @@ const startingAuthorization = (
 const cleanUpEventListener = (
   sse: React.MutableRefObject<EventSource | null>,
   onAuthToken: ({ data }: { data: string }) => Promise<void>,
+  onDenied: () => void,
   onError: (e: Event) => void,
 ) => {
   sse.current?.removeEventListener('authToken', onAuthToken);
+  sse.current?.removeEventListener('denied', onDenied);
   sse.current?.removeEventListener('error', onError);
   sse.current?.close();
   sse.current = null;
@@ -50,6 +55,9 @@ export const useAuthState = (
 } => {
   const [state, setState] = React.useState<AuthState>(() => startingAuthorization(appId));
   const sse = React.useRef<EventSource | null>(null);
+  useTimeout(() => {
+    setState(authState.timeoutAuthorization());
+  }, 4 * 60 * 1000);
 
   React.useEffect(() => {
     const onAuthToken = async ({ data: authToken }: { data: string }) => {
@@ -58,6 +66,14 @@ export const useAuthState = (
         sse.current?.close();
         sse.current = null;
         onAuthorize(accessToken);
+      } else {
+        throw new Error('Invalid state. Please try again.');
+      }
+    };
+
+    const onDenied = () => {
+      if (authState.is.waitingForAuthorization(state)) {
+        setState(authState.deniedAuthorization());
       } else {
         throw new Error('Invalid state. Please try again.');
       }
@@ -74,12 +90,13 @@ export const useAuthState = (
       }
 
       sse.current?.addEventListener('authToken', onAuthToken, { once: true });
+      sse.current?.addEventListener('denied', onDenied, { once: true });
       sse.current?.addEventListener('error', onError);
     } else {
-      cleanUpEventListener(sse, onAuthToken, onError);
+      cleanUpEventListener(sse, onAuthToken, onDenied, onError);
     }
     return () => {
-      cleanUpEventListener(sse, onAuthToken, onError);
+      cleanUpEventListener(sse, onAuthToken, onDenied, onError);
     };
   }, [state, appId, onAuthorize]);
 
