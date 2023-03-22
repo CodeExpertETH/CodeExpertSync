@@ -11,6 +11,7 @@ export interface Api {
   settingRead<T>(key: string, decoder: iots.Decoder<unknown, T>): taskOption.TaskOption<T>;
   settingWrite(key: string, value: unknown): task.Task<void>;
   CXUrl: string;
+  APIUrl: string;
 }
 
 export const api: Api = {
@@ -22,5 +23,7 @@ export const api: Api = {
     value != null
       ? store.set(key, value).then(() => store.save())
       : store.delete(key).then(() => store.save()),
-  CXUrl: 'https://expert.ethz.ch',
+  //TODO how to switch to production during build??
+  CXUrl: 'http://localhost:3000',
+  APIUrl: 'http://localhost:3100',
 };

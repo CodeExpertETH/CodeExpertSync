@@ -1,6 +1,6 @@
 import { iots } from '@code-expert/prelude';
 
-const base64Regex = /^(?=(.{4})*$)[A-Za-z0-9+/]*={0,2}$/;
+import { Base64Url } from '../utils/base64url';
 
 export interface AccessTokenBrand {
   readonly AccessToken: unique symbol;
@@ -8,7 +8,7 @@ export interface AccessTokenBrand {
 
 export const AccessToken = iots.brand(
   iots.string,
-  (s): s is iots.Branded<string, AccessTokenBrand> => base64Regex.test(s),
+  (s): s is iots.Branded<string, AccessTokenBrand> => Base64Url.is(s),
   'AccessToken',
 );
 
