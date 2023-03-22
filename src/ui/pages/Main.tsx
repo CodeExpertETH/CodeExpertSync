@@ -37,7 +37,7 @@ function Main() {
           <button type="button" onClick={() => greet()}>
             Greet
           </button>
-          <Button onClick={onButtonClick}>Go back to authorize Code Expert Desktop</Button>
+          <Button onClick={onButtonClick}>Go back to authorise Code Expert Desktop</Button>
         </div>
       </div>
       <p>{greetMsg}</p>
