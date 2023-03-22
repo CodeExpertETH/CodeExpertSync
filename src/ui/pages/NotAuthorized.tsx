@@ -4,8 +4,8 @@ import { api } from 'api';
 import React from 'react';
 
 import { AppId } from '../../domain/AppId';
+import { authState, globalAuthState, useAuthState } from '../../domain/AuthState';
 import { EntityNotFoundException } from '../../domain/exception';
-import { authState, globalAuthState, useAuthState } from '../components/AuthState';
 import { useGlobalContextWithActions } from '../components/GlobalContext';
 import { GuardRemoteData } from '../components/GuardRemoteData';
 import { Icon } from '../foundation/Icons';

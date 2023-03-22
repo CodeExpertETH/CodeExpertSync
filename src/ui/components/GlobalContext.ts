@@ -3,8 +3,8 @@ import { api } from 'api';
 import equal from 'fast-deep-equal';
 import React, { useEffect } from 'react';
 
+import { GlobalAuthState, globalAuthState } from '../../domain/AuthState';
 import { AccessToken } from '../../domain/AuthToken';
-import { GlobalAuthState, globalAuthState } from './AuthState';
 import Loading from './Loading';
 
 export type Routes = tagged.Tagged<'main'> | tagged.Tagged<'settings'>;

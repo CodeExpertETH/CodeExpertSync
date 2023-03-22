@@ -3,7 +3,7 @@ import { api } from 'api';
 import React, { useState } from 'react';
 
 import { AuthTokenManager } from '../../AuthToken';
-import { globalAuthState } from '../components/AuthState';
+import { globalAuthState } from '../../domain/AuthState';
 import { useGlobalContextWithActions } from '../components/GlobalContext';
 
 function Main() {

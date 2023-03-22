@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { globalAuthState } from './components/AuthState';
+import { globalAuthState } from '../domain/AuthState';
 import { routes, useGlobalContext } from './components/GlobalContext';
 import Main from './pages/Main';
 import NotAuthorized from './pages/NotAuthorized';

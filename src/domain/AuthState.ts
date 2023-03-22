@@ -2,11 +2,11 @@ import { tagged } from '@code-expert/prelude';
 import { api } from 'api';
 import React from 'react';
 
-import { getAccessToken } from '../../api/oauth/getAccessToken';
-import { AppId } from '../../domain/AppId';
-import { AccessToken } from '../../domain/AuthToken';
-import { digestMessage, pkceChallenge } from '../../utils/crypto';
-import useTimeout from '../hooks/useTimeout';
+import { getAccessToken } from '../api/oauth/getAccessToken';
+import useTimeout from '../ui/hooks/useTimeout';
+import { digestMessage, pkceChallenge } from '../utils/crypto';
+import { AppId } from './AppId';
+import { AccessToken } from './AuthToken';
 
 export type GlobalAuthState =
   | tagged.Tagged<'notAuthorized'>
@@ -62,7 +62,7 @@ export const useAuthState = (
   React.useEffect(() => {
     const onAuthToken = async ({ data: authToken }: { data: string }) => {
       if (authState.is.waitingForAuthorization(state)) {
-        const accessToken = await getAccessToken(appId, state.value.code_verifier, authToken);
+        const { accessToken } = await getAccessToken(appId, state.value.code_verifier, authToken);
         sse.current?.close();
         sse.current = null;
         onAuthorize(accessToken);
