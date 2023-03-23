@@ -2,8 +2,8 @@ import { boolean, pipe } from '@code-expert/prelude';
 import { Result } from 'antd';
 import React from 'react';
 
+import { GlobalContextProvider } from './ui/GlobalContext';
 import Routes from './ui/Routes';
-import { GlobalContextProvider } from './ui/components/GlobalContext';
 import useNetworkState from './ui/hooks/useNetwork';
 import { AppLayout } from './ui/layout';
 

@@ -10,6 +10,7 @@ export interface Api {
   greet(name: string): Promise<string>;
   settingRead<T>(key: string, decoder: iots.Decoder<unknown, T>): taskOption.TaskOption<T>;
   settingWrite(key: string, value: unknown): task.Task<void>;
+  logout(): task.Task<void>;
   CXUrl: string;
   APIUrl: string;
 }
@@ -23,6 +24,7 @@ export const api: Api = {
     value != null
       ? store.set(key, value).then(() => store.save())
       : store.delete(key).then(() => store.save()),
+  logout: () => api.settingWrite('accessToken', null),
   //TODO how to switch to production during build??
   CXUrl: 'http://localhost:3000',
   APIUrl: 'http://localhost:3100',
