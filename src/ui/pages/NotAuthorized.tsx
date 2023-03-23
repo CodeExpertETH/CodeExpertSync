@@ -65,7 +65,7 @@ const Comp = ({ appIdentifier }: { appIdentifier: AppId }) => {
     ),
   });
 };
-function NotAuthorized() {
+export function NotAuthorized() {
   const appIdentifier = useAsync(
     () =>
       pipe(
@@ -91,5 +91,3 @@ function NotAuthorized() {
     />
   );
 }
-
-export default NotAuthorized;

@@ -4,18 +4,17 @@ import { api } from 'api';
 import React from 'react';
 
 import { globalAuthState } from '../../domain/AuthState';
-import { useGlobalContextWithActions } from '../GlobalContext';
+import { routes, useGlobalContextWithActions } from '../GlobalContext';
 import { Icon } from '../foundation/Icons';
 
-function Logout() {
+export function Logout() {
   const [, dispatch] = useGlobalContextWithActions();
 
   const logout = () =>
     pipe(
       api.logout(),
       task.map(() => {
-        console.log('dispatch)');
-        dispatch({ authState: globalAuthState.notAuthorized() });
+        dispatch({ authState: globalAuthState.notAuthorized(), currentPage: routes.main() });
       }),
       task.run,
     );
@@ -32,5 +31,3 @@ function Logout() {
     />
   );
 }
-
-export default Logout;
