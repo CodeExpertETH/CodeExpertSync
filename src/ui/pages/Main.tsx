@@ -4,9 +4,9 @@ import React, { useState } from 'react';
 
 import { AuthTokenManager } from '../../AuthToken';
 import { globalAuthState } from '../../domain/AuthState';
-import { useGlobalContextWithActions } from '../components/GlobalContext';
+import { useGlobalContextWithActions } from '../GlobalContext';
 
-function Main() {
+export function Main() {
   const [, dispatchContext] = useGlobalContextWithActions();
 
   const [greetMsg, setGreetMsg] = useState('');
@@ -44,5 +44,3 @@ function Main() {
     </div>
   );
 }
-
-export default Main;

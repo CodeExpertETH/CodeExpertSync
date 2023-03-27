@@ -4,7 +4,7 @@ import React, { useRef } from 'react';
 
 import { globalAuthState } from './domain/AuthState';
 import { AccessToken } from './domain/AuthToken';
-import { useGlobalContextWithActions } from './ui/components/GlobalContext';
+import { useGlobalContextWithActions } from './ui/GlobalContext';
 
 export const AuthTokenManager = () => {
   const ref = useRef<HTMLInputElement>(null);

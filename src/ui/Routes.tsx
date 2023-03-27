@@ -1,9 +1,11 @@
 import React from 'react';
 
 import { globalAuthState } from '../domain/AuthState';
-import { routes, useGlobalContext } from './components/GlobalContext';
-import Main from './pages/Main';
-import NotAuthorized from './pages/NotAuthorized';
+import { routes, useGlobalContext } from './GlobalContext';
+import { Logout } from './pages/Logout';
+import { Main } from './pages/Main';
+import { NotAuthorized } from './pages/NotAuthorized';
+import { Settings } from './pages/Settings';
 
 function Routes() {
   const { currentPage, authState } = useGlobalContext();
@@ -12,7 +14,8 @@ function Routes() {
     notAuthorized: () => <NotAuthorized />,
     authorized: () =>
       routes.fold(currentPage, {
-        settings: () => <span>Settings</span>,
+        settings: () => <Settings />,
+        logout: () => <Logout />,
         main: () => <Main />,
       }),
   });

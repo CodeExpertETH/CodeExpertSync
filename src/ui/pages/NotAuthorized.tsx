@@ -6,7 +6,7 @@ import React from 'react';
 import { AppId } from '../../domain/AppId';
 import { authState, globalAuthState, useAuthState } from '../../domain/AuthState';
 import { EntityNotFoundException } from '../../domain/exception';
-import { useGlobalContextWithActions } from '../components/GlobalContext';
+import { useGlobalContextWithActions } from '../GlobalContext';
 import { GuardRemoteData } from '../components/GuardRemoteData';
 import { Icon } from '../foundation/Icons';
 import { useAsync } from '../hooks/useAsync';
@@ -65,7 +65,7 @@ const Comp = ({ appIdentifier }: { appIdentifier: AppId }) => {
     ),
   });
 };
-function NotAuthorized() {
+export function NotAuthorized() {
   const appIdentifier = useAsync(
     () =>
       pipe(
@@ -91,5 +91,3 @@ function NotAuthorized() {
     />
   );
 }
-
-export default NotAuthorized;
