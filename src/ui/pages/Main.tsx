@@ -2,7 +2,6 @@ import { Button } from 'antd';
 import { api } from 'api';
 import React, { useState } from 'react';
 
-import { AuthTokenManager } from '../../AuthToken';
 import { globalAuthState } from '../../domain/AuthState';
 import { useGlobalContextWithActions } from '../GlobalContext';
 
@@ -15,6 +14,8 @@ export function Main() {
   async function greet() {
     const appVersion = await api.getVersion();
     const message: string = await api.greet(name);
+    const keys = await api.create_keys();
+    console.log(keys);
     setGreetMsg(message);
     console.log(appVersion);
   }
@@ -25,8 +26,6 @@ export function Main() {
 
   return (
     <div>
-      <AuthTokenManager />
-
       <div className="row">
         <div>
           <input

@@ -8,6 +8,7 @@ const store = new TauriStore('.settings.dat');
 export interface Api {
   getVersion(): Promise<string>;
   greet(name: string): Promise<string>;
+  create_keys(): Promise<{ public_key: string; private_key: string }>;
   settingRead<T>(key: string, decoder: iots.Decoder<unknown, T>): taskOption.TaskOption<T>;
   settingWrite(key: string, value: unknown): task.Task<void>;
   logout(): task.Task<void>;
@@ -18,6 +19,7 @@ export interface Api {
 export const api: Api = {
   getVersion,
   greet: (name) => invoke('greet', { name }),
+  create_keys: () => invoke('create_keys', {}),
   settingRead: (key, decoder) =>
     pipe(() => store.get(key), task.map(decoder.decode), task.map(option.fromEither)),
   settingWrite: (key, value) => () =>

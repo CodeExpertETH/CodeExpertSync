@@ -38,7 +38,8 @@ fn main() {
         .on_system_tray_event(system_tray::handle_system_tray_event)
         .invoke_handler(tauri::generate_handler![
             greet,
-            commands::system_info::system_info
+            commands::system_info::system_info,
+            commands::create_keys::create_keys
         ])
         .build(tauri::generate_context!())
         .expect("error while running tauri application")

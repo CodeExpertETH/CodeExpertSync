@@ -2,15 +2,14 @@ import { tagged } from '@code-expert/prelude';
 import { api } from 'api';
 import React from 'react';
 
-import { getAccessToken } from '../api/oauth/getAccessToken';
+import { getAccess } from '../api/oauth/getAccess';
 import useTimeout from '../ui/hooks/useTimeout';
 import { digestMessage, pkceChallenge } from '../utils/crypto';
 import { AppId } from './AppId';
-import { AccessToken } from './AuthToken';
 
 export type GlobalAuthState =
   | tagged.Tagged<'notAuthorized'>
-  | tagged.Tagged<'authorized', { accessToken: AccessToken }>;
+  | tagged.Tagged<'authorized', { privateKey: string }>;
 export const globalAuthState = tagged.build<GlobalAuthState>();
 
 export type AuthState =
@@ -38,6 +37,7 @@ const cleanUpEventListener = (
   onDenied: () => void,
   onError: (e: Event) => void,
 ) => {
+  console.log('cleanup called');
   sse.current?.removeEventListener('authToken', onAuthToken);
   sse.current?.removeEventListener('denied', onDenied);
   sse.current?.removeEventListener('error', onError);
@@ -47,7 +47,7 @@ const cleanUpEventListener = (
 
 export const useAuthState = (
   appId: AppId,
-  onAuthorize: (accessToken: AccessToken) => void,
+  onAuthorize: (privateKey: string) => void,
 ): {
   state: AuthState;
   startAuthorization: (code_verifier: string) => void;
@@ -61,11 +61,14 @@ export const useAuthState = (
 
   React.useEffect(() => {
     const onAuthToken = async ({ data: authToken }: { data: string }) => {
+      console.log('on Auth token');
       if (authState.is.waitingForAuthorization(state)) {
-        const { accessToken } = await getAccessToken(appId, state.value.code_verifier, authToken);
+        const keys = await api.create_keys();
+        const b = await getAccess(appId, state.value.code_verifier, authToken, keys.public_key);
+        console.log(b);
         sse.current?.close();
         sse.current = null;
-        onAuthorize(accessToken);
+        onAuthorize(keys.private_key);
       } else {
         throw new Error('Invalid state. Please try again.');
       }
@@ -79,6 +82,7 @@ export const useAuthState = (
       }
     };
     const onError = (e: Event) => {
+      console.log('on error', e);
       throw e;
     };
 
@@ -88,6 +92,7 @@ export const useAuthState = (
           `${api.APIUrl}/app/oauth/listenForAuthToken/${digestMessage(appId)}`,
         );
       }
+      console.log('register event listener');
 
       sse.current?.addEventListener('authToken', onAuthToken, { once: true });
       sse.current?.addEventListener('denied', onDenied, { once: true });

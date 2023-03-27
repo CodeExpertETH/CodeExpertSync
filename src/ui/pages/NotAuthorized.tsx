@@ -16,8 +16,8 @@ const Comp = ({ appIdentifier }: { appIdentifier: AppId }) => {
 
   const { state, startAuthorization, cancelAuthorization } = useAuthState(
     appIdentifier,
-    (accessToken) => {
-      dispatch({ authState: globalAuthState.authorized({ accessToken }) });
+    (privateKey) => {
+      dispatch({ authState: globalAuthState.authorized({ privateKey }) });
     },
   );
 
