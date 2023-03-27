@@ -1,13 +1,10 @@
 import { iots } from '@code-expert/prelude';
 
 import { AppId } from '../../domain/AppId';
-import { AccessToken } from '../../domain/AuthToken';
 import { createAPIRequest } from '../../domain/createAPIRequest';
 import { digestMessage } from '../../utils/crypto';
 
-const responseCodec = iots.strict({
-  accessToken: AccessToken,
-});
+const responseCodec = iots.strict({});
 export const getAccess = (
   appId: AppId,
   code_verifier: string,

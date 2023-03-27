@@ -37,7 +37,6 @@ const cleanUpEventListener = (
   onDenied: () => void,
   onError: (e: Event) => void,
 ) => {
-  console.log('cleanup called');
   sse.current?.removeEventListener('authToken', onAuthToken);
   sse.current?.removeEventListener('denied', onDenied);
   sse.current?.removeEventListener('error', onError);
@@ -61,11 +60,9 @@ export const useAuthState = (
 
   React.useEffect(() => {
     const onAuthToken = async ({ data: authToken }: { data: string }) => {
-      console.log('on Auth token');
       if (authState.is.waitingForAuthorization(state)) {
         const keys = await api.create_keys();
-        const b = await getAccess(appId, state.value.code_verifier, authToken, keys.public_key);
-        console.log(b);
+        await getAccess(appId, state.value.code_verifier, authToken, keys.public_key);
         sse.current?.close();
         sse.current = null;
         onAuthorize(keys.private_key);
@@ -82,7 +79,6 @@ export const useAuthState = (
       }
     };
     const onError = (e: Event) => {
-      console.log('on error', e);
       throw e;
     };
 
@@ -92,7 +88,6 @@ export const useAuthState = (
           `${api.APIUrl}/app/oauth/listenForAuthToken/${digestMessage(appId)}`,
         );
       }
-      console.log('register event listener');
 
       sse.current?.addEventListener('authToken', onAuthToken, { once: true });
       sse.current?.addEventListener('denied', onDenied, { once: true });
