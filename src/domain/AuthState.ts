@@ -7,9 +7,7 @@ import useTimeout from '../ui/hooks/useTimeout';
 import { digestMessage, pkceChallenge } from '../utils/crypto';
 import { AppId } from './AppId';
 
-export type GlobalAuthState =
-  | tagged.Tagged<'notAuthorized'>
-  | tagged.Tagged<'authorized', { privateKey: string }>;
+export type GlobalAuthState = tagged.Tagged<'notAuthorized'> | tagged.Tagged<'authorized'>;
 export const globalAuthState = tagged.build<GlobalAuthState>();
 
 export type AuthState =

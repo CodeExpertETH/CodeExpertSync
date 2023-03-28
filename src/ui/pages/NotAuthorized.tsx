@@ -17,7 +17,8 @@ const Comp = ({ appIdentifier }: { appIdentifier: AppId }) => {
   const { state, startAuthorization, cancelAuthorization } = useAuthState(
     appIdentifier,
     (privateKey) => {
-      dispatch({ authState: globalAuthState.authorized({ privateKey }) });
+      void task.run(api.writeConfigFile('privateKey.pem', privateKey));
+      dispatch({ authState: globalAuthState.authorized() });
     },
   );
 

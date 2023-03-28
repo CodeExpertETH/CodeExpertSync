@@ -1,4 +1,4 @@
-import { iots } from '@code-expert/prelude';
+import { iots, pipe, task } from '@code-expert/prelude';
 import { Button } from 'antd';
 import { api } from 'api';
 import React, { useState } from 'react';
@@ -19,12 +19,15 @@ export function Main() {
   }
 
   async function test() {
-    const b = await createSignedAPIRequest({
-      path: 'test',
-      method: 'GET',
-      payload: { test: 2 },
-      codec: iots.partial({}),
-    });
+    const b = await pipe(
+      createSignedAPIRequest({
+        path: 'app/test',
+        method: 'GET',
+        payload: { test: 2 },
+        codec: iots.strict({ status: iots.string }),
+      }),
+      task.run,
+    );
     console.log(b);
   }
 
