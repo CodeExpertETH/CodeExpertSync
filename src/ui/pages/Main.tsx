@@ -4,7 +4,7 @@ import { api } from 'api';
 import React, { useState } from 'react';
 
 import { globalAuthState } from '../../domain/AuthState';
-import { createSignedAPIRequest } from '../../domain/createSignedAPIRequest';
+import { createSignedAPIRequest } from '../../domain/createAPIRequest';
 import { useGlobalContextWithActions } from '../GlobalContext';
 
 export function Main() {
