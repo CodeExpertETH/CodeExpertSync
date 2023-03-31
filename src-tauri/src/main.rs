@@ -8,7 +8,7 @@ mod utils;
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
 fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
+    format!("Hello, {name}! You've been greeted from Rust!")
 }
 
 #[cfg(test)]
@@ -38,7 +38,9 @@ fn main() {
         .on_system_tray_event(system_tray::handle_system_tray_event)
         .invoke_handler(tauri::generate_handler![
             greet,
-            commands::system_info::system_info
+            commands::system_info::system_info,
+            commands::create_keys::create_keys,
+            commands::create_jwt_token::create_jwt_token
         ])
         .build(tauri::generate_context!())
         .expect("error while running tauri application")

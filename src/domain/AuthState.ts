@@ -2,15 +2,12 @@ import { tagged } from '@code-expert/prelude';
 import { api } from 'api';
 import React from 'react';
 
-import { getAccessToken } from '../api/oauth/getAccessToken';
+import { getAccess } from '../api/oauth/getAccess';
 import useTimeout from '../ui/hooks/useTimeout';
 import { digestMessage, pkceChallenge } from '../utils/crypto';
 import { AppId } from './AppId';
-import { AccessToken } from './AuthToken';
 
-export type GlobalAuthState =
-  | tagged.Tagged<'notAuthorized'>
-  | tagged.Tagged<'authorized', { accessToken: AccessToken }>;
+export type GlobalAuthState = tagged.Tagged<'notAuthorized'> | tagged.Tagged<'authorized'>;
 export const globalAuthState = tagged.build<GlobalAuthState>();
 
 export type AuthState =
@@ -47,7 +44,7 @@ const cleanUpEventListener = (
 
 export const useAuthState = (
   appId: AppId,
-  onAuthorize: (accessToken: AccessToken) => void,
+  onAuthorize: (privateKey: string) => void,
 ): {
   state: AuthState;
   startAuthorization: (code_verifier: string) => void;
@@ -62,10 +59,11 @@ export const useAuthState = (
   React.useEffect(() => {
     const onAuthToken = async ({ data: authToken }: { data: string }) => {
       if (authState.is.waitingForAuthorization(state)) {
-        const { accessToken } = await getAccessToken(appId, state.value.code_verifier, authToken);
+        const keys = await api.create_keys();
+        await getAccess(appId, state.value.code_verifier, authToken, keys.public_key);
         sse.current?.close();
         sse.current = null;
-        onAuthorize(accessToken);
+        onAuthorize(keys.private_key);
       } else {
         throw new Error('Invalid state. Please try again.');
       }

@@ -15,6 +15,7 @@ const registerApp = async () => {
 
   const requestBody = {
     osName,
+    permissions: ['project:read'],
     appId: digestMessage(appId as string),
     appName,
     appVersion,
