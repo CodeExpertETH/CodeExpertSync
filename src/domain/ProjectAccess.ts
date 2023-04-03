@@ -20,6 +20,7 @@ export const useProjectAccess = (onProjectAccess: (projectId: string) => void) =
 
   React.useEffect(() => {
     const onProjectAccessI = ({ data: projectId }: { data: string }) => {
+      console.log('data', projectId);
       onProjectAccess(projectId);
     };
 
@@ -33,14 +34,14 @@ export const useProjectAccess = (onProjectAccess: (projectId: string) => void) =
         task.map((token) => {
           if (either.isRight(token)) {
             sse.current = new EventSource(`${api.APIUrl}/app/projectAccess/${token.right}`);
+            sse.current.addEventListener('projectAccess', onProjectAccessI);
+            sse.current.addEventListener('error', onError);
           }
         }),
         task.run,
       );
     }
 
-    sse.current?.addEventListener('projectAccess', onProjectAccessI);
-    sse.current?.addEventListener('error', onError);
     return () => {
       cleanUpEventListener(sse, onProjectAccessI, onError);
     };
