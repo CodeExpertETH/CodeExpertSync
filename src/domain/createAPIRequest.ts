@@ -6,7 +6,7 @@ import { digestMessage } from '../utils/crypto';
 import { AppId } from './AppId';
 import { EntityNotFoundException, fromError, invalid } from './exception';
 
-function createToken(payload: Record<string, unknown>) {
+function createTokenWithAppId(payload: Record<string, unknown>) {
   return (appId: AppId) =>
     taskEither.tryCatch(
       () =>
@@ -68,6 +68,15 @@ function decodeResponse<P>(codec: iots.Decoder<unknown, P>) {
     );
 }
 
+export const createToken = (payload: Record<string, unknown>) =>
+  pipe(
+    api.settingRead('appId', AppId),
+    taskEither.fromTaskOption(
+      () => new EntityNotFoundException({}, 'No app id was found. Please contact the developers.'),
+    ),
+    taskEither.chain(createTokenWithAppId(payload)),
+  );
+
 export const createSignedAPIRequest = <P extends object | undefined>({
   payload,
   method,
@@ -80,11 +89,7 @@ export const createSignedAPIRequest = <P extends object | undefined>({
   codec: iots.Decoder<unknown, P>;
 }): taskEither.TaskEither<Error, P> =>
   pipe(
-    api.settingRead('appId', AppId),
-    taskEither.fromTaskOption(
-      () => new EntityNotFoundException({}, 'No app id was found. Please contact the developers.'),
-    ),
-    taskEither.chain(createToken(payload)),
+    createToken(payload),
     taskEither.chain(sendApiRequest(path, method)),
     taskEither.chain(parseResponse()),
     taskEither.map(decodeResponse(codec)),

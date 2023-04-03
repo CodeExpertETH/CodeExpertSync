@@ -1,0 +1,48 @@
+import { either, pipe, task } from '@code-expert/prelude';
+import { api } from 'api';
+import React from 'react';
+
+import { createToken } from './createAPIRequest';
+
+const cleanUpEventListener = (
+  sse: React.MutableRefObject<EventSource | null>,
+  onProjectAccess: ({ data }: { data: string }) => void,
+  onError: (e: Event) => void,
+) => {
+  sse.current?.removeEventListener('projectAccess', onProjectAccess);
+  sse.current?.removeEventListener('error', onError);
+  sse.current?.close();
+  sse.current = null;
+};
+
+export const useProjectAccess = (onProjectAccess: (projectId: string) => void) => {
+  const sse = React.useRef<EventSource | null>(null);
+
+  React.useEffect(() => {
+    const onProjectAccessI = ({ data: projectId }: { data: string }) => {
+      onProjectAccess(projectId);
+    };
+
+    const onError = (e: Event) => {
+      throw e;
+    };
+
+    if (sse.current == null) {
+      void pipe(
+        createToken({}),
+        task.map((token) => {
+          if (either.isRight(token)) {
+            sse.current = new EventSource(`${api.APIUrl}/app/projectAccess/${token.right}`);
+          }
+        }),
+        task.run,
+      );
+    }
+
+    sse.current?.addEventListener('projectAccess', onProjectAccessI);
+    sse.current?.addEventListener('error', onError);
+    return () => {
+      cleanUpEventListener(sse, onProjectAccessI, onError);
+    };
+  }, [onProjectAccess]);
+};
