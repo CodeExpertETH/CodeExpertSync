@@ -33,7 +33,7 @@ export const useProjectAccess = (onProjectAccess: (projectId: string) => void) =
         createToken({}),
         task.map((token) => {
           if (either.isRight(token)) {
-            sse.current = new EventSource(`${api.APIUrl}/app/projectAccess/${token.right}`);
+            sse.current = new EventSource(`${api.APIUrl}/app/projectAccess?token=${token.right}`);
             sse.current.addEventListener('projectAccess', onProjectAccessI);
             sse.current.addEventListener('error', onError);
           }
