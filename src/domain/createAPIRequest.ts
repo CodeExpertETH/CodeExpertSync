@@ -3,16 +3,16 @@ import { Body, Response, ResponseType, fetch } from '@tauri-apps/api/http';
 import { api } from 'api';
 
 import { digestMessage } from '../utils/crypto';
-import { AppId } from './AppId';
+import { ClientId } from './ClientId';
 import { EntityNotFoundException, fromError, invalid } from './exception';
 
-function createTokenWithAppId(payload: Record<string, unknown>) {
-  return (appId: AppId) =>
+function createTokenWithClientId(payload: Record<string, unknown>) {
+  return (clientId: ClientId) =>
     taskEither.tryCatch(
       () =>
         api.create_jwt_tokens({
           ...payload,
-          iss: digestMessage(appId),
+          iss: digestMessage(clientId),
           exp: Math.floor(Date.now() / 1000) + 10,
         }),
       fromError,
@@ -70,11 +70,12 @@ function decodeResponse<P>(codec: iots.Decoder<unknown, P>) {
 
 export const createToken = (payload: Record<string, unknown>) =>
   pipe(
-    api.settingRead('appId', AppId),
+    api.settingRead('clientId', ClientId),
     taskEither.fromTaskOption(
-      () => new EntityNotFoundException({}, 'No app id was found. Please contact the developers.'),
+      () =>
+        new EntityNotFoundException({}, 'No client id was found. Please contact the developers.'),
     ),
-    taskEither.chain(createTokenWithAppId(payload)),
+    taskEither.chain(createTokenWithClientId(payload)),
   );
 
 export const createSignedAPIRequest = <P extends object | undefined>({

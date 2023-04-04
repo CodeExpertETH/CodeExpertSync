@@ -3,19 +3,19 @@ import { Button, Result } from 'antd';
 import { api } from 'api';
 import React from 'react';
 
-import { AppId } from '../../domain/AppId';
 import { authState, globalAuthState, useAuthState } from '../../domain/AuthState';
+import { ClientId } from '../../domain/ClientId';
 import { EntityNotFoundException } from '../../domain/exception';
 import { useGlobalContextWithActions } from '../GlobalContext';
 import { GuardRemoteData } from '../components/GuardRemoteData';
 import { Icon } from '../foundation/Icons';
 import { useAsync } from '../hooks/useAsync';
 
-const Comp = ({ appIdentifier }: { appIdentifier: AppId }) => {
+const Comp = ({ clientId }: { clientId: ClientId }) => {
   const [, dispatch] = useGlobalContextWithActions();
 
   const { state, startAuthorization, cancelAuthorization } = useAuthState(
-    appIdentifier,
+    clientId,
     (privateKey) => {
       void task.run(api.writeConfigFile('privateKey.pem', privateKey));
       dispatch({ authState: globalAuthState.authorized() });
@@ -67,16 +67,16 @@ const Comp = ({ appIdentifier }: { appIdentifier: AppId }) => {
   });
 };
 export function NotAuthorized() {
-  const appIdentifier = useAsync(
+  const clientId = useAsync(
     () =>
       pipe(
-        api.settingRead('appId', AppId),
+        api.settingRead('clientId', ClientId),
         task.map(
           option.getOrThrow(
             () =>
               new EntityNotFoundException(
                 {},
-                'No app id was found. Please contact the developers.',
+                'No client id was found. Please contact the developers.',
               ),
           ),
         ),
@@ -85,10 +85,5 @@ export function NotAuthorized() {
     [],
   );
 
-  return (
-    <GuardRemoteData
-      value={appIdentifier}
-      render={(appIdentifier) => <Comp appIdentifier={appIdentifier} />}
-    />
-  );
+  return <GuardRemoteData value={clientId} render={(clientId) => <Comp clientId={clientId} />} />;
 }

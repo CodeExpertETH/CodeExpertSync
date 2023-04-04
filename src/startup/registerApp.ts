@@ -5,20 +5,20 @@ import { Body, ResponseType, fetch } from '@tauri-apps/api/http';
 import { api } from 'api';
 
 import { digestMessage } from '../utils/crypto';
-import { getUniqueAppId } from './uniqueAppId';
+import { getUniqueClientId } from './uniqueClientId';
 
 const registerApp = async () => {
-  const osName = await invoke('system_info');
-  const appId = await getUniqueAppId();
-  const appName = await getName();
-  const appVersion = await getVersion();
+  const os = await invoke('system_info');
+  const clientId = await getUniqueClientId();
+  const name = await getName();
+  const version = await getVersion();
 
   const requestBody = {
-    osName,
+    os,
     permissions: ['project:read'],
-    appId: digestMessage(appId as string),
-    appName,
-    appVersion,
+    clientId: digestMessage(clientId as string),
+    name,
+    version,
   };
   const response = await fetch(`${api.APIUrl}/app/register`, {
     method: 'POST',

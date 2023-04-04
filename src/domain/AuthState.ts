@@ -5,7 +5,7 @@ import React from 'react';
 import { getAccess } from '../api/oauth/getAccess';
 import useTimeout from '../ui/hooks/useTimeout';
 import { digestMessage, pkceChallenge } from '../utils/crypto';
-import { AppId } from './AppId';
+import { ClientId } from './ClientId';
 
 export type GlobalAuthState = tagged.Tagged<'notAuthorized'> | tagged.Tagged<'authorized'>;
 export const globalAuthState = tagged.build<GlobalAuthState>();
@@ -18,12 +18,12 @@ export type AuthState =
 export const authState = tagged.build<AuthState>();
 
 const startingAuthorization = (
-  appIdentifier: AppId,
+  clientId: ClientId,
 ): Extract<AuthState, { _tag: 'startingAuthorization' }> => {
   const { code_verifier, code_challenge } = pkceChallenge();
 
-  const redirectLink = `${api.CXUrl}/app/authorize?appIdentifier=${digestMessage(
-    appIdentifier,
+  const redirectLink = `${api.CXUrl}/app/authorize?clientId=${digestMessage(
+    clientId,
   )}&code_challenge=${code_challenge}`;
 
   return authState.startingAuthorization({ code_verifier, redirectLink });
@@ -43,14 +43,14 @@ const cleanUpEventListener = (
 };
 
 export const useAuthState = (
-  appId: AppId,
+  clientId: ClientId,
   onAuthorize: (privateKey: string) => void,
 ): {
   state: AuthState;
   startAuthorization: (code_verifier: string) => void;
   cancelAuthorization: () => void;
 } => {
-  const [state, setState] = React.useState<AuthState>(() => startingAuthorization(appId));
+  const [state, setState] = React.useState<AuthState>(() => startingAuthorization(clientId));
   const sse = React.useRef<EventSource | null>(null);
   useTimeout(() => {
     setState(authState.timeoutAuthorization());
@@ -60,7 +60,7 @@ export const useAuthState = (
     const onAuthToken = async ({ data: authToken }: { data: string }) => {
       if (authState.is.waitingForAuthorization(state)) {
         const keys = await api.create_keys();
-        await getAccess(appId, state.value.code_verifier, authToken, keys.public_key);
+        await getAccess(clientId, state.value.code_verifier, authToken, keys.public_key);
         sse.current?.close();
         sse.current = null;
         onAuthorize(keys.private_key);
@@ -83,7 +83,7 @@ export const useAuthState = (
     if (authState.is.waitingForAuthorization(state)) {
       if (sse.current == null) {
         sse.current = new EventSource(
-          `${api.APIUrl}/app/oauth/listenForAuthToken/${digestMessage(appId)}`,
+          `${api.APIUrl}/app/oauth/listenForAuthToken/${digestMessage(clientId)}`,
         );
       }
 
@@ -96,7 +96,7 @@ export const useAuthState = (
     return () => {
       cleanUpEventListener(sse, onAuthToken, onDenied, onError);
     };
-  }, [state, appId, onAuthorize]);
+  }, [state, clientId, onAuthorize]);
 
   const { startAuthorization, cancelAuthorization } = React.useMemo(() => {
     const startAuthorization = (code_verifier: string) => {
@@ -104,13 +104,13 @@ export const useAuthState = (
     };
 
     const cancelAuthorization = () => {
-      setState(startingAuthorization(appId));
+      setState(startingAuthorization(clientId));
     };
     return {
       startAuthorization,
       cancelAuthorization,
     };
-  }, [appId]);
+  }, [clientId]);
 
   return { state, startAuthorization, cancelAuthorization };
 };
