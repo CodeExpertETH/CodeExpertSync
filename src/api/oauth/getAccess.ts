@@ -17,8 +17,6 @@ export const getAccess = (
     pubKey,
   };
 
-  console.log(requestBody);
-
   return pipe(
     createAPIRequest({
       path: 'app/oauth/gainAccess',

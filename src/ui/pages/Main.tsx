@@ -10,10 +10,6 @@ import { useGlobalContextWithActions } from '../GlobalContext';
 export function Main() {
   const [, dispatchContext] = useGlobalContextWithActions();
 
-  // useProjectAccess((access) => {
-  //   console.log(access);
-  // });
-
   const [greetMsg, setGreetMsg] = useState('');
   const [name, setName] = useState('');
 
