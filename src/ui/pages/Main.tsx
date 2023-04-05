@@ -4,16 +4,15 @@ import { api } from 'api';
 import React, { useState } from 'react';
 
 import { globalAuthState } from '../../domain/AuthState';
-import { useProjectAccess } from '../../domain/ProjectAccess';
 import { createSignedAPIRequest } from '../../domain/createAPIRequest';
 import { useGlobalContextWithActions } from '../GlobalContext';
 
 export function Main() {
   const [, dispatchContext] = useGlobalContextWithActions();
 
-  useProjectAccess((access) => {
-    console.log(access);
-  });
+  // useProjectAccess((access) => {
+  //   console.log(access);
+  // });
 
   const [greetMsg, setGreetMsg] = useState('');
   const [name, setName] = useState('');
