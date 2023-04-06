@@ -14,13 +14,9 @@ import { useAsync } from '../hooks/useAsync';
 const Comp = ({ clientId }: { clientId: ClientId }) => {
   const [, dispatch] = useGlobalContextWithActions();
 
-  const { state, startAuthorization, cancelAuthorization } = useAuthState(
-    clientId,
-    (privateKey) => {
-      void task.run(api.writeConfigFile('privateKey.pem', privateKey));
-      dispatch({ authState: globalAuthState.authorized() });
-    },
-  );
+  const { state, startAuthorization, cancelAuthorization } = useAuthState(clientId, () => {
+    dispatch({ authState: globalAuthState.authorized() });
+  });
 
   return authState.fold(state, {
     startingAuthorization: ({ redirectLink, code_verifier }) => (

@@ -1,20 +1,21 @@
 use ed25519_compact::*;
-use serde::{Deserialize, Serialize};
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct PemKeypair {
-    private_key: String,
-    public_key: String,
-}
+use std::fs;
 
 #[tauri::command]
-pub fn create_keys() -> Option<PemKeypair> {
+pub fn create_keys(app_handle: tauri::AppHandle) -> Result<String, String> {
     let kp = KeyPair::generate();
 
-    let pem = PemKeypair {
-        private_key: kp.sk.to_pem(),
-        public_key: kp.pk.to_pem(),
-    };
-
-    Some(pem)
+    app_handle
+        .path_resolver()
+        .app_local_data_dir()
+        .ok_or("Did not fund local dir".to_string())
+        .map(|mut key_path| {
+            key_path.push("privateKey.pem");
+            key_path
+        })
+        .and_then(|key_path| {
+            fs::write(key_path, kp.pk.to_pem())
+                .map_err(|_| "Could not write private key".to_string())
+        })
+        .map(|_| kp.pk.to_pem())
 }

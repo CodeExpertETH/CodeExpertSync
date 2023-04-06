@@ -9,7 +9,7 @@ const store = new TauriStore('.settings.dat');
 export interface Api {
   getVersion(): Promise<string>;
   greet(name: string): Promise<string>;
-  create_keys(): Promise<{ public_key: string; private_key: string }>;
+  create_keys(): Promise<string>;
   create_jwt_tokens(claims: Record<string, unknown>): Promise<string>;
   settingRead<T>(key: string, decoder: iots.Decoder<unknown, T>): taskOption.TaskOption<T>;
   settingWrite(key: string, value: unknown): task.Task<void>;

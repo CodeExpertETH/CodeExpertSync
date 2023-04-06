@@ -4,7 +4,7 @@ import { getName, getVersion } from '@tauri-apps/api/app';
 import { api } from 'api';
 
 import { createAPIRequest } from '../domain/createAPIRequest';
-import { getUniqueClientId } from './uniqueClientId';
+import { getClientToken } from './getClientToken';
 
 const registerApp = async () => {
   const os = await invoke('system_info');
@@ -12,7 +12,7 @@ const registerApp = async () => {
   const version = await getVersion();
 
   await pipe(
-    getUniqueClientId(),
+    getClientToken,
     taskEither.chain((token) => {
       const requestBody = {
         os,

@@ -42,7 +42,7 @@ const cleanUpEventListener = (
 
 export const useAuthState = (
   clientId: ClientId,
-  onAuthorize: (privateKey: string) => void,
+  onAuthorize: () => void,
 ): {
   state: AuthState;
   startAuthorization: (code_verifier: string) => void;
@@ -57,11 +57,11 @@ export const useAuthState = (
   React.useEffect(() => {
     const onAuthToken = async ({ data: authToken }: { data: string }) => {
       if (authState.is.waitingForAuthorization(state)) {
-        const keys = await api.create_keys();
-        await getAccess(clientId, state.value.code_verifier, authToken, keys.public_key);
+        const publicKey = await api.create_keys();
+        await getAccess(clientId, state.value.code_verifier, authToken, publicKey);
         sse.current?.close();
         sse.current = null;
-        onAuthorize(keys.private_key);
+        onAuthorize();
       } else {
         throw new Error('Invalid state. Please try again.');
       }
