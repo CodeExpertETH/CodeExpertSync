@@ -16,10 +16,9 @@ export const getUniqueClientId = () =>
           path: `${api.APIUrl}/app/clientId`,
           method: 'GET',
           payload: {},
-          codec: iots.strict({ clientId: ClientId }),
+          codec: iots.strict({ token: iots.string }),
         }),
-        taskEither.chainFirstTaskK(({ clientId }) => api.settingWrite('clientId', clientId)),
-        taskEither.map(({ clientId }) => clientId),
+        taskEither.map(({ token }) => token),
       ),
     ),
   );
