@@ -11,7 +11,7 @@ const registerApp = async () => {
   const name = await getName();
   const version = await getVersion();
 
-  const data = await pipe(
+  await pipe(
     getUniqueClientId(),
     taskEither.chain((clientId) => {
       const requestBody = {
@@ -33,7 +33,6 @@ const registerApp = async () => {
     }),
     taskEither.run,
   );
-  console.log(data);
 };
 
 // ignore promise due to safari 13 target

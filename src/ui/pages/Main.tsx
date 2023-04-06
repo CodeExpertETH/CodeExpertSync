@@ -21,9 +21,9 @@ export function Main() {
   async function test() {
     const b = await pipe(
       createSignedAPIRequest({
-        path: 'app/test',
+        path: 'app/checkAccess',
         method: 'GET',
-        payload: { test: 2 },
+        payload: {},
         codec: iots.strict({ status: iots.string }),
       }),
       task.run,
