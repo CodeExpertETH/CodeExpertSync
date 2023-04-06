@@ -2,7 +2,6 @@ import { iots, pipe, task } from '@code-expert/prelude';
 
 import { ClientId } from '../../domain/ClientId';
 import { createAPIRequest } from '../../domain/createAPIRequest';
-import { digestMessage } from '../../utils/crypto';
 
 const responseCodec = iots.strict({});
 export const getAccess = (
@@ -12,7 +11,7 @@ export const getAccess = (
   pubKey: string,
 ) => {
   const requestBody = {
-    clientId: digestMessage(clientId as string),
+    clientId,
     authToken,
     code_verifier,
     pubKey,

@@ -2,18 +2,9 @@ import { sha256 } from '@noble/hashes/sha256';
 import { describe, expect, it } from 'vitest';
 
 import { Uint8ArrayToBase64Url } from './base64url';
-import { digestMessage, pkceChallenge } from './crypto';
+import { pkceChallenge } from './crypto';
 
 describe('crypto.ts', () => {
-  describe('digestMessage', () => {
-    it('should create a correct hash', () => {
-      expect(digestMessage('abc')).toBe('Ophdp0_iJbIEXBcta9OQvYVfCG4-nVJbRr_iRRFDFTI');
-      expect(digestMessage('blubbber dib blubb')).toBe(
-        'L7Y9_5nHqh1u80676AYcVMNPR6q2LtrjptJcPjsl7MU',
-      );
-    });
-  });
-
   describe('pkceChallenge', () => {
     it('code_challenge should be a hash of the code_verifier', () => {
       const { code_challenge, code_verifier } = pkceChallenge();

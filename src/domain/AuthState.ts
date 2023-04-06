@@ -4,7 +4,7 @@ import React from 'react';
 
 import { getAccess } from '../api/oauth/getAccess';
 import useTimeout from '../ui/hooks/useTimeout';
-import { digestMessage, pkceChallenge } from '../utils/crypto';
+import { pkceChallenge } from '../utils/crypto';
 import { ClientId } from './ClientId';
 
 export type GlobalAuthState = tagged.Tagged<'notAuthorized'> | tagged.Tagged<'authorized'>;
@@ -22,9 +22,7 @@ const startingAuthorization = (
 ): Extract<AuthState, { _tag: 'startingAuthorization' }> => {
   const { code_verifier, code_challenge } = pkceChallenge();
 
-  const redirectLink = `${api.CXUrl}/app/authorize?clientId=${digestMessage(
-    clientId,
-  )}&code_challenge=${code_challenge}`;
+  const redirectLink = `${api.CXUrl}/app/authorize?clientId=${clientId}&code_challenge=${code_challenge}`;
 
   return authState.startingAuthorization({ code_verifier, redirectLink });
 };
@@ -82,9 +80,7 @@ export const useAuthState = (
 
     if (authState.is.waitingForAuthorization(state)) {
       if (sse.current == null) {
-        sse.current = new EventSource(
-          `${api.APIUrl}/app/oauth/listenForAuthToken/${digestMessage(clientId)}`,
-        );
+        sse.current = new EventSource(`${api.APIUrl}/app/oauth/listenForAuthToken/${clientId}`);
       }
 
       sse.current?.addEventListener('authToken', onAuthToken, { once: true });

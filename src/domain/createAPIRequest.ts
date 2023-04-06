@@ -2,7 +2,6 @@ import { either, flow, iots, pipe, taskEither } from '@code-expert/prelude';
 import { Body, Response, ResponseType, fetch } from '@tauri-apps/api/http';
 import { api } from 'api';
 
-import { digestMessage } from '../utils/crypto';
 import { ClientId } from './ClientId';
 import { EntityNotFoundException, fromError, invalid } from './exception';
 
@@ -12,7 +11,7 @@ function createTokenWithClientId(payload: Record<string, unknown>) {
       () =>
         api.create_jwt_tokens({
           ...payload,
-          iss: digestMessage(clientId),
+          iss: clientId,
           exp: Math.floor(Date.now() / 1000) + 10,
         }),
       fromError,
