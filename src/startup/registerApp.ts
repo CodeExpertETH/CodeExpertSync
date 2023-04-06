@@ -13,11 +13,11 @@ const registerApp = async () => {
 
   await pipe(
     getUniqueClientId(),
-    taskEither.chain((clientId) => {
+    taskEither.chain((token) => {
       const requestBody = {
         os,
         permissions: ['project:read'],
-        clientId,
+        token,
         name,
         version,
       };
@@ -27,8 +27,9 @@ const registerApp = async () => {
           path: `${api.APIUrl}/app/register`,
           payload: requestBody,
           method: 'POST',
-          codec: iots.strict({ status: iots.string }),
+          codec: iots.strict({ clientId: iots.string }),
         }),
+        taskEither.chainFirstTaskK(({ clientId }) => api.settingWrite('clientId', clientId)),
       );
     }),
     taskEither.run,
