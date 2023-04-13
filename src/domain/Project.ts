@@ -9,6 +9,7 @@ export type ProjectId = iots.TypeOf<typeof ProjectId>;
 export const ProjectMetadata = iots.strict({
   projectId: ProjectId,
   exerciseName: iots.string,
+  projectName: iots.string,
   taskName: iots.string,
   courseName: iots.string,
   semester: iots.string,
