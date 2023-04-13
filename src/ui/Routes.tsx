@@ -3,7 +3,7 @@ import React from 'react';
 import { globalAuthState } from '../domain/AuthState';
 import { routes, useGlobalContext } from './GlobalContext';
 import { Logout } from './pages/Logout';
-import { Main } from './pages/Main';
+import { MainWrapper } from './pages/Main';
 import { NotAuthorized } from './pages/NotAuthorized';
 import { Settings } from './pages/Settings';
 
@@ -16,7 +16,7 @@ function Routes() {
       routes.fold(currentPage, {
         settings: () => <Settings />,
         logout: () => <Logout />,
-        main: () => <Main />,
+        main: () => <MainWrapper />,
       }),
   });
 }

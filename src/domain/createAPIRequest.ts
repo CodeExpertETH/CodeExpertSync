@@ -5,7 +5,7 @@ import { api } from 'api';
 import { ClientId } from './ClientId';
 import { EntityNotFoundException, fromError, invalid } from './exception';
 
-function createTokenWithClientId(payload: Record<string, unknown>) {
+export function createTokenWithClientId(payload: Record<string, unknown>) {
   return (clientId: ClientId) =>
     taskEither.tryCatch(
       () =>
