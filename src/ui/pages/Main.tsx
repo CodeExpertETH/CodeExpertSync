@@ -4,6 +4,7 @@ import { api } from 'api';
 import React, { useState } from 'react';
 
 import { globalAuthState } from '../../domain/AuthState';
+import { ProjectMetadata } from '../../domain/Project';
 import { createSignedAPIRequest } from '../../domain/createAPIRequest';
 import { useGlobalContextWithActions } from '../GlobalContext';
 
@@ -31,6 +32,19 @@ export function Main() {
     console.log(b);
   }
 
+  async function getProjects() {
+    const b = await pipe(
+      createSignedAPIRequest({
+        path: 'project/metadata',
+        method: 'GET',
+        payload: {},
+        codec: iots.array(ProjectMetadata),
+      }),
+      task.run,
+    );
+    console.log(b);
+  }
+
   const onButtonClick = () => {
     dispatchContext({ authState: globalAuthState.notAuthorized() });
   };
@@ -49,6 +63,9 @@ export function Main() {
           </button>
           <button type="button" onClick={() => test()}>
             Test
+          </button>
+          <button type="button" onClick={() => getProjects()}>
+            get projects
           </button>
           <Button onClick={onButtonClick}>Go back to authorise Code Expert Desktop</Button>
         </div>
