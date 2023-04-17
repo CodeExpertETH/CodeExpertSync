@@ -10,7 +10,7 @@ import { EntityNotFoundException } from '../../domain/exception';
 import { useGlobalContextWithActions } from '../GlobalContext';
 import { GuardRemoteData } from '../components/GuardRemoteData';
 import { useAsync } from '../hooks/useAsync';
-import { Projects } from './Projects';
+import { Projects } from './projects';
 
 export function Main(props: { clientId: ClientId }) {
   const [, dispatchContext] = useGlobalContextWithActions();
