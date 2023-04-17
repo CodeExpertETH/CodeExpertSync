@@ -1,13 +1,18 @@
-import { iots, pipe, task } from '@code-expert/prelude';
+import { iots, option, pipe, task } from '@code-expert/prelude';
 import { Button } from 'antd';
 import { api } from 'api';
 import React, { useState } from 'react';
 
 import { globalAuthState } from '../../domain/AuthState';
+import { ClientId } from '../../domain/ClientId';
 import { createSignedAPIRequest } from '../../domain/createAPIRequest';
+import { EntityNotFoundException } from '../../domain/exception';
 import { useGlobalContextWithActions } from '../GlobalContext';
+import { GuardRemoteData } from '../components/GuardRemoteData';
+import { useAsync } from '../hooks/useAsync';
+import { Projects } from './projects';
 
-export function Main() {
+export function Main(props: { clientId: ClientId }) {
   const [, dispatchContext] = useGlobalContextWithActions();
 
   const [greetMsg, setGreetMsg] = useState('');
@@ -52,8 +57,33 @@ export function Main() {
           </button>
           <Button onClick={onButtonClick}>Go back to authorise Code Expert Desktop</Button>
         </div>
+        <p>{greetMsg}</p>
       </div>
-      <p>{greetMsg}</p>
+      <div className="row">
+        <Projects clientId={props.clientId} />
+      </div>
     </div>
   );
+}
+
+export function MainWrapper() {
+  const clientId = useAsync(
+    () =>
+      pipe(
+        api.settingRead('clientId', ClientId),
+        task.map(
+          option.getOrThrow(
+            () =>
+              new EntityNotFoundException(
+                {},
+                'No client id was found. Please contact the developers.',
+              ),
+          ),
+        ),
+        task.run,
+      ),
+    [],
+  );
+
+  return <GuardRemoteData value={clientId} render={(clientId) => <Main clientId={clientId} />} />;
 }

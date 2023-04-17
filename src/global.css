@@ -4,3 +4,81 @@ body {
   overflow: hidden;
   width: 100%;
 }
+
+/*   antd with fontawesome */
+.ant-tag > span:not(:empty) + span:not(:empty),
+.ant-tag > span:not(:empty) + svg,
+.ant-tag > svg + span:not(:empty),
+.ant-tag > svg + svg {
+  margin-left: 8px;
+}
+.ant-tag .ant-typography {
+  color: inherit;
+}
+.ant-btn > span:not(:empty) + span:not(:empty),
+.ant-btn > span:not(:empty) + svg,
+.ant-btn > svg + span:not(:empty),
+.ant-btn > svg + svg {
+  margin-left: 4px;
+}
+.ant-menu-item svg:first-child,
+.ant-tooltip-inner svg:first-child,
+.ant-menu-submenu svg:first-child {
+  margin-right: 4px;
+  margin-left: 0 !important;
+}
+.ant-menu-item svg:last-child,
+.ant-tooltip-inner svg:last-child,
+.ant-menu-submenu svg:last-child {
+  margin-right: 0 !important;
+  margin-left: 4px;
+}
+.ant-tabs-tab svg {
+  margin-right: 4px;
+}
+.ant-menu-inline-collapsed > .ant-menu-item .svg-inline--fa ~ span:not(.ant-badge),
+.ant-menu-inline-collapsed > .ant-menu-item .svg-inline--fa ~ a,
+.ant-menu-inline-collapsed
+  > .ant-menu-item-group
+  > .ant-menu-item-group-list
+  > .ant-menu-item
+  .svg-inline--fa
+  ~ span:not(.ant-badge),
+.ant-menu-inline-collapsed
+  > .ant-menu-item-group
+  > .ant-menu-item-group-list
+  > .ant-menu-item
+  .svg-inline--fa
+  ~ a,
+.ant-menu-inline-collapsed
+  > .ant-menu-item-group
+  > .ant-menu-item-group-list
+  > .ant-menu-submenu
+  > .ant-menu-submenu-title
+  .svg-inline--fa
+  ~ span:not(.ant-badge),
+.ant-menu-inline-collapsed
+  > .ant-menu-item-group
+  > .ant-menu-item-group-list
+  > .ant-menu-submenu
+  > .ant-menu-submenu-title
+  .svg-inline--fa
+  ~ a,
+.ant-menu-inline-collapsed
+  > .ant-menu-submenu
+  > .ant-menu-submenu-title
+  .svg-inline--fa
+  ~ span:not(.ant-badge),
+.ant-menu-inline-collapsed > .ant-menu-submenu > .ant-menu-submenu-title .svg-inline--fa ~ a {
+  max-width: 0;
+  display: inline-block;
+  opacity: 0;
+}
+.ant-menu-item .svg-inline--fa ~ span:not(.ant-badge),
+.ant-menu-item .svg-inline--fa ~ a,
+.ant-menu-submenu-title .svg-inline--fa ~ span:not(.ant-badge),
+.ant-menu-submenu-title .svg-inline--fa ~ a {
+  transition: opacity 0.3s cubic-bezier(0.645, 0.045, 0.355, 1),
+    width 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+  opacity: 1;
+}
