@@ -6,9 +6,15 @@ import { ProjectMetadata } from '../../../domain/Project';
 import { ActionMenu } from '../../components/ActionMenu';
 import { Icon } from '../../foundation/Icons';
 import { Box, HStack } from '../../foundation/Layout';
+import { useProjectRemove } from './hooks/useProjectRemove';
+import { useProjectSync } from './hooks/useProjectSync';
 
-export const ProjectList = (props: { projects: ProjectMetadata[]; updateProjects: () => void }) =>
-  pipe(
+export const ProjectList = (props: { projects: ProjectMetadata[]; updateProjects: () => void }) => {
+  const [removeProject] = useProjectRemove(() => {
+    props.updateProjects();
+  });
+  const [syncProject] = useProjectSync();
+  return pipe(
     props.projects,
     nonEmptyArray.fromArray,
     option.fold(
@@ -50,12 +56,18 @@ export const ProjectList = (props: { projects: ProjectMetadata[]; updateProjects
                         label: 'Sync to local computer',
                         key: 'sync',
                         icon: <Icon name="sync" />,
+                        onClick: () => {
+                          syncProject(project.projectId);
+                        },
                       },
                       { type: 'divider' },
                       {
                         label: 'Remove',
                         key: 'remove',
                         icon: <Icon name="trash" />,
+                        onClick: () => {
+                          removeProject(project.projectId);
+                        },
                       },
                     ],
                   }}
@@ -72,3 +84,4 @@ export const ProjectList = (props: { projects: ProjectMetadata[]; updateProjects
       ),
     ),
   );
+};
