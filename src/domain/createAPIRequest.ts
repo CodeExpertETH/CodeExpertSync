@@ -48,7 +48,6 @@ function sendApiRequestPayload(path: string, method: 'GET' | 'POST') {
 
 function parseResponse() {
   return (res: Response<unknown>) => {
-    console.log(res);
     if (!res.ok) {
       return taskEither.left(
         new Error(`Response error: ${(res?.data as { message: string })?.message ?? 'unknown'}`),

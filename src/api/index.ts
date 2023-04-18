@@ -5,7 +5,7 @@ import { BaseDirectory, createDir, exists, readTextFile, writeTextFile } from '@
 import { dirname } from '@tauri-apps/api/path';
 import { Store as TauriStore } from 'tauri-plugin-store-api';
 
-import { Exception, InvariantViolation, fromError } from '../domain/exception';
+import { Exception, fromError } from '../domain/exception';
 
 const store = new TauriStore('.settings.dat');
 
@@ -38,15 +38,13 @@ export const api: Api = {
       : store.delete(key).then(() => store.save()),
   writeFile: (filePath, content) =>
     pipe(
-      filePath,
-      taskEither.fromNullable(new InvariantViolation('filePath is null')),
-      taskEither.chainFirst((filePath) =>
-        taskEither.tryCatch(async () => {
-          const dir = await dirname(filePath);
-          return createDir(dir);
-        }, fromError),
-      ),
-      taskEither.chain((filePath) =>
+      taskEither.tryCatch(async () => {
+        const dir = await dirname(filePath);
+        if (!(await exists(dir))) {
+          await createDir(dir);
+        }
+      }, fromError),
+      taskEither.chain(() =>
         taskEither.tryCatch(() => writeTextFile(filePath, content), fromError),
       ),
     ),

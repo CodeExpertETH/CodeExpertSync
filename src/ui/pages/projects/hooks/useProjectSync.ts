@@ -6,6 +6,30 @@ import React from 'react';
 import { ProjectId } from '../../../../domain/Project';
 import { createSignedAPIRequest } from '../../../../domain/createAPIRequest';
 
+function writeSingeFile(filePath: string, projectId: ProjectId, dirPath: string) {
+  const cleanedPath = filePath.replace(/^\.\//, '');
+  return pipe(
+    createSignedAPIRequest({
+      path: `project/${projectId}/file`,
+      method: 'GET',
+      payload: { path: filePath },
+      codec: iots.string,
+      responseType: ResponseType.Text,
+    }),
+    taskEither.chain((fileContent) =>
+      pipe(
+        api.settingRead('projectDir', iots.string),
+        taskEither.fromTaskOption(
+          () => new Error('No project dir was found. Please contact the developers.'),
+        ),
+        taskEither.chainW((projectDir) =>
+          api.writeFile(`${projectDir}/${dirPath}/${cleanedPath}`, fileContent),
+        ),
+      ),
+    ),
+  );
+}
+
 export const useProjectSync = () => {
   const syncProject = React.useCallback((projectId: ProjectId, filePath: string) => {
     console.log(`sync project code ${projectId}`);
@@ -22,48 +46,12 @@ export const useProjectSync = () => {
       taskEither.chainFirstTaskK((project) =>
         api.writeConfigFile(`project_${projectId}.json`, project),
       ),
-      taskEither.chain((project) => {
-        //TODO loop over all files and save them to disk
-        const file = project.files[0];
-        //remove ./ from the path
-        const cleanedPath = file.path.replace(/^\.\//, '');
-        console.log(file);
-        return pipe(
-          createSignedAPIRequest({
-            path: `project/${projectId}/file`,
-            method: 'GET',
-            payload: { path: file.path },
-            codec: iots.string,
-            responseType: ResponseType.Text,
-          }),
-          taskEither.chain((fileContent) =>
-            pipe(
-              api.settingRead('projectDir', iots.string),
-              taskEither.fromTaskOption(
-                () => new Error('No project dir was found. Please contact the developers.'),
-              ),
-              taskEither.chainW((projectDir) =>
-                api.writeFile(`${projectDir}/${filePath}/${cleanedPath}`, fileContent),
-              ),
-            ),
-          ),
-        );
-      }),
-      task.map((project) => {
-        console.log(project);
-        return project;
-      }),
-
-      // get project files
-
-      // save project files to disk
-      // createSignedAPIRequest({
-      //   path: 'app/projectAccess/remove',
-      //   method: 'POST',
-      //   payload: { projectId },
-      //   codec: iots.strict({ removed: iots.boolean }),
-      // }),
-      //do here more code like removing the project from disk...
+      taskEither.chain((project) =>
+        pipe(
+          project.files,
+          taskEither.traverseSeqArray((file) => writeSingeFile(file.path, projectId, filePath)),
+        ),
+      ),
       task.run,
     );
   }, []);
