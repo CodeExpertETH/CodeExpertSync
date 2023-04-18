@@ -13,6 +13,7 @@ import {
   parseStyle,
 } from '@ant-design/cssinjs/es/hooks/useStyleRegister';
 import hash from '@emotion/hash';
+import { MapToken, SeedToken } from 'antd/es/theme/interface';
 // eslint-disable-next-line import/no-extraneous-dependencies
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { removeCSS, updateCSS } from 'rc-util/lib/Dom/dynamicCSS';
@@ -43,7 +44,7 @@ const globalEffectStyleKeys = new Set();
  */
 export function useStyleRegisterNoSSR(
   info: {
-    theme: Theme<$IntentionalAny, $IntentionalAny>;
+    theme: Theme<SeedToken, MapToken>;
     token: $IntentionalAny;
     path: string[];
     hashId?: string;
