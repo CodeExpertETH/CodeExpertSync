@@ -18,7 +18,7 @@ export function createTokenWithClientId(payload: Record<string, unknown>) {
     );
 }
 
-function sendApiRequest(path: string, method: 'GET' | 'POST') {
+function sendApiRequest(path: string, method: 'GET' | 'POST', responseType: ResponseType) {
   return (token: string) =>
     taskEither.tryCatch(
       () =>
@@ -27,7 +27,7 @@ function sendApiRequest(path: string, method: 'GET' | 'POST') {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-          responseType: ResponseType.JSON,
+          responseType,
         }),
       fromError,
     );
@@ -48,6 +48,7 @@ function sendApiRequestPayload(path: string, method: 'GET' | 'POST') {
 
 function parseResponse() {
   return (res: Response<unknown>) => {
+    console.log(res);
     if (!res.ok) {
       return taskEither.left(
         new Error(`Response error: ${(res?.data as { message: string })?.message ?? 'unknown'}`),
@@ -77,20 +78,22 @@ export const createToken = (payload: Record<string, unknown>) =>
     taskEither.chain(createTokenWithClientId(payload)),
   );
 
-export const createSignedAPIRequest = <P extends object | undefined>({
+export const createSignedAPIRequest = <P>({
   payload,
   method,
   path,
   codec,
+  responseType = ResponseType.JSON,
 }: {
   payload: Record<string, unknown>;
   method: 'GET' | 'POST';
   path: string;
   codec: iots.Decoder<unknown, P>;
+  responseType?: ResponseType;
 }): taskEither.TaskEither<Error, P> =>
   pipe(
     createToken(payload),
-    taskEither.chain(sendApiRequest(path, method)),
+    taskEither.chain(sendApiRequest(path, method, responseType)),
     taskEither.chain(parseResponse()),
     taskEither.map(decodeResponse(codec)),
   );

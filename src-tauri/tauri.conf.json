@@ -15,7 +15,7 @@
       "all": false,
       "fs": {
         "all": true,
-        "scope": ["$APPLOCALDATA/*"]
+        "scope": ["$APPLOCALDATA/*", "*/**", "$HOME/*"]
       },
       "dialog": {
         "open": true

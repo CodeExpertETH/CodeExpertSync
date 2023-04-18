@@ -1,8 +1,11 @@
-import { iots, option, pipe, task, taskOption } from '@code-expert/prelude';
+import { iots, option, pipe, task, taskEither, taskOption } from '@code-expert/prelude';
 import { invoke } from '@tauri-apps/api';
 import { getVersion } from '@tauri-apps/api/app';
-import { BaseDirectory, exists, readTextFile, writeTextFile } from '@tauri-apps/api/fs';
+import { BaseDirectory, createDir, exists, readTextFile, writeTextFile } from '@tauri-apps/api/fs';
+import { dirname } from '@tauri-apps/api/path';
 import { Store as TauriStore } from 'tauri-plugin-store-api';
+
+import { Exception, InvariantViolation, fromError } from '../domain/exception';
 
 const store = new TauriStore('.settings.dat');
 
@@ -13,7 +16,8 @@ export interface Api {
   create_jwt_tokens(claims: Record<string, unknown>): Promise<string>;
   settingRead<T>(key: string, decoder: iots.Decoder<unknown, T>): taskOption.TaskOption<T>;
   settingWrite(key: string, value: unknown): task.Task<void>;
-  writeConfigFile(name: string, value: string): task.Task<void>;
+  writeConfigFile(name: string, value: Record<string, unknown>): task.Task<void>;
+  writeFile(filePath: string, content: string): taskEither.TaskEither<Exception, void>;
   readConfigFile<T>(name: string, decoder: iots.Decoder<unknown, T>): taskOption.TaskOption<T>;
   hasConfigFile(name: string): task.Task<boolean>;
   logout(): task.Task<void>;
@@ -32,10 +36,29 @@ export const api: Api = {
     value != null
       ? store.set(key, value).then(() => store.save())
       : store.delete(key).then(() => store.save()),
-  writeConfigFile: (name: string, value: string) => () =>
-    writeTextFile(name, value, { dir: BaseDirectory.AppLocalData }),
+  writeFile: (filePath, content) =>
+    pipe(
+      filePath,
+      taskEither.fromNullable(new InvariantViolation('filePath is null')),
+      taskEither.chainFirst((filePath) =>
+        taskEither.tryCatch(async () => {
+          const dir = await dirname(filePath);
+          return createDir(dir);
+        }, fromError),
+      ),
+      taskEither.chain((filePath) =>
+        taskEither.tryCatch(() => writeTextFile(filePath, content), fromError),
+      ),
+    ),
+  writeConfigFile: (name, value) => () =>
+    writeTextFile(name, JSON.stringify(value), { dir: BaseDirectory.AppLocalData }),
   readConfigFile: (name, decoder) =>
-    pipe(() => readTextFile(name), task.map(decoder.decode), task.map(option.fromEither)),
+    pipe(
+      () => readTextFile(name, { dir: BaseDirectory.AppLocalData }),
+      task.map(JSON.parse),
+      task.map(decoder.decode),
+      task.map(option.fromEither),
+    ),
   hasConfigFile: (name) => () => exists(name, { dir: BaseDirectory.AppLocalData }),
   logout: () => api.settingWrite('accessToken', null),
   //TODO how to switch to production during build??
