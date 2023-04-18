@@ -5,8 +5,15 @@ import { ProjectId } from '../../../../domain/Project';
 
 export const useProjectSync = () => {
   const syncProject = React.useCallback((projectId: ProjectId) => {
-    console.log(`sync project code ${projectId}}`);
+    console.log(`sync project code ${projectId}`);
     void pipe(
+      // get project metadata
+
+      // save project metadata to setting file
+
+      // get project files
+
+      // save project files to disk
       // createSignedAPIRequest({
       //   path: 'app/projectAccess/remove',
       //   method: 'POST',

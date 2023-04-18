@@ -1,7 +1,7 @@
 import { iots, option, pipe, task, taskOption } from '@code-expert/prelude';
 import { invoke } from '@tauri-apps/api';
 import { getVersion } from '@tauri-apps/api/app';
-import { BaseDirectory, exists, writeTextFile } from '@tauri-apps/api/fs';
+import { BaseDirectory, exists, readTextFile, writeTextFile } from '@tauri-apps/api/fs';
 import { Store as TauriStore } from 'tauri-plugin-store-api';
 
 const store = new TauriStore('.settings.dat');
@@ -14,6 +14,7 @@ export interface Api {
   settingRead<T>(key: string, decoder: iots.Decoder<unknown, T>): taskOption.TaskOption<T>;
   settingWrite(key: string, value: unknown): task.Task<void>;
   writeConfigFile(name: string, value: string): task.Task<void>;
+  readConfigFile<T>(name: string, decoder: iots.Decoder<unknown, T>): taskOption.TaskOption<T>;
   hasConfigFile(name: string): task.Task<boolean>;
   logout(): task.Task<void>;
   CXUrl: string;
@@ -33,6 +34,8 @@ export const api: Api = {
       : store.delete(key).then(() => store.save()),
   writeConfigFile: (name: string, value: string) => () =>
     writeTextFile(name, value, { dir: BaseDirectory.AppLocalData }),
+  readConfigFile: (name, decoder) =>
+    pipe(() => readTextFile(name), task.map(decoder.decode), task.map(option.fromEither)),
   hasConfigFile: (name) => () => exists(name, { dir: BaseDirectory.AppLocalData }),
   logout: () => api.settingWrite('accessToken', null),
   //TODO how to switch to production during build??
