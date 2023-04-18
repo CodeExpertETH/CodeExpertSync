@@ -9,33 +9,45 @@ export const useProjectEventUpdate = (onProjectAdded: () => void, clientId: Clie
   const sse = React.useRef<EventSource | null>(null);
 
   React.useEffect(() => {
-    const onProjectAdd = () => {
-      onProjectAdded();
-    };
-    const onError = (e: Event) => {
-      throw e;
+    let timeout: NodeJS.Timeout | null = null;
+    const registerEventSource = () => {
+      if (sse.current == null) {
+        void pipe(
+          createTokenWithClientId({})(clientId),
+          taskEither.map((token) => {
+            if (sse.current == null) {
+              sse.current = new EventSource(`${api.APIUrl}/app/projectAccess?token=${token}`);
+              sse.current.addEventListener('projectAccess', onProjectAdd);
+              sse.current.addEventListener('error', onError);
+            }
+          }),
+          task.run,
+        );
+      }
     };
 
-    if (sse.current == null) {
-      void pipe(
-        createTokenWithClientId({})(clientId),
-        taskEither.map((token) => {
-          //ensure that due to async nature only added once
-          if (sse.current == null) {
-            sse.current = new EventSource(`${api.APIUrl}/app/projectAccess?token=${token}`);
-            sse.current.addEventListener('projectAccess', onProjectAdd);
-            sse.current.addEventListener('error', onError);
-          }
-        }),
-        task.run,
-      );
-    }
-
-    return () => {
+    const cleanUp = () => {
       sse.current?.removeEventListener('projectAccess', onProjectAdd);
       sse.current?.removeEventListener('error', onError);
       sse.current?.close();
       sse.current = null;
+      if (timeout != null) {
+        clearTimeout(timeout);
+      }
     };
+    const onProjectAdd = () => {
+      onProjectAdded();
+    };
+    const onError = (_e: Event) => {
+      cleanUp();
+      if (timeout != null) {
+        clearTimeout(timeout);
+      }
+      timeout = setTimeout(registerEventSource, 2500);
+    };
+
+    registerEventSource();
+
+    return cleanUp;
   }, [onProjectAdded, clientId]);
 };
