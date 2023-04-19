@@ -1,4 +1,4 @@
-import { iots, option, pipe, task, taskEither, taskOption } from '@code-expert/prelude';
+import { flow, iots, option, pipe, task, taskEither, taskOption } from '@code-expert/prelude';
 import { invoke } from '@tauri-apps/api';
 import { getVersion } from '@tauri-apps/api/app';
 import {
@@ -17,10 +17,9 @@ import { Exception, fromError } from '../domain/exception';
 const store = new TauriStore('.settings.dat');
 
 export interface Api {
-  getVersion(): Promise<string>;
-  greet(name: string): Promise<string>;
-  create_keys(): Promise<string>;
-  create_jwt_tokens(claims: Record<string, unknown>): Promise<string>;
+  getVersion(): taskEither.TaskEither<Exception, string>;
+  create_keys(): taskEither.TaskEither<Exception, string>;
+  create_jwt_tokens(claims: Record<string, unknown>): taskEither.TaskEither<Exception, string>;
   settingRead<T>(key: string, decoder: iots.Decoder<unknown, T>): taskOption.TaskOption<T>;
   settingWrite(key: string, value: unknown): taskOption.TaskOption<void>;
   writeConfigFile(
@@ -37,15 +36,14 @@ export interface Api {
 }
 
 export const api: Api = {
-  getVersion,
-  greet: (name) => invoke('greet', { name }),
-  create_keys: () => invoke('create_keys', {}),
-  create_jwt_tokens: (claims) => invoke('create_jwt_token', { claims }),
+  getVersion: () => taskEither.tryCatch(() => getVersion(), fromError),
+  create_keys: () => taskEither.tryCatch(() => invoke('create_keys', {}), fromError),
+  create_jwt_tokens: (claims) =>
+    taskEither.tryCatch(() => invoke('create_jwt_token', { claims }), fromError),
   settingRead: (key, decoder) =>
     pipe(
       taskOption.tryCatch(() => store.get(key)),
-      task.map(decoder.decode),
-      task.map(option.fromEither),
+      taskOption.chainOptionK(flow(decoder.decode, option.fromEither)),
     ),
   settingWrite: (key, value) =>
     taskOption.tryCatch(() =>

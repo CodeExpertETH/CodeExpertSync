@@ -7,15 +7,11 @@ import { EntityNotFoundException, fromError, invalid } from './exception';
 
 export function createTokenWithClientId(payload: Record<string, unknown>) {
   return (clientId: ClientId) =>
-    taskEither.tryCatch(
-      () =>
-        api.create_jwt_tokens({
-          ...payload,
-          iss: clientId,
-          exp: Math.floor(Date.now() / 1000) + 10,
-        }),
-      fromError,
-    );
+    api.create_jwt_tokens({
+      ...payload,
+      iss: clientId,
+      exp: Math.floor(Date.now() / 1000) + 10,
+    });
 }
 
 function sendApiRequest(path: string, method: 'GET' | 'POST', responseType: ResponseType) {

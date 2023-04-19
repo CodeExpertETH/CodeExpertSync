@@ -1,4 +1,4 @@
-import { iots, pipe, task } from '@code-expert/prelude';
+import { iots } from '@code-expert/prelude';
 
 import { ClientId } from '../../domain/ClientId';
 import { createAPIRequest } from '../../domain/createAPIRequest';
@@ -17,13 +17,10 @@ export const getAccess = (
     pubKey,
   };
 
-  return pipe(
-    createAPIRequest({
-      path: 'app/oauth/gainAccess',
-      payload: requestBody,
-      method: 'POST',
-      codec: responseCodec,
-    }),
-    task.run,
-  );
+  return createAPIRequest({
+    path: 'app/oauth/gainAccess',
+    payload: requestBody,
+    method: 'POST',
+    codec: responseCodec,
+  });
 };
