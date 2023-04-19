@@ -1,9 +1,9 @@
-import { constVoid, pipe, tagged, task } from '@code-expert/prelude';
-import { api } from 'api';
+import { constVoid, iots, pipe, tagged, task, taskEither } from '@code-expert/prelude';
 import equal from 'fast-deep-equal';
 import React, { useEffect } from 'react';
 
 import { GlobalAuthState, globalAuthState } from '../domain/AuthState';
+import { createSignedAPIRequest } from '../domain/createAPIRequest';
 import Loading from './components/Loading';
 
 export type Routes = tagged.Tagged<'main'> | tagged.Tagged<'settings'> | tagged.Tagged<'logout'>;
@@ -55,13 +55,19 @@ export const GlobalContextProvider = React.memo(function GlobalContextProvider({
   useEffect(() => {
     if (state == null) {
       void pipe(
-        api.hasConfigFile('privateKey.pem'),
-        task.map((hasPrivateKey) =>
+        createSignedAPIRequest({
+          path: 'app/checkAccess',
+          method: 'GET',
+          payload: {},
+          codec: iots.strict({ status: iots.string }),
+        }),
+        taskEither.map(({ status }) =>
           stateDispatch({
             _init: initialState({
-              authState: hasPrivateKey
-                ? globalAuthState.authorized()
-                : globalAuthState.notAuthorized(),
+              authState:
+                status === 'Success'
+                  ? globalAuthState.authorized()
+                  : globalAuthState.notAuthorized(),
             }),
           }),
         ),
