@@ -5,6 +5,7 @@ import React from 'react';
 
 import { ProjectId } from '../../../../domain/Project';
 import { createSignedAPIRequest } from '../../../../domain/createAPIRequest';
+import { message } from '../../../helper/message';
 
 function writeSingeFile(filePath: string, projectId: ProjectId, dirPath: string) {
   const cleanedPath = filePath.replace(/^\.\//, '');
@@ -20,7 +21,7 @@ function writeSingeFile(filePath: string, projectId: ProjectId, dirPath: string)
       pipe(
         api.settingRead('projectDir', iots.string),
         taskEither.fromTaskOption(
-          () => new Error('No project dir was found. Please contact the developers.'),
+          () => new Error('No project dir was found. Have you chosen a directory in the settings?'),
         ),
         taskEither.chainW((projectDir) =>
           api.writeFile(`${projectDir}/${dirPath}/${cleanedPath}`, fileContent),
@@ -31,7 +32,7 @@ function writeSingeFile(filePath: string, projectId: ProjectId, dirPath: string)
 }
 
 export const useProjectSync = () => {
-  const syncProject = React.useCallback((projectId: ProjectId, filePath: string) => {
+  const syncProject = React.useCallback((projectId: ProjectId, projectName: string) => {
     console.log(`sync project code ${projectId}`);
     void pipe(
       createSignedAPIRequest({
@@ -49,8 +50,18 @@ export const useProjectSync = () => {
       taskEither.chain((project) =>
         pipe(
           project.files,
-          taskEither.traverseSeqArray((file) => writeSingeFile(file.path, projectId, filePath)),
+          taskEither.traverseSeqArray((file) => writeSingeFile(file.path, projectId, projectName)),
         ),
+      ),
+      taskEither.fold(
+        (err) => {
+          message.error(err);
+          return taskEither.left(err);
+        },
+        () => {
+          message.success(`The project ${projectName} was synced successfully.`);
+          return taskEither.right(undefined);
+        },
       ),
       task.run,
     );
