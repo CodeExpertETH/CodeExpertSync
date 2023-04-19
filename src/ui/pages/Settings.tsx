@@ -1,4 +1,4 @@
-import { iots } from '@code-expert/prelude';
+import { iots, task } from '@code-expert/prelude';
 import { open } from '@tauri-apps/api/dialog';
 import { homeDir } from '@tauri-apps/api/path';
 import { Button, Form, Input, Space, message } from 'antd';
@@ -78,7 +78,7 @@ function SettingsInner({ projectDir }: { projectDir: string }) {
 }
 
 export function Settings() {
-  const projectDir = useSettingsFallback('projectDir', iots.string, () => homeDir(), []);
+  const projectDir = useSettingsFallback('projectDir', iots.string, task.of(''), []);
 
   return (
     <GuardRemoteData
