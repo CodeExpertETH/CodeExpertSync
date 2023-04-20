@@ -1,4 +1,4 @@
-import { flow, iots, option, pipe, task, taskEither, taskOption } from '@code-expert/prelude';
+import { flow, iots, json, option, pipe, task, taskEither, taskOption } from '@code-expert/prelude';
 import { invoke } from '@tauri-apps/api';
 import { getVersion } from '@tauri-apps/api/app';
 import {
@@ -22,10 +22,7 @@ export interface Api {
   create_jwt_tokens(claims: Record<string, unknown>): taskEither.TaskEither<Exception, string>;
   settingRead<T>(key: string, decoder: iots.Decoder<unknown, T>): taskOption.TaskOption<T>;
   settingWrite(key: string, value: unknown): taskOption.TaskOption<void>;
-  writeConfigFile(
-    name: string,
-    value: Record<string, unknown>,
-  ): taskEither.TaskEither<Exception, void>;
+  writeConfigFile(name: string, value: json.Json): taskEither.TaskEither<Exception, void>;
   writeFile(filePath: string, content: string): taskEither.TaskEither<Exception, void>;
   removeDir(filePath: string): taskEither.TaskEither<Exception, void>;
   getFileHash(filePath: string): taskEither.TaskEither<Exception, string>;

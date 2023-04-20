@@ -26,5 +26,5 @@ pub fn create_jwt_token(app_handle: tauri::AppHandle, claims: Value) -> Result<S
             )
             .map_err(|_| "Could not create JWT token".to_string())
         })
-        .map_err(|_| "Could not create JWT token".to_string())
+        .map_err(|_| "Could not create JWT token".to_string()) // FIXME: this deletes all error - intentional?
 }

@@ -101,3 +101,5 @@ export const partitionUnion: <A extends string, B extends A>(
 
 export const min = <A>(o: ord.Ord<A>): ((a: Array<A>) => option.Option<A>) =>
   flow(nonEmptyArray.fromArray, option.map(nonEmptyArray.min(o)));
+
+export const unsafeFromReadonly = <A>(as: ReadonlyArray<A>) => as as Array<A>;
