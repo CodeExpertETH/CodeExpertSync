@@ -10,11 +10,9 @@ export const useProjectRemove = (onProjectRemove: () => void) => {
   const removeProject = React.useCallback(
     (projectId: ProjectId, projectName: string) => {
       void pipe(
-        api.settingRead('projectDir', iots.string),
-        taskEither.fromTaskOption(
-          () => new Error('No project dir was found. Have you chosen a directory in the settings?'),
-        ),
-        taskEither.chainW((projectDir) => api.removeDir(`${projectDir}/${projectName}`)),
+        api.readConfigFile(`project_${projectId}.json`, iots.strict({ dir: iots.string })),
+        taskEither.fromTaskOption(() => new Error('Failed to find project settings.')),
+        taskEither.chainW(({ dir }) => api.removeDir(dir)),
         taskEither.chain(() =>
           createSignedAPIRequest({
             path: 'app/projectAccess/remove',

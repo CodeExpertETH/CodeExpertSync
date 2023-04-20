@@ -1,14 +1,15 @@
-import { iots, pipe, task, taskEither } from '@code-expert/prelude';
+import { flow, iots, pipe, task, taskEither } from '@code-expert/prelude';
+import { path } from '@tauri-apps/api';
 import { ResponseType } from '@tauri-apps/api/http';
 import { api } from 'api';
 import React from 'react';
 
 import { ProjectId } from '../../../../domain/Project';
 import { createSignedAPIRequest } from '../../../../domain/createAPIRequest';
+import { InvariantViolation, fromError } from '../../../../domain/exception';
 import { message } from '../../../helper/message';
 
-function writeSingeFile(filePath: string, projectId: ProjectId, dirPath: string) {
-  const cleanedPath = filePath.replace(/^\.\//, '');
+function writeSingeFile(filePath: string, projectId: ProjectId, dir: string) {
   return pipe(
     createSignedAPIRequest({
       path: `project/${projectId}/file`,
@@ -17,15 +18,10 @@ function writeSingeFile(filePath: string, projectId: ProjectId, dirPath: string)
       codec: iots.string,
       responseType: ResponseType.Text,
     }),
-    taskEither.chain((fileContent) =>
+    taskEither.chainW((fileContent) =>
       pipe(
-        api.settingRead('projectDir', iots.string),
-        taskEither.fromTaskOption(
-          () => new Error('No project dir was found. Have you chosen a directory in the settings?'),
-        ),
-        taskEither.chainW((projectDir) =>
-          api.writeFile(`${projectDir}/${dirPath}/${cleanedPath}`, fileContent),
-        ),
+        taskEither.tryCatch(() => path.join(dir, filePath), fromError),
+        taskEither.chain((fullPath) => api.writeFile(fullPath, fileContent)),
       ),
     ),
   );
@@ -33,7 +29,6 @@ function writeSingeFile(filePath: string, projectId: ProjectId, dirPath: string)
 
 export const useProjectSync = () => {
   const syncProject = React.useCallback((projectId: ProjectId, projectName: string) => {
-    console.log(`sync project code ${projectId}`);
     void pipe(
       createSignedAPIRequest({
         path: `project/${projectId}/info`,
@@ -44,13 +39,29 @@ export const useProjectSync = () => {
           files: iots.array(iots.strict({ path: iots.string, version: iots.number })),
         }),
       }),
-      taskEither.chainFirstTaskK((project) =>
-        api.writeConfigFile(`project_${projectId}.json`, project),
+      taskEither.bindTo('project'),
+      taskEither.bindW(
+        'projectDir',
+        flow(
+          () => api.settingRead('projectDir', iots.string),
+          taskEither.fromTaskOption(
+            () =>
+              new InvariantViolation(
+                'No project dir was found. Have you chosen a directory in the settings?',
+              ),
+          ),
+          taskEither.chain((projectDir) =>
+            taskEither.tryCatch(() => path.join(projectDir, projectName), fromError),
+          ),
+        ),
       ),
-      taskEither.chain((project) =>
+      taskEither.chainFirstTaskK(({ project, projectDir }) =>
+        api.writeConfigFile(`project_${projectId}.json`, { ...project, dir: projectDir }),
+      ),
+      taskEither.chain(({ project, projectDir }) =>
         pipe(
           project.files,
-          taskEither.traverseSeqArray((file) => writeSingeFile(file.path, projectId, projectName)),
+          taskEither.traverseSeqArray((file) => writeSingeFile(file.path, projectId, projectDir)),
         ),
       ),
       taskEither.fold(
