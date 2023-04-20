@@ -7,18 +7,14 @@ import { EntityNotFoundException, fromError, invalid } from './exception';
 
 export function createTokenWithClientId(payload: Record<string, unknown>) {
   return (clientId: ClientId) =>
-    taskEither.tryCatch(
-      () =>
-        api.create_jwt_tokens({
-          ...payload,
-          iss: clientId,
-          exp: Math.floor(Date.now() / 1000) + 10,
-        }),
-      fromError,
-    );
+    api.create_jwt_tokens({
+      ...payload,
+      iss: clientId,
+      exp: Math.floor(Date.now() / 1000) + 10,
+    });
 }
 
-function sendApiRequest(path: string, method: 'GET' | 'POST') {
+function sendApiRequest(path: string, method: 'GET' | 'POST', responseType: ResponseType) {
   return (token: string) =>
     taskEither.tryCatch(
       () =>
@@ -27,7 +23,7 @@ function sendApiRequest(path: string, method: 'GET' | 'POST') {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-          responseType: ResponseType.JSON,
+          responseType,
         }),
       fromError,
     );
@@ -77,20 +73,22 @@ export const createToken = (payload: Record<string, unknown>) =>
     taskEither.chain(createTokenWithClientId(payload)),
   );
 
-export const createSignedAPIRequest = <P extends object | undefined>({
+export const createSignedAPIRequest = <P>({
   payload,
   method,
   path,
   codec,
+  responseType = ResponseType.JSON,
 }: {
   payload: Record<string, unknown>;
   method: 'GET' | 'POST';
   path: string;
   codec: iots.Decoder<unknown, P>;
+  responseType?: ResponseType;
 }): taskEither.TaskEither<Error, P> =>
   pipe(
     createToken(payload),
-    taskEither.chain(sendApiRequest(path, method)),
+    taskEither.chain(sendApiRequest(path, method, responseType)),
     taskEither.chain(parseResponse()),
     taskEither.map(decodeResponse(codec)),
   );

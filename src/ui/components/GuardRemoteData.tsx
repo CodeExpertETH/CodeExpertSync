@@ -8,7 +8,7 @@ import Loading from './Loading';
 const renderLoading = () => <Loading delayTime={200} />;
 
 const renderFailure = (error: Exception) => (
-  <Result status="error" title="An error occurred" subTitle={error.reason} />
+  <Result status="error" title="An error occurred" subTitle={error.message} />
 );
 
 export interface GuardRemoteDataProps<A> {

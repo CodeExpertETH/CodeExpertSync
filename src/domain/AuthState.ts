@@ -1,4 +1,4 @@
-import { tagged } from '@code-expert/prelude';
+import { pipe, tagged, task, taskEither } from '@code-expert/prelude';
 import { api } from 'api';
 import React from 'react';
 
@@ -57,8 +57,13 @@ export const useAuthState = (
   React.useEffect(() => {
     const onAuthToken = async ({ data: authToken }: { data: string }) => {
       if (authState.is.waitingForAuthorization(state)) {
-        const publicKey = await api.create_keys();
-        await getAccess(clientId, state.value.code_verifier, authToken, publicKey);
+        await pipe(
+          api.create_keys(),
+          taskEither.chain((publicKey) =>
+            getAccess(clientId, state.value.code_verifier, authToken, publicKey),
+          ),
+          task.run,
+        );
         sse.current?.close();
         sse.current = null;
         onAuthorize();

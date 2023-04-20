@@ -57,7 +57,7 @@ export const ProjectList = (props: { projects: ProjectMetadata[]; updateProjects
                         key: 'sync',
                         icon: <Icon name="sync" />,
                         onClick: () => {
-                          syncProject(project.projectId);
+                          syncProject(project.projectId, project.projectName);
                         },
                       },
                       { type: 'divider' },
@@ -66,7 +66,7 @@ export const ProjectList = (props: { projects: ProjectMetadata[]; updateProjects
                         key: 'remove',
                         icon: <Icon name="trash" />,
                         onClick: () => {
-                          removeProject(project.projectId);
+                          removeProject(project.projectId, project.projectName);
                         },
                       },
                     ],
