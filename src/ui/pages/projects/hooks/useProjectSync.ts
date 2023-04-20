@@ -1,4 +1,4 @@
-import { flow, iots, pipe, task, taskEither } from '@code-expert/prelude';
+import { iots, pipe, task, taskEither } from '@code-expert/prelude';
 import { path } from '@tauri-apps/api';
 import { ResponseType } from '@tauri-apps/api/http';
 import { api } from 'api';
@@ -40,10 +40,9 @@ export const useProjectSync = () => {
         }),
       }),
       taskEither.bindTo('project'),
-      taskEither.bindW(
-        'projectDir',
-        flow(
-          () => api.settingRead('projectDir', iots.string),
+      taskEither.bindW('projectDir', () =>
+        pipe(
+          api.settingRead('projectDir', iots.string),
           taskEither.fromTaskOption(
             () =>
               new InvariantViolation(

@@ -1,4 +1,4 @@
-import { flow, iots, pipe, task, taskEither, taskOption } from '@code-expert/prelude';
+import { iots, pipe, task, taskEither, taskOption } from '@code-expert/prelude';
 import { api } from 'api';
 import React from 'react';
 
@@ -7,9 +7,9 @@ import { createSignedAPIRequest } from '../../../../domain/createAPIRequest';
 import { Exception } from '../../../../domain/exception';
 import { message } from '../../../helper/message';
 
-const deleteLocalProject = (projectId: ProjectId): (() => taskEither.TaskEither<Exception, void>) =>
-  flow(
-    () => api.readConfigFile(`project_${projectId}.json`, iots.strict({ dir: iots.string })),
+const deleteLocalProject = (projectId: ProjectId): taskEither.TaskEither<Exception, void> =>
+  pipe(
+    api.readConfigFile(`project_${projectId}.json`, iots.strict({ dir: iots.string })),
     taskOption.fold(
       () => taskEither.right(undefined),
       ({ dir }) => api.removeDir(dir),
@@ -26,7 +26,7 @@ export const useProjectRemove = (onProjectRemove: () => void) => {
           payload: { projectId },
           codec: iots.strict({ removed: iots.boolean }),
         }),
-        taskEither.chainW(deleteLocalProject(projectId)),
+        taskEither.chainW(() => deleteLocalProject(projectId)),
         taskEither.map(onProjectRemove),
         taskEither.fold(
           (err) => {
