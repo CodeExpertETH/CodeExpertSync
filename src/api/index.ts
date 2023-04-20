@@ -28,6 +28,7 @@ export interface Api {
   ): taskEither.TaskEither<Exception, void>;
   writeFile(filePath: string, content: string): taskEither.TaskEither<Exception, void>;
   removeDir(filePath: string): taskEither.TaskEither<Exception, void>;
+  getFileHash(filePath: string): taskEither.TaskEither<Exception, string>;
   readConfigFile<T>(name: string, decoder: iots.Decoder<unknown, T>): taskOption.TaskOption<T>;
   hasConfigFile(name: string): task.Task<boolean>;
   logout(): taskOption.TaskOption<void>;
@@ -65,6 +66,7 @@ export const api: Api = {
     ),
   removeDir: (filePath) =>
     taskEither.tryCatch(() => removeDir(filePath, { recursive: true }), fromError),
+  getFileHash: (path) => taskEither.tryCatch(() => invoke('get_file_hash', { path }), fromError),
   writeConfigFile: (name, value) =>
     taskEither.tryCatch(
       () => writeTextFile(name, JSON.stringify(value), { dir: BaseDirectory.AppLocalData }),
