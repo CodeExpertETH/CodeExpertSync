@@ -1,4 +1,4 @@
-import { constVoid, iots, pipe, tagged, task, taskEither } from '@code-expert/prelude';
+import { constVoid, either, iots, pipe, tagged, task } from '@code-expert/prelude';
 import equal from 'fast-deep-equal';
 import React, { useEffect } from 'react';
 
@@ -61,16 +61,21 @@ export const GlobalContextProvider = React.memo(function GlobalContextProvider({
           payload: {},
           codec: iots.strict({ status: iots.string }),
         }),
-        taskEither.map(({ status }) =>
+        task.map(
+          either.fold(
+            () => globalAuthState.notAuthorized(),
+            ({ status }) =>
+              status === 'Success' ? globalAuthState.authorized() : globalAuthState.notAuthorized(),
+          ),
+        ),
+        task.map((authState) => () => {
           stateDispatch({
             _init: initialState({
-              authState:
-                status === 'Success'
-                  ? globalAuthState.authorized()
-                  : globalAuthState.notAuthorized(),
+              authState,
             }),
-          }),
-        ),
+          });
+          return Promise.resolve(undefined);
+        }),
         task.run,
       );
     }

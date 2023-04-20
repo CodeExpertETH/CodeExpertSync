@@ -1,4 +1,5 @@
-import { eq, option, predicate, taskOption } from 'fp-ts';
+import { eq, option, predicate, taskEither, taskOption } from 'fp-ts';
+import { flow, pipe } from 'fp-ts/function';
 
 import * as task from './task';
 
@@ -20,3 +21,12 @@ export const isSome: <A>(a: taskOption.TaskOption<A>) => Promise<boolean> = task
 export const isNone: <A>(a: taskOption.TaskOption<A>) => Promise<boolean> = task.exists(
   option.isNone,
 );
+
+export const fromTaskEitherK = <E, A extends ReadonlyArray<unknown>, B>(
+  f: (...a: A) => taskEither.TaskEither<E, B>,
+): ((...a: A) => taskOption.TaskOption<B>) => flow(f, taskOption.fromTaskEither);
+
+export const chainTaskEitherK =
+  <E, A, B>(f: (a: A) => taskEither.TaskEither<E, B>) =>
+  (ma: taskOption.TaskOption<A>): taskOption.TaskOption<B> =>
+    pipe(ma, taskOption.chain(fromTaskEitherK(f)));

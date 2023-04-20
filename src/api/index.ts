@@ -14,7 +14,7 @@ import { Store as TauriStore } from 'tauri-plugin-store-api';
 
 import { Exception, fromError } from '../domain/exception';
 
-const store = new TauriStore('.settings.dat');
+const store = new TauriStore('settings.json');
 
 export interface Api {
   getVersion(): taskEither.TaskEither<Exception, string>;
@@ -75,8 +75,7 @@ export const api: Api = {
       taskOption.tryCatch(
         pipe(() => readTextFile(name, { dir: BaseDirectory.AppLocalData }), task.map(JSON.parse)),
       ),
-      task.map(decoder.decode),
-      task.map(option.fromEither),
+      taskOption.chainOptionK(flow(decoder.decode, option.fromEither)),
     ),
   hasConfigFile: (name) => () => exists(name, { dir: BaseDirectory.AppLocalData }),
   logout: () => api.settingWrite('accessToken', null),
