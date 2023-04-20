@@ -68,13 +68,12 @@ export const GlobalContextProvider = React.memo(function GlobalContextProvider({
               status === 'Success' ? globalAuthState.authorized() : globalAuthState.notAuthorized(),
           ),
         ),
-        task.map((authState) => () => {
+        task.map((authState) => {
           stateDispatch({
             _init: initialState({
               authState,
             }),
           });
-          return Promise.resolve(undefined);
         }),
         task.run,
       );
