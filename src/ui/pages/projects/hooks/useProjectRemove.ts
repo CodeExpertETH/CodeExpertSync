@@ -1,26 +1,32 @@
-import { iots, pipe, task, taskEither } from '@code-expert/prelude';
+import { flow, iots, pipe, task, taskEither, taskOption } from '@code-expert/prelude';
 import { api } from 'api';
 import React from 'react';
 
 import { ProjectId } from '../../../../domain/Project';
 import { createSignedAPIRequest } from '../../../../domain/createAPIRequest';
+import { Exception } from '../../../../domain/exception';
 import { message } from '../../../helper/message';
+
+const deleteLocalProject = (projectId: ProjectId): (() => taskEither.TaskEither<Exception, void>) =>
+  flow(
+    () => api.readConfigFile(`project_${projectId}.json`, iots.strict({ dir: iots.string })),
+    taskOption.fold(
+      () => taskEither.right(undefined),
+      ({ dir }) => api.removeDir(dir),
+    ),
+  );
 
 export const useProjectRemove = (onProjectRemove: () => void) => {
   const removeProject = React.useCallback(
     (projectId: ProjectId, projectName: string) => {
       void pipe(
-        api.readConfigFile(`project_${projectId}.json`, iots.strict({ dir: iots.string })),
-        taskEither.fromTaskOption(() => new Error('Failed to find project settings.')),
-        taskEither.chainW(({ dir }) => api.removeDir(dir)),
-        taskEither.chain(() =>
-          createSignedAPIRequest({
-            path: 'app/projectAccess/remove',
-            method: 'POST',
-            payload: { projectId },
-            codec: iots.strict({ removed: iots.boolean }),
-          }),
-        ),
+        createSignedAPIRequest({
+          path: 'app/projectAccess/remove',
+          method: 'POST',
+          payload: { projectId },
+          codec: iots.strict({ removed: iots.boolean }),
+        }),
+        taskEither.chainW(deleteLocalProject(projectId)),
         taskEither.map(onProjectRemove),
         taskEither.fold(
           (err) => {
