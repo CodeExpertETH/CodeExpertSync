@@ -21,7 +21,9 @@ function writeSingeFile(filePath: string, projectId: ProjectId, dir: string) {
     taskEither.chainW((fileContent) =>
       pipe(
         taskEither.tryCatch(() => path.join(dir, filePath), fromError),
-        taskEither.chain((fullPath) => api.writeFile(fullPath, fileContent)),
+        taskEither.bindTo('path'),
+        taskEither.chainFirst(({ path }) => api.writeFile(path, fileContent)),
+        taskEither.bind('hash', ({ path }) => api.getFileHash(path)),
       ),
     ),
   );

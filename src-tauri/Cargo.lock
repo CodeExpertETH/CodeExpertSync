@@ -378,10 +378,12 @@ dependencies = [
 name = "code_expert_desktop"
 version = "0.0.15"
 dependencies = [
+ "data-encoding",
  "ed25519-compact",
  "jsonwebtoken",
  "serde",
  "serde_json",
+ "sha2",
  "sysinfo",
  "tauri",
  "tauri-build",
@@ -617,6 +619,12 @@ dependencies = [
  "quote",
  "syn",
 ]
+
+[[package]]
+name = "data-encoding"
+version = "2.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "23d8666cb01533c39dde32bcbab8e227b4ed6679b2c925eba05feabea39508fb"
 
 [[package]]
 name = "dbus"
