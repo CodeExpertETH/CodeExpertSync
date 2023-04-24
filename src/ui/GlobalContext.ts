@@ -6,7 +6,11 @@ import { GlobalAuthState, globalAuthState } from '../domain/AuthState';
 import { createSignedAPIRequest } from '../domain/createAPIRequest';
 import Loading from './components/Loading';
 
-export type Routes = tagged.Tagged<'main'> | tagged.Tagged<'settings'> | tagged.Tagged<'logout'>;
+export type Routes =
+  | tagged.Tagged<'main'>
+  | tagged.Tagged<'settings'>
+  | tagged.Tagged<'logout'>
+  | tagged.Tagged<'developer'>;
 
 export const routes = tagged.build<Routes>();
 

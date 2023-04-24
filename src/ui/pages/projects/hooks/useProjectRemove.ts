@@ -7,7 +7,7 @@ import { createSignedAPIRequest } from '../../../../domain/createAPIRequest';
 import { Exception } from '../../../../domain/exception';
 import { message } from '../../../helper/message';
 
-const deleteLocalProject = (projectId: ProjectId): taskEither.TaskEither<Exception, void> =>
+export const deleteLocalProject = (projectId: ProjectId): taskEither.TaskEither<Exception, void> =>
   pipe(
     api.readConfigFile(`project_${projectId}.json`, iots.strict({ dir: iots.string })),
     taskOption.fold(
