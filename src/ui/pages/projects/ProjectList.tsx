@@ -6,7 +6,7 @@ import { ProjectId, ProjectMetadata } from '../../../domain/Project';
 import { ActionMenu } from '../../components/ActionMenu';
 import { Icon } from '../../foundation/Icons';
 import { Box, HStack } from '../../foundation/Layout';
-import { notification } from '../../helper/notifications';
+import { notificationT } from '../../helper/notifications';
 import { useProjectRemove } from './hooks/useProjectRemove';
 import { useProjectSync } from './hooks/useProjectSync';
 
@@ -19,20 +19,13 @@ export const ProjectList = (props: { projects: ProjectMetadata[]; updateProjects
 
   const syncProject = (projectId: ProjectId, projectName: string) => {
     void pipe(
-      task.of(true),
-      task.map(() => setLoading(true)),
+      task.fromIO(() => setLoading(true)),
       task.chain(() => syncProjectM(projectId, projectName)),
       taskEither.fold(
-        (err) => {
-          notification.error(err);
-          return taskEither.left(err);
-        },
-        () => {
-          notification.success(`The project ${projectName} was synced successfully.`);
-          return taskEither.right(undefined);
-        },
+        (e) => notificationT.error(e),
+        () => notificationT.success(`The project ${projectName} was synced successfully.`),
       ),
-      task.map(() => setLoading(false)),
+      task.chainIOK(() => () => setLoading(false)),
       task.run,
     );
   };

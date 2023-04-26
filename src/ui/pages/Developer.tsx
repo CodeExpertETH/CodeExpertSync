@@ -10,7 +10,7 @@ import { createSignedAPIRequest } from '../../domain/createAPIRequest';
 import { Exception, fromError } from '../../domain/exception';
 import { routes, useGlobalContextWithActions } from '../GlobalContext';
 import { VStack } from '../foundation/Layout';
-import { notification } from '../helper/notifications';
+import { notificationT } from '../helper/notifications';
 import { deleteLocalProject } from './projects/hooks/useProjectRemove';
 
 export function Developer() {
@@ -25,14 +25,8 @@ export function Developer() {
         codec: iots.strict({ status: iots.string }),
       }),
       taskEither.fold(
-        (e) => {
-          notification.error(`${e.message} : You are not authorized`);
-          return task.of(undefined);
-        },
-        (d) => {
-          notification.success(d.status);
-          return task.of(undefined);
-        },
+        (e) => notificationT.error(`${e.message} : You are not authorized`),
+        (d) => notificationT.success(d.status),
       ),
       task.run,
     );
@@ -43,25 +37,21 @@ export function Developer() {
       api.settingRead('projects', iots.array(ProjectMetadata)),
       taskOption.fold(
         () => taskEither.right<Exception, unknown>(undefined),
-        (projects) =>
+        taskEither.traverseSeqArray((project) =>
           pipe(
-            projects,
-            taskEither.traverseSeqArray((project) =>
-              pipe(
-                deleteLocalProject(project.projectId),
-                taskEither.chain(() =>
-                  taskEither.tryCatch(
-                    () =>
-                      //ignore errors
-                      removeFile(`project_${project.projectId}.json`, {
-                        dir: BaseDirectory.AppLocalData,
-                      }).catch(() => undefined),
-                    fromError,
-                  ),
-                ),
+            deleteLocalProject(project.projectId),
+            taskEither.chain(() =>
+              taskEither.tryCatch(
+                () =>
+                  //ignore errors
+                  removeFile(`project_${project.projectId}.json`, {
+                    dir: BaseDirectory.AppLocalData,
+                  }).catch(() => undefined),
+                fromError,
               ),
             ),
           ),
+        ),
       ),
       taskEither.alt(() => taskEither.right<Exception, unknown>(undefined)),
       taskEither.chain(() =>
@@ -77,14 +67,8 @@ export function Developer() {
         }, fromError),
       ),
       taskEither.fold(
-        (e) => {
-          notification.error(`${e.message} : You are not authorized`);
-          return task.of(undefined);
-        },
-        () => {
-          notification.success('deleted config data');
-          return task.of(undefined);
-        },
+        (e) => notificationT.error(`${e.message} : You are not authorized`),
+        () => notificationT.success('deleted config data'),
       ),
       task.map(() => {
         dispatchContext({ authState: globalAuthState.notAuthorized(), currentPage: routes.main() });
