@@ -13,7 +13,6 @@ import { VStack } from '../foundation/Layout';
 import { notification } from '../helper/notifications';
 import { deleteLocalProject } from './projects/hooks/useProjectRemove';
 
-// Remove the directory `$APPDATA/users`
 
 export function Developer() {
   const [, dispatchContext] = useGlobalContextWithActions();
