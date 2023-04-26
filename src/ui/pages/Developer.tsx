@@ -26,10 +26,6 @@ export function Developer() {
         payload: {},
         codec: iots.strict({ status: iots.string }),
       }),
-      task.map((a) => {
-        console.log(a);
-        return a;
-      }),
       taskEither.fold(
         (e) => {
           notification.error({ message: e.message, description: 'You are not authorized' });
