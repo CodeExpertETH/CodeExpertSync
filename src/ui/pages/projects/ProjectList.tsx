@@ -1,19 +1,35 @@
-import { nonEmptyArray, option, pipe } from '@code-expert/prelude';
+import { nonEmptyArray, option, pipe, task, taskEither } from '@code-expert/prelude';
 import { Button, List, Result } from 'antd';
 import React from 'react';
 
-import { ProjectMetadata } from '../../../domain/Project';
+import { ProjectId, ProjectMetadata } from '../../../domain/Project';
 import { ActionMenu } from '../../components/ActionMenu';
 import { Icon } from '../../foundation/Icons';
 import { Box, HStack } from '../../foundation/Layout';
+import { notificationT } from '../../helper/notifications';
 import { useProjectRemove } from './hooks/useProjectRemove';
 import { useProjectSync } from './hooks/useProjectSync';
 
 export const ProjectList = (props: { projects: ProjectMetadata[]; updateProjects: () => void }) => {
+  const [loading, setLoading] = React.useState(false);
   const [removeProject] = useProjectRemove(() => {
     props.updateProjects();
   });
-  const [syncProject] = useProjectSync();
+  const [syncProjectM] = useProjectSync();
+
+  const syncProject = (projectId: ProjectId, projectName: string) => {
+    void pipe(
+      task.fromIO(() => setLoading(true)),
+      task.chain(() => syncProjectM(projectId, projectName)),
+      taskEither.fold(
+        (e) => notificationT.error(e),
+        () => notificationT.success(`The project ${projectName} was synced successfully.`),
+      ),
+      task.chainIOK(() => () => setLoading(false)),
+      task.run,
+    );
+  };
+
   return pipe(
     props.projects,
     nonEmptyArray.fromArray,
@@ -43,6 +59,7 @@ export const ProjectList = (props: { projects: ProjectMetadata[]; updateProjects
               </Box>
             </HStack>
           }
+          loading={loading}
           itemLayout="horizontal"
           dataSource={projects}
           renderItem={(project) => (
@@ -57,7 +74,7 @@ export const ProjectList = (props: { projects: ProjectMetadata[]; updateProjects
                         key: 'sync',
                         icon: <Icon name="sync" />,
                         onClick: () => {
-                          syncProject(project.projectId, project.projectName);
+                          void syncProject(project.projectId, project.projectName);
                         },
                       },
                       { type: 'divider' },
