@@ -13,7 +13,6 @@ import { VStack } from '../foundation/Layout';
 import { notification } from '../helper/notifications';
 import { deleteLocalProject } from './projects/hooks/useProjectRemove';
 
-
 export function Developer() {
   const [, dispatchContext] = useGlobalContextWithActions();
 
@@ -27,7 +26,7 @@ export function Developer() {
       }),
       taskEither.fold(
         (e) => {
-          notification.error({ message: e.message, description: 'You are not authorized' });
+          notification.error(`${e.message} : You are not authorized`);
           return task.of(undefined);
         },
         (d) => {
@@ -79,7 +78,7 @@ export function Developer() {
       ),
       taskEither.fold(
         (e) => {
-          notification.error({ message: e.message, description: 'You are not authorized' });
+          notification.error(`${e.message} : You are not authorized`);
           return task.of(undefined);
         },
         () => {
