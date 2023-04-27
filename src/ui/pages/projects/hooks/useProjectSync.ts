@@ -9,6 +9,7 @@ import {
   pipe,
   string,
   tagged,
+  task,
   taskEither,
   taskOption,
   tree,
@@ -68,14 +69,17 @@ function writeSingeFile({
   return pipe(
     taskEither.Do,
     taskEither.bind('systemFilePath', () => pathJoin(projectDir, projectFilePath)),
-    taskEither.chainFirst(() =>
-      createSignedAPIRequest({
-        path: `project/${projectId}/file`,
-        method: 'GET',
-        payload: { path: projectFilePath },
-        codec: iots.string,
-        responseType: ResponseType.Text,
-      }),
+    taskEither.chainFirst(({ systemFilePath }) =>
+      pipe(
+        createSignedAPIRequest({
+          path: `project/${projectId}/file`,
+          method: 'GET',
+          payload: { path: projectFilePath },
+          codec: iots.string,
+          responseType: ResponseType.Text,
+        }),
+        taskEither.chainW((fileContent) => api.writeFile(systemFilePath, fileContent)),
+      ),
     ),
     taskEither.bindW('hash', ({ systemFilePath }) => api.getFileHash(systemFilePath)),
     taskEither.map(({ systemFilePath, hash }) => ({
@@ -88,39 +92,45 @@ function writeSingeFile({
   );
 }
 
+const addHash = ({ path, type }: { path: string; type: 'file' }) =>
+  pipe(
+    api.getFileHash(path),
+    taskEither.map((hash) => ({ path, type, hash })),
+  );
+
+const isFile = <E extends { type: FileEntryType }>(e: E): e is E & { type: 'file' } =>
+  e.type === 'file';
+
 const getProjectInfoLocal = (
   projectDir: string,
-): taskEither.TaskEither<Exception, Array<LocalFileState>> =>
+): taskEither.TaskEither<Exception, option.Option<Array<LocalFileState>>> =>
   pipe(
-    taskEither.tryCatch(() => fs.readDir(projectDir), fromError),
-    taskEither.map(
+    taskOption.tryCatch(() => fs.readDir(projectDir, { recursive: true })),
+    taskOption.map(
       flow(
         (files) =>
-          tree.make(
+          tree.make<{ path: string; type: FileEntryType }>(
             { path: projectDir, type: 'dir' },
             tree.unfoldForest(files, ({ path, children }) => [
-              { path, type: children == null ? 'dir' : 'file' },
+              { path, type: children == null ? 'file' : 'dir' },
               children ?? [],
             ]),
           ),
-        tree.foldMap(array.getMonoid<{ path: string }>())((entry) =>
-          entry.type === 'file' ? array.of(entry) : [],
+        tree.foldMap(array.getMonoid<{ path: string; type: 'file' }>())((entry) =>
+          isFile(entry) ? array.of(entry) : [],
         ),
       ),
     ),
-    taskEither.chain(
-      taskEither.traverseArray(({ path }) =>
-        pipe(
-          api.getFileHash(path),
-          taskEither.map((hash) => ({ path, hash })),
-        ),
+    task.chain(
+      option.traverse(taskEither.ApplicativePar)(
+        flow(taskEither.traverseArray(addHash), taskEither.map(array.unsafeFromReadonly)),
       ),
     ),
-    taskEither.map(array.unsafeFromReadonly),
   );
 
 interface RemoteFileState {
   path: string;
+  type: FileEntryType;
   version: number;
 }
 
@@ -137,6 +147,7 @@ const remoteFileChange = tagged.build<RemoteFileChange['change']>();
 
 interface LocalFileState {
   path: string;
+  type: FileEntryType;
   hash: string;
 }
 
@@ -159,21 +170,29 @@ const getRemoteChanges = (
   previous: Array<RemoteFileState>,
   latest: Array<RemoteFileState>,
 ): option.Option<NonEmptyArray<RemoteFileChange>> => {
-  const removed: Array<RemoteFileChange> = pipe(
+  const previousFiles = pipe(
     previous,
-    array.difference<RemoteFileState>(eqPath)(latest),
+    array.filter((e) => e.type === 'file'),
+  );
+  const latestFiles = pipe(
+    latest,
+    array.filter((e) => e.type === 'file'),
+  );
+  const removed: Array<RemoteFileChange> = pipe(
+    previousFiles,
+    array.difference<RemoteFileState>(eqPath)(latestFiles),
     array.map(({ path }) => ({ path, change: remoteFileChange.removed() })),
   );
   const added: Array<RemoteFileChange> = pipe(
-    latest,
-    array.difference<RemoteFileState>(eqPath)(previous),
+    latestFiles,
+    array.difference<RemoteFileState>(eqPath)(previousFiles),
     array.map(({ path, version }) => ({ path, change: remoteFileChange.added(version) })),
   );
   const updated: Array<RemoteFileChange> = pipe(
-    previous,
+    previousFiles,
     array.filter((ls) =>
       pipe(
-        latest,
+        latestFiles,
         array.findFirst((cs) => cs.path === ls.path),
         option.exists((cs) => cs.version !== ls.version),
       ),
@@ -191,21 +210,29 @@ const getLocalChanges = (
   previous: Array<LocalFileState>,
   latest: Array<LocalFileState>,
 ): option.Option<NonEmptyArray<LocalFileChange>> => {
-  const removed: Array<LocalFileChange> = pipe(
+  const previousFiles = pipe(
     previous,
-    array.difference<LocalFileState>(eqPath)(latest),
+    array.filter((e) => e.type === 'file'),
+  );
+  const latestFiles = pipe(
+    latest,
+    array.filter((e) => e.type === 'file'),
+  );
+  const removed: Array<LocalFileChange> = pipe(
+    previousFiles,
+    array.difference<LocalFileState>(eqPath)(latestFiles),
     array.map(({ path }) => ({ path, change: localFileChange.removed() })),
   );
   const added: Array<LocalFileChange> = pipe(
-    latest,
-    array.difference<LocalFileState>(eqPath)(previous),
+    latestFiles,
+    array.difference<LocalFileState>(eqPath)(previousFiles),
     array.map(({ path }) => ({ path, change: localFileChange.added() })),
   );
   const updated: Array<LocalFileChange> = pipe(
-    previous,
+    previousFiles,
     array.filter((ls) =>
       pipe(
-        latest,
+        latestFiles,
         array.findFirst((cs) => cs.path === ls.path),
         option.exists((cs) => cs.hash !== ls.hash),
       ),
@@ -272,13 +299,14 @@ export const useProjectSync = () =>
         ),
         taskEither.let('localChanges', ({ projectInfoLocal, projectInfoPrevious }) =>
           pipe(
-            projectInfoPrevious,
-            option.chain((previous) => getLocalChanges(previous.files, projectInfoLocal)),
+            option.sequenceS({ local: projectInfoLocal, previous: projectInfoPrevious }),
+            option.chain(({ local, previous }) => getLocalChanges(previous.files, local)),
           ),
         ),
         taskEither.bind('updatedProjectInfo', ({ projectInfoRemote, projectDir }) =>
           pipe(
             projectInfoRemote.files,
+            array.filter((f) => f.type === 'file'),
             taskEither.traverseSeqArray(({ path, permissions, type, version }) =>
               writeSingeFile({
                 projectFilePath: path,
