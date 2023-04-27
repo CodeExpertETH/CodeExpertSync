@@ -2,7 +2,7 @@ import { nonEmptyArray, option, pipe, task, taskEither } from '@code-expert/prel
 import { Button, List, Result } from 'antd';
 import React from 'react';
 
-import { ProjectId, ProjectMetadata } from '../../../domain/Project';
+import { ExtendedProjectMetadata, ProjectId } from '../../../domain/Project';
 import { ActionMenu } from '../../components/ActionMenu';
 import { Icon } from '../../foundation/Icons';
 import { Box, HStack } from '../../foundation/Layout';
@@ -11,7 +11,10 @@ import { useProjectOpen } from './hooks/useProjectOpen';
 import { useProjectRemove } from './hooks/useProjectRemove';
 import { useProjectSync } from './hooks/useProjectSync';
 
-export const ProjectList = (props: { projects: ProjectMetadata[]; updateProjects: () => void }) => {
+export const ProjectList = (props: {
+  projects: ExtendedProjectMetadata[];
+  updateProjects: () => void;
+}) => {
   const [loading, setLoading] = React.useState(false);
   const [removeProject] = useProjectRemove(() => {
     props.updateProjects();
@@ -74,6 +77,7 @@ export const ProjectList = (props: { projects: ProjectMetadata[]; updateProjects
                       {
                         label: 'Open path',
                         key: 'open',
+                        disabled: project.syncState._tag === 'notSynced',
                         icon: <Icon name="folder-open-regular" />,
                         onClick: () => {
                           void openProject(project.projectId);
