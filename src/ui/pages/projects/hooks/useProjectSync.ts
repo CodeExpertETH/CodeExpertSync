@@ -14,7 +14,7 @@ import {
   taskOption,
   tree,
 } from '@code-expert/prelude';
-import { fs, path } from '@tauri-apps/api';
+import { fs, path as tauriPath } from '@tauri-apps/api';
 import { ResponseType } from '@tauri-apps/api/http';
 import { api } from 'api';
 import React from 'react';
@@ -23,7 +23,7 @@ import { ProjectId } from '../../../../domain/Project';
 import { createSignedAPIRequest } from '../../../../domain/createAPIRequest';
 import { Exception, fromError, invariantViolated } from '../../../../domain/exception';
 
-const pathJoin = taskEither.tryCatchK(path.join, fromError);
+const pathJoin = taskEither.tryCatchK(tauriPath.join, fromError);
 
 const FilePermissionsC = iots.keyof({ r: null, rw: null });
 type FilePermissions = iots.TypeOf<typeof FilePermissionsC>;
@@ -82,8 +82,8 @@ function writeSingeFile({
       ),
     ),
     taskEither.bindW('hash', ({ systemFilePath }) => api.getFileHash(systemFilePath)),
-    taskEither.map(({ systemFilePath, hash }) => ({
-      path: systemFilePath,
+    taskEither.map(({ hash }) => ({
+      path: projectFilePath,
       version,
       hash,
       type,
@@ -92,11 +92,14 @@ function writeSingeFile({
   );
 }
 
-const addHash = ({ path, type }: { path: string; type: 'file' }) =>
-  pipe(
-    api.getFileHash(path),
-    taskEither.map((hash) => ({ path, type, hash })),
-  );
+const addHash =
+  (projectDir: string) =>
+  ({ path, type }: { path: string; type: 'file' }) =>
+    pipe(
+      pathJoin(projectDir, path),
+      taskEither.chain(api.getFileHash),
+      taskEither.map((hash) => ({ path, type, hash })),
+    );
 
 const isFile = <E extends { type: FileEntryType }>(e: E): e is E & { type: 'file' } =>
   e.type === 'file';
@@ -116,6 +119,10 @@ const getProjectInfoLocal = (
               children ?? [],
             ]),
           ),
+        tree.map(({ path, type }) => ({
+          path: `.${path.slice(projectDir.length)}`,
+          type,
+        })),
         tree.foldMap(array.getMonoid<{ path: string; type: 'file' }>())((entry) =>
           isFile(entry) ? array.of(entry) : [],
         ),
@@ -123,7 +130,10 @@ const getProjectInfoLocal = (
     ),
     task.chain(
       option.traverse(taskEither.ApplicativePar)(
-        flow(taskEither.traverseArray(addHash), taskEither.map(array.unsafeFromReadonly)),
+        flow(
+          taskEither.traverseArray(addHash(projectDir)),
+          taskEither.map(array.unsafeFromReadonly),
+        ),
       ),
     ),
   );
