@@ -14,7 +14,7 @@
     "allowlist": {
       "all": false,
       "fs": {
-        "all": true,
+        "all": false,
         "scope": ["$APPLOCALDATA/*", "*/**", "$HOME/*"]
       },
       "dialog": {
@@ -22,7 +22,7 @@
       },
       "shell": {
         "all": false,
-        "open": true
+        "open": "/.*"
       },
       "http": {
         "all": true,

@@ -7,6 +7,7 @@ import { ActionMenu } from '../../components/ActionMenu';
 import { Icon } from '../../foundation/Icons';
 import { Box, HStack } from '../../foundation/Layout';
 import { notificationT } from '../../helper/notifications';
+import { useProjectOpen } from './hooks/useProjectOpen';
 import { useProjectRemove } from './hooks/useProjectRemove';
 import { useProjectSync } from './hooks/useProjectSync';
 
@@ -15,6 +16,7 @@ export const ProjectList = (props: { projects: ProjectMetadata[]; updateProjects
   const [removeProject] = useProjectRemove(() => {
     props.updateProjects();
   });
+  const [openProject] = useProjectOpen();
   const syncProjectM = useProjectSync();
 
   const syncProject = (projectId: ProjectId, projectName: string) => {
@@ -69,6 +71,14 @@ export const ProjectList = (props: { projects: ProjectMetadata[]; updateProjects
                   label={'Actions'}
                   menu={{
                     items: [
+                      {
+                        label: 'Open path',
+                        key: 'open',
+                        icon: <Icon name="folder-open-regular" />,
+                        onClick: () => {
+                          void openProject(project.projectId);
+                        },
+                      },
                       {
                         label: 'Sync to local computer',
                         key: 'sync',
