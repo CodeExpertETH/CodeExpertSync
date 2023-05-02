@@ -1,17 +1,54 @@
 # Code Expert Desktop
 
-This repo contains the desktop app of Code Expert, which will allow you to sync your files from the Code Expert IDE with your local file system.
+Code Expert Desktop allows syncing projects to a local file system. This allows students and lecturers to edit code with their own IDE and create local backups.
 
-## Recommended IDE Setup
+## Installation
+
+### Linux
+- Gnome requires the [Tray Icons: Reloaded](https://extensions.gnome.org/extension/2890/tray-icons-reloaded/) extension to show system trays.
+
+## Development
+
+### Prerequisites
+
+- [Tauri environment](https://tauri.app/v1/guides/getting-started/prerequisites)
+- [Node.js](https://nodejs.org/en)
+- [Yarn](https://yarnpkg.com/getting-started/install)
+
+### Recommended IDE Setup
 
 - [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
 
-## Setup
+### Run locally
 
- - Install prerequisites: https://tauri.app/v1/guides/getting-started/prerequisites
- - Install dependencies: `yarn`
- - Start the app: `yarn tauri dev`
+Install or update dependencies
 
-### Gnome
+```shell
+  yarn
+```
 
-Gnome requires https://extensions.gnome.org/extension/2890/tray-icons-reloaded/ to show system trays.
+Start the app
+
+```shell
+  yarn dev
+```
+
+### Tests
+
+Run unit tests during development
+
+```shell
+  yarn watch:test
+```
+
+Lint the project
+
+```shell
+  yarn lint
+```
+
+Run all tests
+
+```shell
+  yarn test
+```
