@@ -19,7 +19,7 @@ import { ResponseType } from '@tauri-apps/api/http';
 import { api } from 'api';
 import React from 'react';
 
-import { ProjectId } from '../../../../domain/Project';
+import { ProjectId, ProjectMetadata } from '../../../../domain/Project';
 import { createSignedAPIRequest } from '../../../../domain/createAPIRequest';
 import { Exception, fromError, invariantViolated } from '../../../../domain/exception';
 
@@ -282,7 +282,7 @@ const getPreviousProjectInfo = (projectId: ProjectId, projectDir: string) =>
 
 export const useProjectSync = () =>
   React.useCallback(
-    (projectId: ProjectId, projectName: string) =>
+    (project: ProjectMetadata) =>
       pipe(
         taskEither.Do,
         taskEither.bind('projectDir', () =>
@@ -293,13 +293,21 @@ export const useProjectSync = () =>
                 'No project dir was found. Have you chosen a directory in the settings?',
               ),
             ),
-            taskEither.chain((projectDir) => pathJoin(projectDir, projectName)),
+            taskEither.chain((projectDir) =>
+              pathJoin(
+                projectDir,
+                project.semester,
+                project.courseName,
+                project.exerciseName,
+                project.taskName,
+              ),
+            ),
           ),
         ),
         taskEither.bindTaskK('projectInfoPrevious', ({ projectDir }) =>
-          getPreviousProjectInfo(projectId, projectDir),
+          getPreviousProjectInfo(project.projectId, projectDir),
         ),
-        taskEither.bind('projectInfoRemote', () => getProjectInfoRemote(projectId)),
+        taskEither.bind('projectInfoRemote', () => getProjectInfoRemote(project.projectId)),
         taskEither.bindW('projectInfoLocal', ({ projectDir }) => getProjectInfoLocal(projectDir)),
         taskEither.let('remoteChanges', ({ projectInfoRemote, projectInfoPrevious }) =>
           pipe(
@@ -320,7 +328,7 @@ export const useProjectSync = () =>
             taskEither.traverseSeqArray(({ path, permissions, type, version }) =>
               writeSingeFile({
                 projectFilePath: path,
-                projectId,
+                projectId: project.projectId,
                 projectDir,
                 type,
                 version,
@@ -331,7 +339,7 @@ export const useProjectSync = () =>
           ),
         ),
         taskEither.chainFirstTaskK(({ updatedProjectInfo, projectDir }) =>
-          writeProjectConfig(projectId, {
+          writeProjectConfig(project.projectId, {
             files: updatedProjectInfo,
             dir: projectDir,
           }),
