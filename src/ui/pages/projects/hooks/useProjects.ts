@@ -1,24 +1,43 @@
-import { iots, option, pipe, remoteData, task, taskEither } from '@code-expert/prelude';
+import { array, iots, pipe, remoteData, task, taskEither, taskOption } from '@code-expert/prelude';
 import { api } from 'api';
 import React from 'react';
 
-import { ProjectMetadata } from '../../../../domain/Project';
+import {
+  ExtendedProjectMetadata,
+  ProjectMetadata,
+  ProjectSyncState,
+  projectSyncState,
+} from '../../../../domain/Project';
 import { createSignedAPIRequest } from '../../../../domain/createAPIRequest';
 import { Exception } from '../../../../domain/exception';
 import { useRaceState } from '../../../hooks/useRaceState';
 
-export const useProjects = () => {
-  const [state, mkSetState] = useRaceState<remoteData.RemoteData<Exception, ProjectMetadata[]>>(
-    remoteData.initial,
+const getSyncState = (projects: Array<ProjectMetadata>) =>
+  pipe(
+    projects,
+    task.traverseArray((project) =>
+      pipe(
+        api.readConfigFile(`project_${project.projectId}.json`, iots.strict({ dir: iots.string })),
+        taskOption.matchW(projectSyncState.notSynced, projectSyncState.synced),
+        task.map((syncState: ProjectSyncState) => ({ ...project, syncState })),
+      ),
+    ),
+    task.map(array.unsafeFromReadonly),
   );
+
+export const useProjects = () => {
+  const [state, mkSetState] = useRaceState<
+    remoteData.RemoteData<Exception, Array<ExtendedProjectMetadata>>
+  >(remoteData.initial);
 
   React.useEffect(() => {
     const setState = mkSetState();
     void pipe(
       api.settingRead('projects', iots.array(ProjectMetadata)),
-      task.map(option.getOrElse(() => [] as ProjectMetadata[])),
+      taskOption.getOrElseW(() => task.of([])),
+      task.chain(getSyncState),
       task.map(remoteData.success),
-      task.map(setState),
+      task.chainIOK((s) => () => setState(s)),
       task.run,
     );
   }, [mkSetState]);
@@ -32,13 +51,10 @@ export const useProjects = () => {
         payload: {},
         codec: iots.array(ProjectMetadata),
       }),
-      task.map((e) => {
-        console.log(e);
-        return e;
-      }),
       taskEither.chainFirstTaskK((projects) => api.settingWrite('projects', projects)),
+      taskEither.chainTaskK(getSyncState),
       taskEither.map(remoteData.success),
-      taskEither.map(setState),
+      taskEither.chainIOK((s) => () => setState(s)),
       task.run,
     );
   }, [mkSetState]);

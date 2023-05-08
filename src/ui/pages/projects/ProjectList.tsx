@@ -2,19 +2,24 @@ import { nonEmptyArray, option, pipe, task, taskEither } from '@code-expert/prel
 import { Button, List, Result } from 'antd';
 import React from 'react';
 
-import { ProjectId, ProjectMetadata } from '../../../domain/Project';
+import { ExtendedProjectMetadata, ProjectId, projectSyncState } from '../../../domain/Project';
 import { ActionMenu } from '../../components/ActionMenu';
 import { Icon } from '../../foundation/Icons';
 import { Box, HStack } from '../../foundation/Layout';
 import { notificationT } from '../../helper/notifications';
+import { useProjectOpen } from './hooks/useProjectOpen';
 import { useProjectRemove } from './hooks/useProjectRemove';
 import { useProjectSync } from './hooks/useProjectSync';
 
-export const ProjectList = (props: { projects: ProjectMetadata[]; updateProjects: () => void }) => {
+export const ProjectList = (props: {
+  projects: ExtendedProjectMetadata[];
+  updateProjects: () => void;
+}) => {
   const [loading, setLoading] = React.useState(false);
   const [removeProject] = useProjectRemove(() => {
     props.updateProjects();
   });
+  const [openProject] = useProjectOpen();
   const syncProjectM = useProjectSync();
 
   const syncProject = (projectId: ProjectId, projectName: string) => {
@@ -69,6 +74,13 @@ export const ProjectList = (props: { projects: ProjectMetadata[]; updateProjects
                   label={'Actions'}
                   menu={{
                     items: [
+                      {
+                        label: 'Open directory',
+                        key: 'open',
+                        disabled: projectSyncState.is.notSynced(project.syncState),
+                        icon: <Icon name="folder-open-regular" />,
+                        onClick: openProject(project.projectId),
+                      },
                       {
                         label: 'Sync to local computer',
                         key: 'sync',
