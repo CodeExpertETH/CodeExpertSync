@@ -51,7 +51,7 @@ export const api: Api = {
       taskEither.tryCatch(async () => {
         const dir = await dirname(filePath);
         if (!(await exists(dir))) {
-          await createDir(dir);
+          await createDir(dir, { recursive: true });
         }
       }, fromError),
       taskEither.chain(() =>
