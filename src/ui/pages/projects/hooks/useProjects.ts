@@ -5,6 +5,7 @@ import React from 'react';
 import {
   ExtendedProjectMetadata,
   ProjectMetadata,
+  ProjectSyncState,
   projectSyncState,
 } from '../../../../domain/Project';
 import { createSignedAPIRequest } from '../../../../domain/createAPIRequest';
@@ -17,11 +18,8 @@ const getSyncState = (projects: Array<ProjectMetadata>) =>
     task.traverseArray((project) =>
       pipe(
         api.readConfigFile(`project_${project.projectId}.json`, iots.strict({ dir: iots.string })),
-        taskOption.foldW(
-          () => task.of(projectSyncState.notSynced()),
-          ({ dir }) => task.of(projectSyncState.synced({ dir })),
-        ),
-        task.map((syncState) => ({ ...project, syncState })),
+        taskOption.matchW(projectSyncState.notSynced, projectSyncState.synced),
+        task.map((syncState: ProjectSyncState) => ({ ...project, syncState })),
       ),
     ),
     task.map(array.unsafeFromReadonly),
@@ -36,10 +34,10 @@ export const useProjects = () => {
     const setState = mkSetState();
     void pipe(
       api.settingRead('projects', iots.array(ProjectMetadata)),
-      taskOption.chainTaskK(getSyncState),
       taskOption.getOrElseW(() => task.of([])),
+      task.chain(getSyncState),
       task.map(remoteData.success),
-      task.map(setState),
+      task.chainIOK((s) => () => setState(s)),
       task.run,
     );
   }, [mkSetState]);
@@ -56,7 +54,7 @@ export const useProjects = () => {
       taskEither.chainFirstTaskK((projects) => api.settingWrite('projects', projects)),
       taskEither.chainTaskK(getSyncState),
       taskEither.map(remoteData.success),
-      taskEither.map(setState),
+      taskEither.chainIOK((s) => () => setState(s)),
       task.run,
     );
   }, [mkSetState]);

@@ -2,7 +2,7 @@ import { nonEmptyArray, option, pipe, task, taskEither } from '@code-expert/prel
 import { Button, List, Result } from 'antd';
 import React from 'react';
 
-import { ExtendedProjectMetadata, ProjectId } from '../../../domain/Project';
+import { ExtendedProjectMetadata, ProjectId, projectSyncState } from '../../../domain/Project';
 import { ActionMenu } from '../../components/ActionMenu';
 import { Icon } from '../../foundation/Icons';
 import { Box, HStack } from '../../foundation/Layout';
@@ -75,13 +75,11 @@ export const ProjectList = (props: {
                   menu={{
                     items: [
                       {
-                        label: 'Open path',
+                        label: 'Open directory',
                         key: 'open',
-                        disabled: project.syncState._tag === 'notSynced',
+                        disabled: projectSyncState.is.notSynced(project.syncState),
                         icon: <Icon name="folder-open-regular" />,
-                        onClick: () => {
-                          void openProject(project.projectId);
-                        },
+                        onClick: openProject(project.projectId),
                       },
                       {
                         label: 'Sync to local computer',

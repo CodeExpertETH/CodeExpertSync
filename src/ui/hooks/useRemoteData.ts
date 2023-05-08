@@ -26,6 +26,8 @@ export function useRemoteData<P, A>(run: (props: P) => task.Task<A>) {
     },
   });
 
+  current.run = run;
+
   return [state, current.refresh] as const;
 }
 
