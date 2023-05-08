@@ -3,7 +3,13 @@ import { Body, Response, ResponseType, fetch } from '@tauri-apps/api/http';
 import { api } from 'api';
 
 import { ClientId } from './ClientId';
-import { EntityNotFoundException, fromError, invalid } from './exception';
+import {
+  EntityNotFoundException,
+  Exception,
+  fromError,
+  invalid,
+  invariantViolated,
+} from './exception';
 
 export function createTokenWithClientId(payload: Record<string, unknown>) {
   return (clientId: ClientId) =>
@@ -42,26 +48,36 @@ function sendApiRequestPayload(path: string, method: 'GET' | 'POST') {
     );
 }
 
-function parseResponse() {
-  return (res: Response<unknown>) => {
-    if (!res.ok) {
-      return taskEither.left(
-        new Error(`Response error: ${(res?.data as { message: string })?.message ?? 'unknown'}`),
-      );
-    }
-    return taskEither.right(res);
-  };
-}
+const ErrorResponseC = iots.strict({
+  statusCode: iots.number,
+  error: iots.string,
+  message: iots.string,
+});
 
-function decodeResponse<P>(codec: iots.Decoder<unknown, P>) {
-  return ({ data }: Response<unknown>) =>
-    pipe(
-      data,
-      codec.decode,
-      either.mapLeft(flow(iots.formatValidationErrors, invalid)),
-      either.getOrThrow(fromError),
-    );
-}
+const parseResponse: (response: Response<unknown>) => either.Either<Exception, unknown> = flow(
+  either.fromPredicate(
+    (r) => r.ok,
+    (r) => r.data,
+  ),
+  either.bimap(
+    flow(
+      ErrorResponseC.decode,
+      either.fold(
+        () => 'Unknown',
+        (data) => data.message,
+      ),
+      invariantViolated,
+    ),
+    (r) => r.data,
+  ),
+);
+
+const decodeResponse = <P>(codec: iots.Decoder<unknown, P>): ((data: unknown) => P) =>
+  flow(
+    codec.decode,
+    either.mapLeft(flow(iots.formatValidationErrors, invalid)),
+    either.getOrThrow(fromError),
+  );
 
 export const createToken = (payload: Record<string, unknown>) =>
   pipe(
@@ -89,7 +105,7 @@ export const createSignedAPIRequest = <P>({
   pipe(
     createToken(payload),
     taskEither.chain(sendApiRequest(path, method, responseType)),
-    taskEither.chain(parseResponse()),
+    taskEither.chainEitherK(parseResponse),
     taskEither.map(decodeResponse(codec)),
   );
 
@@ -107,6 +123,6 @@ export const createAPIRequest = <P extends object | undefined>({
   pipe(
     payload,
     sendApiRequestPayload(path, method),
-    taskEither.chain(parseResponse()),
+    taskEither.chainEitherK(parseResponse),
     taskEither.map(decodeResponse(codec)),
   );
