@@ -25,7 +25,7 @@ export interface Api {
   writeFile(filePath: string, content: string): taskEither.TaskEither<Exception, void>;
   removeDir(filePath: string): taskEither.TaskEither<Exception, void>;
   getFileHash(filePath: string): taskEither.TaskEither<Exception, string>;
-  makePathReadOnly(filePath: string): taskEither.TaskEither<Exception, void>;
+  createProjectDir(filePath: string): taskEither.TaskEither<Exception, void>;
   readConfigFile<T>(name: string, decoder: iots.Decoder<unknown, T>): taskOption.TaskOption<T>;
   hasConfigFile(name: string): task.Task<boolean>;
   logout(): taskOption.TaskOption<void>;
@@ -62,8 +62,8 @@ export const api: Api = {
   removeDir: (filePath) =>
     taskEither.tryCatch(() => removeDir(filePath, { recursive: true }), fromError),
   getFileHash: (path) => taskEither.tryCatch(() => invoke('get_file_hash', { path }), fromError),
-  makePathReadOnly: (path) =>
-    taskEither.tryCatch(() => invoke('make_readonly', { path }), fromError),
+  createProjectDir: (path) =>
+    taskEither.tryCatch(() => invoke('create_project_dir', { path }), fromError),
   writeConfigFile: (name, value) =>
     taskEither.tryCatch(
       () => writeTextFile(name, JSON.stringify(value), { dir: BaseDirectory.AppLocalData }),

@@ -320,6 +320,7 @@ export const useProjectSync = () =>
             option.chain(({ local, previous }) => getLocalChanges(previous.files, local)),
           ),
         ),
+        taskEither.chainFirstW(({ projectDir }) => api.createProjectDir(projectDir)),
         taskEither.bind('updatedProjectInfo', ({ projectInfoRemote, projectDir }) =>
           pipe(
             projectInfoRemote.files,
@@ -335,24 +336,6 @@ export const useProjectSync = () =>
               }),
             ),
             taskEither.map(array.unsafeFromReadonly),
-          ),
-        ),
-        taskEither.chainFirstTaskK(({ rootDir }) =>
-          pipe(
-            pathJoin(rootDir, project.semester),
-            taskEither.map((x) => {
-              console.log(x);
-              return x;
-            }),
-            taskEither.chainFirst(api.makePathReadOnly),
-            taskEither.chain((path) => pathJoin(path, project.courseName)),
-            taskEither.chainFirst(api.makePathReadOnly),
-            taskEither.chain((path) => pathJoin(path, project.exerciseName)),
-            taskEither.chain(api.makePathReadOnly),
-            taskEither.mapLeft((e) => {
-              console.log(e);
-              return e;
-            }),
           ),
         ),
         taskEither.chainFirstTaskK(({ updatedProjectInfo, projectDir }) =>
