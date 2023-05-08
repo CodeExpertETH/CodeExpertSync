@@ -284,7 +284,7 @@ export const useProjectSync = () =>
     (project: ProjectMetadata) =>
       pipe(
         taskEither.Do,
-        taskEither.bind('projectDir', () =>
+        taskEither.bind('rootDir', () =>
           pipe(
             api.settingRead('projectDir', iots.string),
             taskEither.fromTaskOption(() =>
@@ -292,15 +292,15 @@ export const useProjectSync = () =>
                 'No project dir was found. Have you chosen a directory in the settings?',
               ),
             ),
-            taskEither.chain((projectDir) =>
-              pathJoin(
-                projectDir,
-                project.semester,
-                project.courseName,
-                project.exerciseName,
-                project.taskName,
-              ),
-            ),
+          ),
+        ),
+        taskEither.bind('projectDir', ({ rootDir }) =>
+          pathJoin(
+            rootDir,
+            project.semester,
+            project.courseName,
+            project.exerciseName,
+            project.taskName,
           ),
         ),
         taskEither.bindTaskK('projectInfoPrevious', ({ projectDir }) =>
@@ -335,6 +335,24 @@ export const useProjectSync = () =>
               }),
             ),
             taskEither.map(array.unsafeFromReadonly),
+          ),
+        ),
+        taskEither.chainFirstTaskK(({ rootDir }) =>
+          pipe(
+            pathJoin(rootDir, project.semester),
+            taskEither.map((x) => {
+              console.log(x);
+              return x;
+            }),
+            taskEither.chainFirst(api.makePathReadOnly),
+            taskEither.chain((path) => pathJoin(path, project.courseName)),
+            taskEither.chainFirst(api.makePathReadOnly),
+            taskEither.chain((path) => pathJoin(path, project.exerciseName)),
+            taskEither.chain(api.makePathReadOnly),
+            taskEither.mapLeft((e) => {
+              console.log(e);
+              return e;
+            }),
           ),
         ),
         taskEither.chainFirstTaskK(({ updatedProjectInfo, projectDir }) =>

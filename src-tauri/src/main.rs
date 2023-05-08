@@ -42,7 +42,8 @@ fn main() {
             commands::system_info::system_info,
             commands::create_keys::create_keys,
             commands::create_jwt_token::create_jwt_token,
-            commands::get_file_hash::get_file_hash
+            commands::get_file_hash::get_file_hash,
+            commands::make_readonly::make_readonly
         ])
         .build(tauri::generate_context!())
         .expect("error while running tauri application")
