@@ -15,7 +15,7 @@ export const ProjectList = (props: { projects: ProjectMetadata[]; updateProjects
   const [removeProject] = useProjectRemove(() => {
     props.updateProjects();
   });
-  const [syncProjectM] = useProjectSync();
+  const syncProjectM = useProjectSync();
 
   const syncProject = (projectId: ProjectId, projectName: string) => {
     void pipe(

@@ -2,6 +2,7 @@ import * as applicative from 'fp-ts/Applicative';
 import * as chain from 'fp-ts/Chain';
 import * as ioRef from 'fp-ts/IORef';
 import * as Identity from 'fp-ts/Identity';
+import * as json from 'fp-ts/Json';
 import * as map from 'fp-ts/Map';
 import * as monoid from 'fp-ts/Monoid';
 import * as ordering from 'fp-ts/Ordering';
@@ -76,6 +77,7 @@ export {
   ioOption,
   ioRef,
   iots,
+  json,
   map,
   monadThrow,
   monoid,

@@ -8,7 +8,7 @@ pub fn create_keys(app_handle: tauri::AppHandle) -> Result<String, String> {
     app_handle
         .path_resolver()
         .app_local_data_dir()
-        .ok_or("Did not fund local dir".to_string())
+        .ok_or("Did not find local dir".to_string())
         .map(|mut key_path| {
             key_path.push("privateKey.pem");
             key_path
