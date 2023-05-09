@@ -4,7 +4,7 @@
   "description": "",
   "scripts": {
     "setup": "scripts/setup",
-    "clean:setup": "yarn cache clean && rm -f .yarn/install-state.gz && rm -rf node_modules && find . -type f -name '*.tsbuildinfo' -delete && find packages -type d -name 'build' -exec rm -rf '{}' + -depth",
+    "clean:setup": "scripts/clean-setup",
     "build": "concurrently \"yarn:build:*\"",
     "build:ts": "dotenv -- tsc --build",
     "build:server": "dotenv -- vite build",

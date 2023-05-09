@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -eu
+
+# Delete Node artefacts
+rm -rf node_modules
+
+# Delete TypeScript artefacts
+find . -type d -name 'build' -exec rm -rf '{}' + -depth
+rm -f vite.config.d.ts*
+find . -type f -name '*.tsbuildinfo' -delete
