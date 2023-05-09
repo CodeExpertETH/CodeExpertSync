@@ -6,5 +6,5 @@
     { "path": "./packages/type-utils" },
     { "path": "./src" }
   ],
-  "files": []
+  "files": ["vite.config.ts"]
 }
