@@ -2,6 +2,7 @@ import { api } from 'api';
 import React from 'react';
 import { pipe, tagged, task, taskEither } from '@code-expert/prelude';
 import { getAccess } from '@/api/oauth/getAccess';
+import { config } from '@/config';
 import useTimeout from '@/ui/hooks/useTimeout';
 import { pkceChallenge } from '@/utils/crypto';
 import { ClientId } from './ClientId';
@@ -21,7 +22,7 @@ const startingAuthorization = (
 ): Extract<AuthState, { _tag: 'startingAuthorization' }> => {
   const { code_verifier, code_challenge } = pkceChallenge();
 
-  const redirectLink = `${api.CXUrl}/app/authorize?clientId=${clientId}&code_challenge=${code_challenge}`;
+  const redirectLink = `${config.CX_WEB_URL}/app/authorize?clientId=${clientId}&code_challenge=${code_challenge}`;
 
   return authState.startingAuthorization({ code_verifier, redirectLink });
 };
@@ -84,7 +85,9 @@ export const useAuthState = (
 
     if (authState.is.waitingForAuthorization(state)) {
       if (sse.current == null) {
-        sse.current = new EventSource(`${api.APIUrl}/app/oauth/listenForAuthToken/${clientId}`);
+        sse.current = new EventSource(
+          `${config.CX_API_URL}/app/oauth/listenForAuthToken/${clientId}`,
+        );
       }
 
       sse.current?.addEventListener('authToken', onAuthToken, { once: true });

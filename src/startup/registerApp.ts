@@ -2,6 +2,7 @@ import { invoke } from '@tauri-apps/api';
 import { getName, getVersion } from '@tauri-apps/api/app';
 import { api } from 'api';
 import { constVoid, iots, pipe, taskEither } from '@code-expert/prelude';
+import { config } from '@/config';
 import { createAPIRequest } from '@/domain/createAPIRequest';
 import { getClientToken } from './getClientToken';
 
@@ -23,7 +24,7 @@ const registerApp = async () => {
 
       return pipe(
         createAPIRequest({
-          path: `${api.APIUrl}/app/register`,
+          path: `${config.CX_API_URL}/app/register`,
           payload: requestBody,
           method: 'POST',
           codec: iots.strict({ clientId: iots.string }),

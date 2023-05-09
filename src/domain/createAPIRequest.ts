@@ -1,6 +1,7 @@
 import { Body, Response, ResponseType, fetch } from '@tauri-apps/api/http';
 import { api } from 'api';
 import { either, flow, iots, pipe, taskEither } from '@code-expert/prelude';
+import { config } from '@/config';
 import { ClientId } from './ClientId';
 import {
   EntityNotFoundException,
@@ -23,7 +24,7 @@ function sendApiRequest(path: string, method: 'GET' | 'POST', responseType: Resp
   return (token: string) =>
     taskEither.tryCatch(
       () =>
-        fetch(new URL(path, api.APIUrl).href, {
+        fetch(new URL(path, config.CX_API_URL).href, {
           method,
           headers: {
             Authorization: `Bearer ${token}`,
@@ -38,7 +39,7 @@ function sendApiRequestPayload(path: string, method: 'GET' | 'POST') {
   return (payload: Record<string, unknown>) =>
     taskEither.tryCatch(
       () =>
-        fetch(new URL(path, api.APIUrl).href, {
+        fetch(new URL(path, config.CX_API_URL).href, {
           method,
           body: Body.json(payload),
           responseType: ResponseType.JSON,
