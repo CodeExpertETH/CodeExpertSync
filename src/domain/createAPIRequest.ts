@@ -66,6 +66,7 @@ const parseResponse: (response: Response<unknown>) => either.Either<Exception, u
         () => 'Unknown',
         (data) => data.message,
       ),
+      (message) => `Response error: ${message}`,
       invariantViolated,
     ),
     (r) => r.data,
