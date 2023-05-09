@@ -6,6 +6,7 @@ import {
   ProjectMetadata,
   ProjectSyncState,
   projectSyncState,
+  readProjectConfig,
 } from '@/domain/Project';
 import { createSignedAPIRequest } from '@/domain/createAPIRequest';
 import { Exception } from '@/domain/exception';
@@ -17,7 +18,7 @@ const getSyncState = (projects: Array<ProjectMetadata>) =>
     projects,
     task.traverseArray((project) =>
       pipe(
-        api.readConfigFile(`project_${project.projectId}.json`, iots.strict({ dir: iots.string })),
+        readProjectConfig(project.projectId),
         taskOption.matchW(projectSyncState.notSynced, projectSyncState.synced),
         task.map((syncState: ProjectSyncState) => ({ ...project, syncState })),
       ),

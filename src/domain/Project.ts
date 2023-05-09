@@ -1,6 +1,6 @@
 import { api } from 'api';
 import { iots, pipe, tagged, taskEither } from '@code-expert/prelude';
-import { Exception, invariantViolated } from '@/domain/exception';
+import { Exception } from '@/domain/exception';
 import { mkEntityIdCodec } from '@/utils/identity';
 
 export const ProjectIdBrand = Symbol('ProjectId');
@@ -74,14 +74,6 @@ export const verifyProjectExistsLocal = (
 
 export const readProjectConfig = (projectId: ProjectId) =>
   api.readConfigFile(`project_${projectId}.json`, ProjectConfigC);
-
-export const loadProjectConfig = (project: ProjectMetadata) =>
-  pipe(
-    readProjectConfig(project.projectId),
-    taskEither.fromTaskOption(() =>
-      invariantViolated('No project info was found. Please contact the developers.'),
-    ),
-  );
 
 export const writeProjectConfig = (projectId: ProjectId, projectConfig: Readonly<ProjectConfig>) =>
   api.writeConfigFile(`project_${projectId}.json`, projectConfig);
