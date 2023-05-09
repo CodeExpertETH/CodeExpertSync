@@ -1,6 +1,5 @@
 import React from 'react';
-
-import useTimeout from '../hooks/useTimeout';
+import useTimeout from '@/ui/hooks/useTimeout';
 
 /**
  * A Delayed Component which will render the children after waitBeforeShow time

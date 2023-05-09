@@ -1,11 +1,10 @@
-import { boolean, pipe } from '@code-expert/prelude';
 import { Result } from 'antd';
 import React from 'react';
-
-import { GlobalContextProvider } from './ui/GlobalContext';
-import Routes from './ui/Routes';
-import useNetworkState from './ui/hooks/useNetwork';
-import { AppLayout } from './ui/layout';
+import { boolean, pipe } from '@code-expert/prelude';
+import { GlobalContextProvider } from '@/ui/GlobalContext';
+import Routes from '@/ui/Routes';
+import useNetworkState from '@/ui/hooks/useNetwork';
+import { AppLayout } from '@/ui/layout';
 
 function App() {
   const { online } = useNetworkState();

@@ -1,14 +1,13 @@
-import { iots, task } from '@code-expert/prelude';
 import { open } from '@tauri-apps/api/dialog';
 import { homeDir } from '@tauri-apps/api/path';
 import { Button, Form, Input, Space, message } from 'antd';
 import { api } from 'api';
 import React from 'react';
-
-import { routes, useGlobalContextWithActions } from '../GlobalContext';
-import { GuardRemoteData } from '../components/GuardRemoteData';
-import { Icon } from '../foundation/Icons';
-import { useSettingsFallback } from '../hooks/useSettings';
+import { iots, task } from '@code-expert/prelude';
+import { routes, useGlobalContextWithActions } from '@/ui/GlobalContext';
+import { GuardRemoteData } from '@/ui/components/GuardRemoteData';
+import { Icon } from '@/ui/foundation/Icons';
+import { useSettingsFallback } from '@/ui/hooks/useSettings';
 
 function SettingsInner({ projectDir }: { projectDir: string }) {
   const [, dispatch] = useGlobalContextWithActions();

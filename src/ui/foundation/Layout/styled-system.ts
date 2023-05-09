@@ -1,6 +1,5 @@
 import React from 'react';
-
-import { DesignTokens, css, useTheme } from '../Theme';
+import { DesignTokens, css, useTheme } from '@/ui/foundation/Theme';
 
 type CSSPercentage = '%';
 

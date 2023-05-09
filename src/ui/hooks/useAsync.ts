@@ -1,7 +1,6 @@
-import { flow, remoteData, task } from '@code-expert/prelude';
 import React from 'react';
-
-import { Exception, fromError } from '../../domain/exception';
+import { flow, remoteData, task } from '@code-expert/prelude';
+import { Exception, fromError } from '@/domain/exception';
 import { useRaceState } from './useRaceState';
 
 /**

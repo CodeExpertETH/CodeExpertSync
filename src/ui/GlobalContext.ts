@@ -1,9 +1,8 @@
-import { constVoid, either, iots, pipe, tagged, task } from '@code-expert/prelude';
 import equal from 'fast-deep-equal';
 import React, { useEffect } from 'react';
-
-import { GlobalAuthState, globalAuthState } from '../domain/AuthState';
-import { createSignedAPIRequest } from '../domain/createAPIRequest';
+import { constVoid, either, iots, pipe, tagged, task } from '@code-expert/prelude';
+import { GlobalAuthState, globalAuthState } from '@/domain/AuthState';
+import { createSignedAPIRequest } from '@/domain/createAPIRequest';
 import Loading from './components/Loading';
 
 export type Routes =

@@ -1,6 +1,6 @@
-import { either, iots, pipe } from '@code-expert/prelude';
 import base64url from 'base64url';
 import { Buffer } from 'buffer';
+import { either, iots, pipe } from '@code-expert/prelude';
 
 export interface Base64UrlBrand {
   readonly Base64Url: unique symbol;

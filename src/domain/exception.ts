@@ -1,7 +1,6 @@
 /* eslint-disable max-classes-per-file */
 import { FunctionN, adt, array, monoid, pipe, string } from '@code-expert/prelude';
-
-import { isObject } from '../utils/fn';
+import { isObject } from '@/utils/fn';
 
 // -------------------------------------------------------------------------------------------------
 // Types

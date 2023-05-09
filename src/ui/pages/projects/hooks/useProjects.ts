@@ -1,16 +1,15 @@
-import { array, iots, pipe, remoteData, task, taskEither, taskOption } from '@code-expert/prelude';
 import { api } from 'api';
 import React from 'react';
-
+import { array, iots, pipe, remoteData, task, taskEither, taskOption } from '@code-expert/prelude';
 import {
   ExtendedProjectMetadata,
   ProjectMetadata,
   ProjectSyncState,
   projectSyncState,
-} from '../../../../domain/Project';
-import { createSignedAPIRequest } from '../../../../domain/createAPIRequest';
-import { Exception } from '../../../../domain/exception';
-import { useRaceState } from '../../../hooks/useRaceState';
+} from '@/domain/Project';
+import { createSignedAPIRequest } from '@/domain/createAPIRequest';
+import { Exception } from '@/domain/exception';
+import { useRaceState } from '@/ui/hooks/useRaceState';
 
 const getSyncState = (projects: Array<ProjectMetadata>) =>
   pipe(

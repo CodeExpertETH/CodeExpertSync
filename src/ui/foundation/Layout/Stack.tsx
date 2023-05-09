@@ -1,6 +1,5 @@
 import React from 'react';
-
-import { useTheme } from '../Theme';
+import { useTheme } from '@/ui/foundation/Theme';
 import { BoxProps } from './Box';
 import {
   Align,

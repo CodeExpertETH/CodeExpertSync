@@ -1,15 +1,14 @@
-import { option, pipe, task } from '@code-expert/prelude';
 import { Button, Result } from 'antd';
 import { api } from 'api';
 import React from 'react';
-
-import { authState, globalAuthState, useAuthState } from '../../domain/AuthState';
-import { ClientId } from '../../domain/ClientId';
-import { EntityNotFoundException } from '../../domain/exception';
-import { useGlobalContextWithActions } from '../GlobalContext';
-import { GuardRemoteData } from '../components/GuardRemoteData';
-import { Icon } from '../foundation/Icons';
-import { useAsync } from '../hooks/useAsync';
+import { option, pipe, task } from '@code-expert/prelude';
+import { authState, globalAuthState, useAuthState } from '@/domain/AuthState';
+import { ClientId } from '@/domain/ClientId';
+import { EntityNotFoundException } from '@/domain/exception';
+import { useGlobalContextWithActions } from '@/ui/GlobalContext';
+import { GuardRemoteData } from '@/ui/components/GuardRemoteData';
+import { Icon } from '@/ui/foundation/Icons';
+import { useAsync } from '@/ui/hooks/useAsync';
 
 const Comp = ({ clientId }: { clientId: ClientId }) => {
   const [, dispatch] = useGlobalContextWithActions();

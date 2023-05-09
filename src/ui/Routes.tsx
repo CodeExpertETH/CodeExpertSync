@@ -1,7 +1,6 @@
 import React from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
-
-import { globalAuthState } from '../domain/AuthState';
+import { globalAuthState } from '@/domain/AuthState';
 import { routes, useGlobalContextWithActions } from './GlobalContext';
 import { Developer } from './pages/Developer';
 import { Logout } from './pages/Logout';

@@ -1,7 +1,6 @@
 import { Spin } from 'antd';
 import React from 'react';
-
-import { styled } from '../foundation/Theme';
+import { styled } from '@/ui/foundation/Theme';
 import { Delayed } from './Delayed';
 
 const StyledSpinContainer = styled('div', () => ({

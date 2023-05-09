@@ -1,7 +1,6 @@
 import { Layout } from 'antd';
 import React from 'react';
-
-import { styled } from '../foundation/Theme';
+import { styled } from '@/ui/foundation/Theme';
 import { TopNav } from './TopNav';
 
 const StyledLayout = styled(Layout, () => ({

@@ -1,7 +1,6 @@
 import React from 'react';
-
-import { ClientId } from '../../../domain/ClientId';
-import { GuardRemoteData } from '../../components/GuardRemoteData';
+import { ClientId } from '@/domain/ClientId';
+import { GuardRemoteData } from '@/ui/components/GuardRemoteData';
 import { ProjectList } from './ProjectList';
 import { useProjectEventUpdate } from './hooks/useProjectEventUpdate';
 import { useProjects } from './hooks/useProjects';

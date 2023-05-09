@@ -1,5 +1,4 @@
 import { sha256 } from '@noble/hashes/sha256';
-
 import { Base64Url, Uint8ArrayToBase64Url } from './base64url';
 
 /**

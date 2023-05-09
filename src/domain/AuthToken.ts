@@ -1,6 +1,5 @@
 import { iots } from '@code-expert/prelude';
-
-import { Base64Url } from '../utils/base64url';
+import { Base64Url } from '@/utils/base64url';
 
 export interface AccessTokenBrand {
   readonly AccessToken: unique symbol;

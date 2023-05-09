@@ -1,9 +1,8 @@
-import { pipe, string } from '@code-expert/prelude';
 import { Button, Input, InputRef } from 'antd';
 import { ColumnGroupType, ColumnType } from 'antd/es/table';
 import React from 'react';
-
-import { Icon } from '../foundation/Icons';
+import { pipe, string } from '@code-expert/prelude';
+import { Icon } from '@/ui/foundation/Icons';
 
 function getColumnSearchProps<A>(dataIndex: string): ColumnGroupType<A> | ColumnType<A> {
   let searchInput: InputRef | null;

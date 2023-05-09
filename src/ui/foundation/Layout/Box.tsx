@@ -1,5 +1,4 @@
 import React from 'react';
-
 import { StyledSystemProp, useStyledSystem } from './styled-system';
 import { PolymorphicComponentPropWithRef, PolymorphicRef } from './type-utils';
 

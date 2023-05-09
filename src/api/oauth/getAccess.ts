@@ -1,7 +1,6 @@
 import { iots } from '@code-expert/prelude';
-
-import { ClientId } from '../../domain/ClientId';
-import { createAPIRequest } from '../../domain/createAPIRequest';
+import { ClientId } from '@/domain/ClientId';
+import { createAPIRequest } from '@/domain/createAPIRequest';
 
 const responseCodec = iots.strict({});
 export const getAccess = (

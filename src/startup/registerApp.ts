@@ -1,9 +1,8 @@
-import { constVoid, iots, pipe, taskEither } from '@code-expert/prelude';
 import { invoke } from '@tauri-apps/api';
 import { getName, getVersion } from '@tauri-apps/api/app';
 import { api } from 'api';
-
-import { createAPIRequest } from '../domain/createAPIRequest';
+import { constVoid, iots, pipe, taskEither } from '@code-expert/prelude';
+import { createAPIRequest } from '@/domain/createAPIRequest';
 import { getClientToken } from './getClientToken';
 
 const registerApp = async () => {

@@ -1,7 +1,6 @@
 import { Button, ButtonProps } from 'antd';
 import React from 'react';
-
-import { styled } from '../foundation/Theme';
+import { styled } from '@/ui/foundation/Theme';
 
 const StyledTagButton = styled(Button, () => ({
   lineHeight: '20px',

@@ -1,11 +1,10 @@
-import { option, pipe, task } from '@code-expert/prelude';
 import { api } from 'api';
 import React from 'react';
-
-import { ClientId } from '../../domain/ClientId';
-import { EntityNotFoundException } from '../../domain/exception';
-import { GuardRemoteData } from '../components/GuardRemoteData';
-import { useAsync } from '../hooks/useAsync';
+import { option, pipe, task } from '@code-expert/prelude';
+import { ClientId } from '@/domain/ClientId';
+import { EntityNotFoundException } from '@/domain/exception';
+import { GuardRemoteData } from '@/ui/components/GuardRemoteData';
+import { useAsync } from '@/ui/hooks/useAsync';
 import { Projects } from './projects';
 
 export function Main(props: { clientId: ClientId }) {

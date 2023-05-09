@@ -1,3 +1,5 @@
+import { notification as antdNotification } from 'antd';
+import * as React from 'react';
 import {
   Identity,
   Kind,
@@ -10,10 +12,7 @@ import {
   task,
   taskEither,
 } from '@code-expert/prelude';
-import { notification as antdNotification } from 'antd';
-import * as React from 'react';
-
-import { Exception, fromError, isException } from '../../domain/exception';
+import { Exception, fromError, isException } from '@/domain/exception';
 
 antdNotification.config({
   placement: 'top',
@@ -32,12 +31,15 @@ export type Notification<F> = {
   warning(a: Content, duration?: number): F;
 };
 
-declare module '../../../packages/prelude/naturalTransformation' {
-  interface ServiceKind<F extends URIS> {
-    Notification: Notification<Kind<F, void>>;
-  }
-  interface ServiceKind2<F extends URIS2, E> {
-    Notification: Notification<Kind2<F, E, void>>;
+declare module '@code-expert/prelude' {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  export namespace naturalTransformation {
+    interface ServiceKind<F extends URIS> {
+      Notification: Notification<Kind<F, void>>;
+    }
+    interface ServiceKind2<F extends URIS2, E> {
+      Notification: Notification<Kind2<F, E, void>>;
+    }
   }
 }
 

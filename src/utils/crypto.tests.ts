@@ -1,6 +1,5 @@
 import { sha256 } from '@noble/hashes/sha256';
 import { describe, expect, it } from 'vitest';
-
 import { Uint8ArrayToBase64Url } from './base64url';
 import { pkceChallenge } from './crypto';
 

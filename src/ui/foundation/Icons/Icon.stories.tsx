@@ -1,8 +1,7 @@
 /* eslint-disable storybook/default-exports */
 import { Table, Typography } from 'antd';
 import React from 'react';
-
-import { getColumnSearchPropsAcc } from '../../components/TableSearchFilter';
+import { getColumnSearchPropsAcc } from '@/ui/components/TableSearchFilter';
 import Icon, { IconName, iconNames } from './Icon';
 
 export default {

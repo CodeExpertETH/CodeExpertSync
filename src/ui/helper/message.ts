@@ -1,3 +1,5 @@
+import { message as antdMessage } from 'antd';
+import * as React from 'react';
 import {
   Identity,
   Kind,
@@ -10,10 +12,7 @@ import {
   task,
   taskEither,
 } from '@code-expert/prelude';
-import { message as antdMessage } from 'antd';
-import * as React from 'react';
-
-import { Exception, fromError, isException } from '../../domain/exception';
+import { Exception, fromError, isException } from '@/domain/exception';
 
 export type Message<F> = {
   /**
@@ -29,12 +28,15 @@ export type Message<F> = {
   warning(a: Content, duration?: number): F;
 };
 
-declare module '../../../packages/prelude/naturalTransformation' {
-  interface ServiceKind<F extends URIS> {
-    Message: Message<Kind<F, void>>;
-  }
-  interface ServiceKind2<F extends URIS2, E> {
-    Message: Message<Kind2<F, E, void>>;
+declare module '@code-expert/prelude' {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  export namespace naturalTransformation {
+    interface ServiceKind<F extends URIS> {
+      Message: Message<Kind<F, void>>;
+    }
+    interface ServiceKind2<F extends URIS2, E> {
+      Message: Message<Kind2<F, E, void>>;
+    }
   }
 }
 

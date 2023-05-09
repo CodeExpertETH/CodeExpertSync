@@ -23,9 +23,8 @@ import React, {
   ReactSVGElement,
   SVGAttributes,
 } from 'react';
-
-import { CSSInterpolation, Keyframes, useStyleRegisterNoSSR } from '../../../lib/antd';
-import { isObject } from '../../../utils/fn';
+import { CSSInterpolation, Keyframes, useStyleRegisterNoSSR } from '@/lib/antd';
+import { isObject } from '@/utils/fn';
 import { Theme, useTheme } from './theme';
 import {
   CSSWithVariants,

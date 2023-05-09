@@ -1,6 +1,5 @@
 import { Story } from '@storybook/react';
 import React from 'react';
-
 import * as BoxStories from './Box.stories';
 import { HStack, StackProps } from './Stack';
 

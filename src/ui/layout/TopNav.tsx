@@ -1,11 +1,10 @@
 import { Menu } from 'antd';
 import React from 'react';
-
-import codeExpertLogo from '../../assets/logo_invert.png';
-import { globalAuthState } from '../../domain/AuthState';
-import { routes, useGlobalContextWithActions } from '../GlobalContext';
-import { Icon } from '../foundation/Icons';
-import { HStack } from '../foundation/Layout';
+import codeExpertLogo from '@/assets/logo_invert.png';
+import { globalAuthState } from '@/domain/AuthState';
+import { routes, useGlobalContextWithActions } from '@/ui/GlobalContext';
+import { Icon } from '@/ui/foundation/Icons';
+import { HStack } from '@/ui/foundation/Layout';
 
 export const TopNav = () => {
   const [{ authState }, dispatch] = useGlobalContextWithActions();

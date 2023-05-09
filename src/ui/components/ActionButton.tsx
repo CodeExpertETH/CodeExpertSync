@@ -1,9 +1,8 @@
 import { Button } from 'antd';
 import { ButtonProps } from 'antd/es/button';
 import React from 'react';
-
-import { Icon, IconName } from '../foundation/Icons';
-import { styled } from '../foundation/Theme';
+import { Icon, IconName } from '@/ui/foundation/Icons';
+import { styled } from '@/ui/foundation/Theme';
 
 const StyledButton = styled(Button, ({ tokens }) => ({
   display: 'block',

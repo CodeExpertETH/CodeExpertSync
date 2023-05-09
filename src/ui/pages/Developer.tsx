@@ -1,16 +1,15 @@
-import { iots, pipe, task, taskEither, taskOption } from '@code-expert/prelude';
 import { BaseDirectory, removeFile } from '@tauri-apps/api/fs';
 import { Alert, Button } from 'antd';
 import { api } from 'api';
 import React from 'react';
-
-import { globalAuthState } from '../../domain/AuthState';
-import { ProjectMetadata } from '../../domain/Project';
-import { createSignedAPIRequest } from '../../domain/createAPIRequest';
-import { Exception, fromError } from '../../domain/exception';
-import { routes, useGlobalContextWithActions } from '../GlobalContext';
-import { VStack } from '../foundation/Layout';
-import { notificationT } from '../helper/notifications';
+import { iots, pipe, task, taskEither, taskOption } from '@code-expert/prelude';
+import { globalAuthState } from '@/domain/AuthState';
+import { ProjectMetadata } from '@/domain/Project';
+import { createSignedAPIRequest } from '@/domain/createAPIRequest';
+import { Exception, fromError } from '@/domain/exception';
+import { routes, useGlobalContextWithActions } from '@/ui/GlobalContext';
+import { VStack } from '@/ui/foundation/Layout';
+import { notificationT } from '@/ui/helper/notifications';
 import { deleteLocalProject } from './projects/hooks/useProjectRemove';
 
 export function Developer() {

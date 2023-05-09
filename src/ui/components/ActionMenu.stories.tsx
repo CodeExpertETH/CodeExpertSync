@@ -1,6 +1,5 @@
 import { Story } from '@storybook/react';
 import React from 'react';
-
 import { ActionMenu, ActionMenuProps } from './ActionMenu';
 
 export default {

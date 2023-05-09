@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
-
 import { GetStyles, css, keyframes, styled } from './styled';
 
 export default {

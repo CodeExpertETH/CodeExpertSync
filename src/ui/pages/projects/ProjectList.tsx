@@ -1,12 +1,11 @@
-import { nonEmptyArray, option, pipe, task, taskEither } from '@code-expert/prelude';
 import { Button, List, Result } from 'antd';
 import React from 'react';
-
-import { ExtendedProjectMetadata, ProjectId, projectSyncState } from '../../../domain/Project';
-import { ActionMenu } from '../../components/ActionMenu';
-import { Icon } from '../../foundation/Icons';
-import { Box, HStack } from '../../foundation/Layout';
-import { notificationT } from '../../helper/notifications';
+import { nonEmptyArray, option, pipe, task, taskEither } from '@code-expert/prelude';
+import { ExtendedProjectMetadata, ProjectId, projectSyncState } from '@/domain/Project';
+import { ActionMenu } from '@/ui/components/ActionMenu';
+import { Icon } from '@/ui/foundation/Icons';
+import { Box, HStack } from '@/ui/foundation/Layout';
+import { notificationT } from '@/ui/helper/notifications';
 import { useProjectOpen } from './hooks/useProjectOpen';
 import { useProjectRemove } from './hooks/useProjectRemove';
 import { useProjectSync } from './hooks/useProjectSync';

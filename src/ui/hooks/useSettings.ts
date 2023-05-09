@@ -1,8 +1,7 @@
-import { iots, pipe, remoteData, task, taskOption } from '@code-expert/prelude';
 import { api } from 'api';
 import React from 'react';
-
-import { Exception, InvariantViolation } from '../../domain/exception';
+import { iots, pipe, remoteData, task, taskOption } from '@code-expert/prelude';
+import { Exception, InvariantViolation } from '@/domain/exception';
 import { useRaceState } from './useRaceState';
 
 /**

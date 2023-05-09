@@ -1,12 +1,11 @@
-import { record } from '@code-expert/prelude';
 import { ConfigProvider, theme } from 'antd';
 import { ThemeConfig } from 'antd/es/config-provider/context';
 import { AliasToken, ColorPalettes } from 'antd/es/theme/interface';
 import { PresetColors } from 'antd/es/theme/internal';
 import formatToken from 'antd/es/theme/util/alias';
 import React from 'react';
-
-import { omit } from '../../../utils/fn';
+import { record } from '@code-expert/prelude';
+import { omit } from '@/utils/fn';
 import { ColorScheme, isLight } from './colorScheme';
 
 type PresetColorTokens = { [K in (typeof PresetColors)[number]]: null };

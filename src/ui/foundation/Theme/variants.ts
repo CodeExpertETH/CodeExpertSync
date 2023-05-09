@@ -1,7 +1,6 @@
 import { array, either, fn, pipe, record, separated } from '@code-expert/prelude';
-
-import { CSSInterpolation } from '../../../lib/antd';
-import { isObject } from '../../../utils/fn';
+import { CSSInterpolation } from '@/lib/antd';
+import { isObject } from '@/utils/fn';
 
 /**
  * "false" is not allowed

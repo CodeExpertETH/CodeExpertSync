@@ -1,4 +1,3 @@
-import { flow, iots, json, option, pipe, task, taskEither, taskOption } from '@code-expert/prelude';
 import { invoke } from '@tauri-apps/api';
 import { getVersion } from '@tauri-apps/api/app';
 import {
@@ -11,8 +10,8 @@ import {
 } from '@tauri-apps/api/fs';
 import { dirname } from '@tauri-apps/api/path';
 import { Store as TauriStore } from 'tauri-plugin-store-api';
-
-import { Exception, fromError } from '../domain/exception';
+import { flow, iots, json, option, pipe, task, taskEither, taskOption } from '@code-expert/prelude';
+import { Exception, fromError } from '@/domain/exception';
 
 const store = new TauriStore('settings.json');
 

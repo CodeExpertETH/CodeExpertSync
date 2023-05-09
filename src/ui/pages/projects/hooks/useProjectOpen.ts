@@ -1,9 +1,8 @@
-import { iots, pipe, taskOption } from '@code-expert/prelude';
 import { open } from '@tauri-apps/api/shell';
 import { api } from 'api';
 import React from 'react';
-
-import { ProjectId } from '../../../../domain/Project';
+import { iots, pipe, taskOption } from '@code-expert/prelude';
+import { ProjectId } from '@/domain/Project';
 
 export const useProjectOpen = () => {
   const openProject = React.useCallback(

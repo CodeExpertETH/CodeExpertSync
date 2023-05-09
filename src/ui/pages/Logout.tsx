@@ -1,11 +1,10 @@
-import { pipe, task } from '@code-expert/prelude';
 import { Button, Result } from 'antd';
 import { api } from 'api';
 import React from 'react';
-
-import { globalAuthState } from '../../domain/AuthState';
-import { routes, useGlobalContextWithActions } from '../GlobalContext';
-import { Icon } from '../foundation/Icons';
+import { pipe, task } from '@code-expert/prelude';
+import { globalAuthState } from '@/domain/AuthState';
+import { routes, useGlobalContextWithActions } from '@/ui/GlobalContext';
+import { Icon } from '@/ui/foundation/Icons';
 
 export function Logout() {
   const [, dispatch] = useGlobalContextWithActions();

@@ -1,7 +1,6 @@
 import { Dropdown } from 'antd';
 import type { DropdownProps } from 'antd/es/dropdown/dropdown';
 import React from 'react';
-
 import { ActionButton, ActionButtonProps } from './ActionButton';
 
 export interface ActionMenuProps

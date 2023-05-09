@@ -1,7 +1,6 @@
 import { Story } from '@storybook/react';
 import React from 'react';
-
-import { useTheme } from '../Theme';
+import { useTheme } from '@/ui/foundation/Theme';
 import { Box, BoxProps } from './Box';
 
 export default {

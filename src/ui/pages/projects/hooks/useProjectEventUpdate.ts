@@ -1,9 +1,8 @@
-import { pipe, task, taskEither } from '@code-expert/prelude';
 import { api } from 'api';
 import React from 'react';
-
-import { ClientId } from '../../../../domain/ClientId';
-import { createTokenWithClientId } from '../../../../domain/createAPIRequest';
+import { pipe, task, taskEither } from '@code-expert/prelude';
+import { ClientId } from '@/domain/ClientId';
+import { createTokenWithClientId } from '@/domain/createAPIRequest';
 
 export const useProjectEventUpdate = (onProjectAdded: () => void, clientId: ClientId): void => {
   const sse = React.useRef<EventSource | null>(null);

@@ -25,7 +25,7 @@ const noRestrictedImportsBase = [
   },
   {
     group: ['@fortawesome/**'],
-    message: "Only import from 'import { Icon } from '/imports/ui/foundation/Icons'",
+    message: "Only import from 'import { Icon } from '@/ui/foundation/Icons'",
   },
 ];
 

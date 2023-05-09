@@ -1,7 +1,6 @@
-import { either, flow, iots, pipe, taskEither } from '@code-expert/prelude';
 import { Body, Response, ResponseType, fetch } from '@tauri-apps/api/http';
 import { api } from 'api';
-
+import { either, flow, iots, pipe, taskEither } from '@code-expert/prelude';
 import { ClientId } from './ClientId';
 import {
   EntityNotFoundException,

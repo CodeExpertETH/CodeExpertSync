@@ -1,6 +1,5 @@
-import { either } from '@code-expert/prelude';
 import { describe, expect, it } from 'vitest';
-
+import { either } from '@code-expert/prelude';
 import { Uint8ArrayToBase64Url } from './base64url';
 
 describe('base64.ts', () => {

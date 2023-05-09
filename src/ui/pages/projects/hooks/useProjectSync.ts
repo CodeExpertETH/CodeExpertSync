@@ -1,3 +1,7 @@
+import { fs, path as tauriPath } from '@tauri-apps/api';
+import { ResponseType } from '@tauri-apps/api/http';
+import { api } from 'api';
+import React from 'react';
 import {
   array,
   eq,
@@ -14,14 +18,9 @@ import {
   taskOption,
   tree,
 } from '@code-expert/prelude';
-import { fs, path as tauriPath } from '@tauri-apps/api';
-import { ResponseType } from '@tauri-apps/api/http';
-import { api } from 'api';
-import React from 'react';
-
-import { ProjectId } from '../../../../domain/Project';
-import { createSignedAPIRequest } from '../../../../domain/createAPIRequest';
-import { Exception, fromError, invariantViolated } from '../../../../domain/exception';
+import { ProjectId } from '@/domain/Project';
+import { createSignedAPIRequest } from '@/domain/createAPIRequest';
+import { Exception, fromError, invariantViolated } from '@/domain/exception';
 
 const pathJoin = taskEither.tryCatchK(tauriPath.join, fromError);
 

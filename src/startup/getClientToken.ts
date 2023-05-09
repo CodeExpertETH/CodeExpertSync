@@ -1,8 +1,7 @@
-import { iots, pipe, taskEither } from '@code-expert/prelude';
 import { api } from 'api';
-
-import { ClientId } from '../domain/ClientId';
-import { createAPIRequest } from '../domain/createAPIRequest';
+import { iots, pipe, taskEither } from '@code-expert/prelude';
+import { ClientId } from '@/domain/ClientId';
+import { createAPIRequest } from '@/domain/createAPIRequest';
 
 export const getClientToken = pipe(
   api.settingRead('clientId', ClientId),

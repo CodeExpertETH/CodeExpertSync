@@ -1,6 +1,5 @@
 import React from 'react';
-
-import { styled, useTheme } from '../Theme';
+import { styled, useTheme } from '@/ui/foundation/Theme';
 import { Box } from './Box';
 import { HStack, VStack } from './Stack';
 

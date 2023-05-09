@@ -1,11 +1,10 @@
-import { iots, pipe, task, taskEither, taskOption } from '@code-expert/prelude';
 import { api } from 'api';
 import React from 'react';
-
-import { ProjectId } from '../../../../domain/Project';
-import { createSignedAPIRequest } from '../../../../domain/createAPIRequest';
-import { Exception } from '../../../../domain/exception';
-import { message } from '../../../helper/message';
+import { iots, pipe, task, taskEither, taskOption } from '@code-expert/prelude';
+import { ProjectId } from '@/domain/Project';
+import { createSignedAPIRequest } from '@/domain/createAPIRequest';
+import { Exception } from '@/domain/exception';
+import { message } from '@/ui/helper/message';
 
 export const deleteLocalProject = (projectId: ProjectId): taskEither.TaskEither<Exception, void> =>
   pipe(

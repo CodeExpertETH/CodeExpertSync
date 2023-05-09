@@ -1,10 +1,9 @@
-import { pipe, tagged, task, taskEither } from '@code-expert/prelude';
 import { api } from 'api';
 import React from 'react';
-
-import { getAccess } from '../api/oauth/getAccess';
-import useTimeout from '../ui/hooks/useTimeout';
-import { pkceChallenge } from '../utils/crypto';
+import { pipe, tagged, task, taskEither } from '@code-expert/prelude';
+import { getAccess } from '@/api/oauth/getAccess';
+import useTimeout from '@/ui/hooks/useTimeout';
+import { pkceChallenge } from '@/utils/crypto';
 import { ClientId } from './ClientId';
 
 export type GlobalAuthState = tagged.Tagged<'notAuthorized'> | tagged.Tagged<'authorized'>;

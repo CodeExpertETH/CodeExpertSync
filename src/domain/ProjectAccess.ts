@@ -1,7 +1,6 @@
-import { either, pipe, task } from '@code-expert/prelude';
 import { api } from 'api';
 import React from 'react';
-
+import { either, pipe, task } from '@code-expert/prelude';
 import { createToken } from './createAPIRequest';
 
 const cleanUpEventListener = (

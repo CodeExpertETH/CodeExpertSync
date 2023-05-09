@@ -6,7 +6,9 @@
     "emitDeclarationOnly": false,
     "noEmit": true,
     "jsx": "react",
+    "baseUrl": ".",
     "paths": {
+      "@/*": ["./*"],
       "api": ["./api/index.ts"],
       "@code-expert/prelude": ["../packages/prelude"],
       "@code-expert/test-utils": ["../packages/test-utils"],

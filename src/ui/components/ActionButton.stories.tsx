@@ -1,6 +1,5 @@
 import { Story } from '@storybook/react';
 import React from 'react';
-
 import { ActionButton, ActionButtonProps } from './ActionButton';
 
 export default {

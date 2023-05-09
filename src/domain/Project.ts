@@ -1,6 +1,5 @@
 import { iots, tagged } from '@code-expert/prelude';
-
-import { mkEntityIdCodec } from '../utils/identity';
+import { mkEntityIdCodec } from '@/utils/identity';
 
 export const ProjectIdBrand = Symbol('ProjectId');
 export const ProjectId = mkEntityIdCodec(ProjectIdBrand);
