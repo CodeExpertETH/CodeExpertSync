@@ -6,6 +6,7 @@ dist
 .idea
 build/
 *.tsbuildinfo
+*.map
 
 ### dotenv ###
 .env
