@@ -54,6 +54,7 @@ pub fn create_project_dir(path: String) -> Result<(), String> {
             break;
         }
     }
+    // remove readonly from full path to allow students to write to it
     remove_read_only(binding)?;
 
     Ok(())
