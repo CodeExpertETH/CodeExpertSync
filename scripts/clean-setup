@@ -8,3 +8,6 @@ rm -rf node_modules
 find . -type d -name 'build' -exec rm -rf '{}' + -depth
 rm -f vite.config.d.ts*
 find . -type f -name '*.tsbuildinfo' -delete
+
+# Delete Tauri artefacts
+rm -rf src-tauri/target

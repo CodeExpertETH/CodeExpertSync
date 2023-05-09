@@ -5,8 +5,7 @@
   "scripts": {
     "setup": "scripts/setup",
     "clean:setup": "scripts/clean-setup",
-    "build": "concurrently \"yarn:build:*\"",
-    "build:ts": "dotenv -- tsc --build",
+    "build": "dotenv -- tauri build",
     "build:server": "dotenv -- vite build",
     "clean:build": "rm -rf dist && rm -rf src-tauri/target",
     "dev": "dotenv -- tauri dev",
@@ -18,7 +17,7 @@
     "lint": "concurrently \"yarn:lint:*\"",
     "lint:format": "prettier --check --cache  --cache-strategy content \"./src/**/*.{js,jsx,ts,tsx,json,less,html}\"",
     "lint:static": "eslint . --cache  --cache-strategy content --ext .js,.jsx,.ts,.tsx",
-    "lint:ts": "yarn build:ts",
+    "lint:ts": "dotenv -- tsc --build",
     "=== STORYBOOK ===": "",
     "storybook": "dotenv -- storybook dev -p 6006",
     "storybook:build": "dotenv -- storybook build",
