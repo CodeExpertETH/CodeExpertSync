@@ -1,6 +1,5 @@
 import { api } from 'api';
 import { iots, pipe, taskEither } from '@code-expert/prelude';
-import { config } from '@/config';
 import { ClientId } from '@/domain/ClientId';
 import { createAPIRequest } from '@/domain/createAPIRequest';
 
@@ -12,7 +11,7 @@ export const getClientToken = pipe(
   taskEither.alt(() =>
     pipe(
       createAPIRequest({
-        path: `${config.CX_API_URL}/app/clientId`,
+        path: 'app/clientId',
         method: 'GET',
         payload: {},
         codec: iots.strict({ token: iots.string }),

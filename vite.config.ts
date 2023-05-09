@@ -40,11 +40,11 @@ export default defineConfig(({ mode }) => ({
   },
   resolve: {
     alias: {
-      api: Path.resolve(__dirname, './src/api'),
-      '@/': Path.resolve(__dirname, './src') + '/',
-      '@code-expert/prelude': Path.resolve(__dirname, './packages/prelude'),
-      '@code-expert/test-utils': Path.resolve(__dirname, './packages/test-utils'),
-      '@code-expert/type-utils': Path.resolve(__dirname, './packages/type-utils'),
+      api: Path.join(__dirname, 'src', 'api'),
+      '@/': Path.join(__dirname, 'src/'), // Trailing '/' is intentional!
+      '@code-expert/prelude': Path.join(__dirname, 'packages', 'prelude'),
+      '@code-expert/test-utils': Path.join(__dirname, 'packages', 'test-utils'),
+      '@code-expert/type-utils': Path.join(__dirname, 'packages', 'type-utils'),
     },
   },
   test: {

@@ -2,7 +2,7 @@ import { iots } from '@code-expert/prelude';
 import { ClientId } from '@/domain/ClientId';
 import { createAPIRequest } from '@/domain/createAPIRequest';
 
-const responseCodec = iots.strict({});
+const responseCodec = iots.null;
 export const getAccess = (
   clientId: ClientId,
   code_verifier: string,

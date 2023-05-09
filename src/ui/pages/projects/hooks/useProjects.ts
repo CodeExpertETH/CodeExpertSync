@@ -9,6 +9,7 @@ import {
 } from '@/domain/Project';
 import { createSignedAPIRequest } from '@/domain/createAPIRequest';
 import { Exception } from '@/domain/exception';
+import { notificationT } from '@/ui/helper/notifications';
 import { useRaceState } from '@/ui/hooks/useRaceState';
 
 const getSyncState = (projects: Array<ProjectMetadata>) =>
@@ -54,6 +55,7 @@ export const useProjects = () => {
       taskEither.chainTaskK(getSyncState),
       taskEither.map(remoteData.success),
       taskEither.chainIOK((s) => () => setState(s)),
+      taskEither.fold(notificationT.error, task.of),
       task.run,
     );
   }, [mkSetState]);

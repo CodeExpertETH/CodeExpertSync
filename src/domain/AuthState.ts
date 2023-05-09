@@ -3,6 +3,7 @@ import React from 'react';
 import { pipe, tagged, task, taskEither } from '@code-expert/prelude';
 import { getAccess } from '@/api/oauth/getAccess';
 import { config } from '@/config';
+import { notificationT } from '@/ui/helper/notifications';
 import useTimeout from '@/ui/hooks/useTimeout';
 import { pkceChallenge } from '@/utils/crypto';
 import { ClientId } from './ClientId';
@@ -62,6 +63,7 @@ export const useAuthState = (
           taskEither.chain((publicKey) =>
             getAccess(clientId, state.value.code_verifier, authToken, publicKey),
           ),
+          taskEither.foldW(notificationT.error, task.of),
           task.run,
         );
         sse.current?.close();
