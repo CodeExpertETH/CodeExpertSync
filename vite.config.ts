@@ -37,7 +37,7 @@ export default defineConfig({
   resolve: {
     alias: {
       api: Path.resolve(__dirname, './src/api'),
-      '@/*': Path.resolve(__dirname, './src/*'),
+      '@/': Path.resolve(__dirname, './src') + '/',
       '@code-expert/prelude': Path.resolve(__dirname, './packages/prelude'),
       '@code-expert/test-utils': Path.resolve(__dirname, './packages/test-utils'),
       '@code-expert/type-utils': Path.resolve(__dirname, './packages/type-utils'),
