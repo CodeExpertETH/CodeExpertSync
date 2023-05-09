@@ -28,8 +28,6 @@ export interface Api {
   readConfigFile<T>(name: string, decoder: iots.Decoder<unknown, T>): taskOption.TaskOption<T>;
   hasConfigFile(name: string): task.Task<boolean>;
   logout(): taskOption.TaskOption<void>;
-  CXUrl: string;
-  APIUrl: string;
 }
 
 export const api: Api = {
@@ -77,7 +75,4 @@ export const api: Api = {
     ),
   hasConfigFile: (name) => () => exists(name, { dir: BaseDirectory.AppLocalData }),
   logout: () => api.settingWrite('accessToken', null),
-  //TODO how to switch to production during build??
-  CXUrl: 'http://localhost:3000',
-  APIUrl: 'http://localhost:3100',
 };
