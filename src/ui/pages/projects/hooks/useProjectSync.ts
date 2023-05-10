@@ -21,6 +21,7 @@ import {
 import { ProjectId, ProjectMetadata } from '@/domain/Project';
 import { createSignedAPIRequest } from '@/domain/createAPIRequest';
 import { Exception, fromError, invariantViolated } from '@/domain/exception';
+import { pathEscape } from '@/utils/pathEscape';
 
 const pathJoin = taskEither.tryCatchK(tauriPath.join, fromError);
 
@@ -297,10 +298,10 @@ export const useProjectSync = () =>
         taskEither.bind('projectDir', ({ rootDir }) =>
           pathJoin(
             rootDir,
-            project.semester,
-            project.courseName,
-            project.exerciseName,
-            project.taskName,
+            pathEscape(project.semester),
+            pathEscape(project.courseName),
+            pathEscape(project.exerciseName),
+            pathEscape(project.taskName),
           ),
         ),
         taskEither.bindTaskK('projectInfoPrevious', ({ projectDir }) =>
