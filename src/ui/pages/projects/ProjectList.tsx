@@ -1,7 +1,7 @@
 import { Button, List, Result } from 'antd';
 import React from 'react';
 import { nonEmptyArray, option, pipe, task, taskEither } from '@code-expert/prelude';
-import { ExtendedProjectMetadata, ProjectId, projectSyncState } from '@/domain/Project';
+import { ExtendedProjectMetadata, ProjectMetadata, projectSyncState } from '@/domain/Project';
 import { ActionMenu } from '@/ui/components/ActionMenu';
 import { Icon } from '@/ui/foundation/Icons';
 import { Box, HStack } from '@/ui/foundation/Layout';
@@ -21,13 +21,13 @@ export const ProjectList = (props: {
   const [openProject] = useProjectOpen();
   const syncProjectM = useProjectSync();
 
-  const syncProject = (projectId: ProjectId, projectName: string) => {
+  const syncProject = (project: ProjectMetadata) => {
     void pipe(
       task.fromIO(() => setLoading(true)),
-      task.chain(() => syncProjectM(projectId, projectName)),
+      task.chain(() => syncProjectM(project)),
       taskEither.fold(
         (e) => notificationT.error(e),
-        () => notificationT.success(`The project ${projectName} was synced successfully.`),
+        () => notificationT.success(`The project ${project.projectName} was synced successfully.`),
       ),
       task.chainIOK(() => () => setLoading(false)),
       task.run,
@@ -85,7 +85,7 @@ export const ProjectList = (props: {
                         key: 'sync',
                         icon: <Icon name="sync" />,
                         onClick: () => {
-                          void syncProject(project.projectId, project.projectName);
+                          void syncProject(project);
                         },
                       },
                       { type: 'divider' },
