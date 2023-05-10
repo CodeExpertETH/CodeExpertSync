@@ -5,8 +5,7 @@
   "scripts": {
     "setup": "scripts/setup",
     "clean:setup": "scripts/clean-setup",
-    "build": "dotenv -- tauri build",
-    "build:server": "dotenv -- vite build",
+    "build": "dotenv -- vite build",
     "clean:build": "rm -rf dist && rm -rf src-tauri/target",
     "dev": "dotenv -- tauri dev",
     "=== TEST ===": "",
