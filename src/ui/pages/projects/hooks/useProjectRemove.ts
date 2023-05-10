@@ -4,7 +4,8 @@ import { iots, pipe, task, taskEither, taskOption } from '@code-expert/prelude';
 import { ProjectId } from '@/domain/Project';
 import { createSignedAPIRequest } from '@/domain/createAPIRequest';
 import { Exception } from '@/domain/exception';
-import { message } from '@/ui/helper/message';
+import { messageT } from '@/ui/helper/message';
+import { notificationT } from '@/ui/helper/notifications';
 
 export const deleteLocalProject = (projectId: ProjectId): taskEither.TaskEither<Exception, void> =>
   pipe(
@@ -27,15 +28,8 @@ export const useProjectRemove = (onProjectRemove: () => void) => {
         }),
         taskEither.chainW(() => deleteLocalProject(projectId)),
         taskEither.map(onProjectRemove),
-        taskEither.fold(
-          (err) => {
-            message.error(err);
-            return taskEither.left(err);
-          },
-          () => {
-            message.success(`The project ${projectName} was removed successfully.`);
-            return taskEither.right(undefined);
-          },
+        taskEither.fold(notificationT.error, () =>
+          messageT.success(`The project ${projectName} was removed successfully.`),
         ),
         task.run,
       );

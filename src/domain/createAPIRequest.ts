@@ -73,12 +73,10 @@ const parseResponse: (response: Response<unknown>) => either.Either<Exception, u
   ),
 );
 
-const decodeResponse = <P>(codec: iots.Decoder<unknown, P>): ((data: unknown) => P) =>
-  flow(
-    codec.decode,
-    either.mapLeft(flow(iots.formatValidationErrors, invalid)),
-    either.getOrThrow(fromError),
-  );
+const decodeResponse = <P>(
+  codec: iots.Decoder<unknown, P>,
+): ((data: unknown) => either.Either<Exception, P>) =>
+  flow(codec.decode, either.mapLeft(flow(iots.formatValidationErrors, invalid)));
 
 export const createToken = (payload: Record<string, unknown>) =>
   pipe(
@@ -107,10 +105,10 @@ export const createSignedAPIRequest = <P>({
     createToken(payload),
     taskEither.chain(sendApiRequest(path, method, responseType)),
     taskEither.chainEitherK(parseResponse),
-    taskEither.map(decodeResponse(codec)),
+    taskEither.chainEitherK(decodeResponse(codec)),
   );
 
-export const createAPIRequest = <P extends object | undefined>({
+export const createAPIRequest = <P>({
   payload,
   method,
   path,
@@ -125,5 +123,5 @@ export const createAPIRequest = <P extends object | undefined>({
     payload,
     sendApiRequestPayload(path, method),
     taskEither.chainEitherK(parseResponse),
-    taskEither.map(decodeResponse(codec)),
+    taskEither.chainEitherK(decodeResponse(codec)),
   );

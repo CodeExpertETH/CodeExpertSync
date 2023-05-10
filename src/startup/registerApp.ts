@@ -1,9 +1,9 @@
 import { invoke } from '@tauri-apps/api';
 import { getName, getVersion } from '@tauri-apps/api/app';
 import { api } from 'api';
-import { constVoid, iots, pipe, taskEither } from '@code-expert/prelude';
-import { config } from '@/config';
+import { constVoid, iots, pipe, task, taskEither } from '@code-expert/prelude';
 import { createAPIRequest } from '@/domain/createAPIRequest';
+import { notificationT } from '@/ui/helper/notifications';
 import { getClientToken } from './getClientToken';
 
 const registerApp = async () => {
@@ -24,7 +24,7 @@ const registerApp = async () => {
 
       return pipe(
         createAPIRequest({
-          path: `${config.CX_API_URL}/app/register`,
+          path: 'app/register',
           payload: requestBody,
           method: 'POST',
           codec: iots.strict({ clientId: iots.string }),
@@ -32,9 +32,11 @@ const registerApp = async () => {
         taskEither.chainFirstTaskK(({ clientId }) => api.settingWrite('clientId', clientId)),
       );
     }),
-    taskEither.run,
+    taskEither.foldW(notificationT.error, task.of),
+    task.run,
   );
 };
 
+// TODO: we shouldn't do this if we're already authenticated!
 // ignore promise due to safari 13 target
 void registerApp().then(constVoid);

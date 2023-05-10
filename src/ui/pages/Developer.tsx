@@ -9,6 +9,7 @@ import { createSignedAPIRequest } from '@/domain/createAPIRequest';
 import { Exception, fromError } from '@/domain/exception';
 import { routes, useGlobalContextWithActions } from '@/ui/GlobalContext';
 import { VStack } from '@/ui/foundation/Layout';
+import { messageT } from '@/ui/helper/message';
 import { notificationT } from '@/ui/helper/notifications';
 import { deleteLocalProject } from './projects/hooks/useProjectRemove';
 
@@ -24,8 +25,8 @@ export function Developer() {
         codec: iots.strict({ status: iots.string }),
       }),
       taskEither.fold(
-        (e) => notificationT.error(`${e.message} : You are not authorized`),
-        (d) => notificationT.success(d.status),
+        (e) => notificationT.error(`You are not authorized: ${e.message}`),
+        (d) => messageT.success(d.status),
       ),
       task.run,
     );
