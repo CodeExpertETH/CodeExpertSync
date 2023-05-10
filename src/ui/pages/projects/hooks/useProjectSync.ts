@@ -44,7 +44,7 @@ const ProjectConfigC = iots.strict({
 });
 type ProjectConfig = iots.TypeOf<typeof ProjectConfigC>;
 
-const readProjectConfig = (projectId: ProjectId) =>
+export const readProjectConfig = (projectId: ProjectId) =>
   api.readConfigFile(`project_${projectId}.json`, ProjectConfigC);
 
 const writeProjectConfig = (projectId: ProjectId, projectConfig: Readonly<ProjectConfig>) =>
