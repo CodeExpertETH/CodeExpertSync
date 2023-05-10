@@ -1,5 +1,5 @@
 use std::fs;
-use std::fs::{metadata, File};
+use std::fs::{File};
 use std::path::Path;
 
 #[tauri::command]
