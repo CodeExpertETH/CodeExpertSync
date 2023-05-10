@@ -3,8 +3,7 @@
   "compilerOptions": {
     "allowJs": false,
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
-    "emitDeclarationOnly": false,
-    "noEmit": true,
+    "outDir": "build",
     "jsx": "react",
     "baseUrl": ".",
     "paths": {

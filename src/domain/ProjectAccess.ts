@@ -1,6 +1,6 @@
-import { api } from 'api';
 import React from 'react';
 import { either, pipe, task } from '@code-expert/prelude';
+import { config } from '@/config';
 import { createToken } from './createAPIRequest';
 
 const cleanUpEventListener = (
@@ -32,7 +32,9 @@ export const useProjectAccess = (onProjectAccess: (projectId: string) => void) =
         createToken({}),
         task.map((token) => {
           if (either.isRight(token)) {
-            sse.current = new EventSource(`${api.APIUrl}/app/projectAccess?token=${token.right}`);
+            sse.current = new EventSource(
+              `${config.CX_API_URL}/app/projectAccess?token=${token.right}`,
+            );
             sse.current.addEventListener('projectAccess', onProjectAccessI);
             sse.current.addEventListener('error', onError);
           }

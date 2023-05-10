@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -eu
+
+# Install Node modules unless skipped
+if [ "${SKIP_INSTALL:-false}" != "true" ]; then
+  yarn
+fi
+
+# Initialize dotenv files if none have been created yet
+if [ ! -f ".env" ]; then
+  sed \
+    -e 's|{{CX_WEB_URL}}|http://localhost:3000|' \
+    -e 's|{{CX_API_URL}}|http://localhost:3100|' \
+    .env-template > ".env"
+fi
+
+# Generate TS types
+yarn lint:ts

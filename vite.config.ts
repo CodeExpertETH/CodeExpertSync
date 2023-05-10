@@ -1,12 +1,19 @@
 /// <reference types="vitest" />
 import react from '@vitejs/plugin-react';
 import Path from 'path';
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import eslint from 'vite-plugin-eslint';
 import GithubActionsReporter from 'vitest-github-actions-reporter';
 
 // https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
+  define: {
+    // Vite strips out unknown ENV variables for security reasons.
+    // We can provide prefixes of variables that should be included in the ENV.
+    // See: https://vitejs.dev/guide/api-javascript.html#loadenv
+    // See: https://tauri.studio/v1/api/config#buildconfig.beforedevcommand
+    'process.env': loadEnv(mode, process.cwd(), ['CX_', 'TAURI_', 'VITE_']),
+  },
   plugins: [
     react(),
     eslint({
@@ -23,16 +30,13 @@ export default defineConfig({
     port: 1420,
     strictPort: true,
   },
-  // to make use of `TAURI_DEBUG` and other env variables
-  // https://tauri.studio/v1/api/config#buildconfig.beforedevcommand
-  envPrefix: ['VITE_', 'TAURI_'],
   build: {
     // Tauri supports es2021
-    target: process.env.TAURI_PLATFORM == 'windows' ? 'chrome105' : 'safari13',
+    target: process.env['TAURI_PLATFORM'] == 'windows' ? 'chrome105' : 'safari13',
     // don't minify for debug builds
-    minify: !process.env.TAURI_DEBUG ? 'esbuild' : false,
+    minify: !process.env['TAURI_DEBUG'] ? 'esbuild' : false,
     // produce sourcemaps for debug builds
-    sourcemap: !!process.env.TAURI_DEBUG,
+    sourcemap: !!process.env['TAURI_DEBUG'],
   },
   resolve: {
     alias: {
@@ -48,9 +52,6 @@ export default defineConfig({
     // globals: true,
     environment: 'jsdom',
     include: ['**/*.tests.{ts,tsx}'],
-    reporters: process.env.GITHUB_ACTIONS ? ['default', new GithubActionsReporter()] : 'default',
+    reporters: process.env['GITHUB_ACTIONS'] ? ['default', new GithubActionsReporter()] : 'default',
   },
-  define: {
-    'process.env': {},
-  },
-});
+}));

@@ -5451,6 +5451,7 @@ __metadata:
     conditional-type-checks: ^1.0.6
     copy-to-clipboard: ^3.3.3
     date-fns: ^2.29.3
+    dotenv-cli: ^7.2.1
     eslint: ^8.34.0
     eslint-import-resolver-typescript: ^3.5.3
     eslint-plugin-import: ^2.27.5
@@ -6049,6 +6050,20 @@ __metadata:
   dependencies:
     webidl-conversions: ^7.0.0
   checksum: ddbc1268edf33a8ba02ccc596735ede80375ee0cf124b30d2f05df5b464ba78ef4f49889b6391df4a04954e63d42d5631c7fcf8b1c4f12bc531252977a5f13d5
+  languageName: node
+  linkType: hard
+
+"dotenv-cli@npm:^7.2.1":
+  version: 7.2.1
+  resolution: "dotenv-cli@npm:7.2.1"
+  dependencies:
+    cross-spawn: ^7.0.3
+    dotenv: ^16.0.0
+    dotenv-expand: ^10.0.0
+    minimist: ^1.2.6
+  bin:
+    dotenv: cli.js
+  checksum: 8ca27fd44ba261b974a0342ec831a714fa1cb6d6e98d4b5db8e94f111951af1fb129a64d007264b1901337c43a8ef877071f1836b6992944fd6970c16367aee0
   languageName: node
   linkType: hard
 
