@@ -6,6 +6,7 @@ import { ActionMenu } from '@/ui/components/ActionMenu';
 import { Icon } from '@/ui/foundation/Icons';
 import { Box, HStack } from '@/ui/foundation/Layout';
 import { notificationT } from '@/ui/helper/notifications';
+import { useProjectVerify } from '@/ui/pages/projects/hooks/useProjectVerify';
 import { useProjectOpen } from './hooks/useProjectOpen';
 import { useProjectRemove } from './hooks/useProjectRemove';
 import { useProjectSync } from './hooks/useProjectSync';
@@ -20,6 +21,7 @@ export const ProjectList = (props: {
   });
   const [openProject] = useProjectOpen();
   const syncProjectM = useProjectSync();
+  const verifyProjectM = useProjectVerify();
 
   const syncProject = (project: ProjectMetadata) => {
     void pipe(
@@ -28,6 +30,20 @@ export const ProjectList = (props: {
       taskEither.fold(
         (e) => notificationT.error(e),
         () => notificationT.success(`The project ${project.projectName} was synced successfully.`),
+      ),
+      task.chainIOK(() => () => setLoading(false)),
+      task.run,
+    );
+  };
+
+  const verifyProject = (project: ProjectMetadata) => {
+    void pipe(
+      task.fromIO(() => setLoading(true)),
+      task.chain(() => verifyProjectM(project)),
+      taskEither.fold(
+        (e) => notificationT.error(e),
+        () =>
+          notificationT.success(`The project ${project.projectName} was successfully verified.`),
       ),
       task.chainIOK(() => () => setLoading(false)),
       task.run,
@@ -86,6 +102,14 @@ export const ProjectList = (props: {
                         icon: <Icon name="sync" />,
                         onClick: () => {
                           void syncProject(project);
+                        },
+                      },
+                      {
+                        label: 'Verify project',
+                        key: 'verify',
+                        icon: <Icon name="check" />,
+                        onClick: () => {
+                          void verifyProject(project);
                         },
                       },
                       { type: 'divider' },
