@@ -6,7 +6,10 @@ dist
 .idea
 build/
 *.tsbuildinfo
-*.map
+
+### TypeScript ###
+*.d.ts
+*.d.ts.map
 
 ### dotenv ###
 .env

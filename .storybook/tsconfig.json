@@ -1,0 +1,17 @@
+{
+  "extends": "../tsconfig.options.json",
+  "compilerOptions": {
+    "allowJs": false,
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "jsx": "react",
+    "baseUrl": ".",
+    "paths": {
+      "@code-expert/prelude": ["../packages/prelude"],
+    }
+  },
+  "include": ["**/*"],
+  "references": [
+    { "path": "../packages/prelude" },
+    { "path": "../src" },
+  ]
+}

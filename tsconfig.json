@@ -4,7 +4,8 @@
     { "path": "./packages/prelude" },
     { "path": "./packages/test-utils" },
     { "path": "./packages/type-utils" },
-    { "path": "./src" }
+    { "path": "./src" },
+    { "path": "./.storybook" },
   ],
   "files": ["vite.config.ts"]
 }
