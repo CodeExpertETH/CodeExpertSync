@@ -3,14 +3,24 @@ import { getVersion } from '@tauri-apps/api/app';
 import {
   BaseDirectory,
   createDir,
-  exists,
+  exists as fsExists,
   readTextFile,
   removeDir,
   writeTextFile,
 } from '@tauri-apps/api/fs';
 import { dirname } from '@tauri-apps/api/path';
 import { Store as TauriStore } from 'tauri-plugin-store-api';
-import { flow, iots, json, option, pipe, task, taskEither, taskOption } from '@code-expert/prelude';
+import {
+  constFalse,
+  flow,
+  iots,
+  json,
+  option,
+  pipe,
+  task,
+  taskEither,
+  taskOption,
+} from '@code-expert/prelude';
 import { Exception, fromError } from '@/domain/exception';
 
 const store = new TauriStore('settings.json');
@@ -28,6 +38,7 @@ export interface Api {
   createProjectDir(filePath: string): taskEither.TaskEither<Exception, void>;
   readConfigFile<T>(name: string, decoder: iots.Decoder<unknown, T>): taskOption.TaskOption<T>;
   hasConfigFile(name: string): task.Task<boolean>;
+  exists(path: string): task.Task<boolean>;
   logout(): taskOption.TaskOption<void>;
 }
 
@@ -47,11 +58,17 @@ export const api: Api = {
         ? store.set(key, value).then(() => store.save())
         : store.delete(key).then(() => store.save()),
     ),
+  exists(path: string) {
+    return pipe(
+      taskOption.tryCatch(() => fsExists(path)),
+      taskOption.match(constFalse, (exists) => exists),
+    );
+  },
   writeFile: (filePath, content) =>
     pipe(
       taskEither.tryCatch(async () => {
         const dir = await dirname(filePath);
-        if (!(await exists(dir))) {
+        if (!(await fsExists(dir))) {
           await createDir(dir, { recursive: true });
         }
       }, fromError),
@@ -76,6 +93,6 @@ export const api: Api = {
       ),
       taskOption.chainOptionK(flow(decoder.decode, option.fromEither)),
     ),
-  hasConfigFile: (name) => () => exists(name, { dir: BaseDirectory.AppLocalData }),
+  hasConfigFile: (name) => () => fsExists(name, { dir: BaseDirectory.AppLocalData }),
   logout: () => api.settingWrite('accessToken', null),
 };

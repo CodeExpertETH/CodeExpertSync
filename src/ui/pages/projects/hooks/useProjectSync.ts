@@ -18,38 +18,21 @@ import {
   taskOption,
   tree,
 } from '@code-expert/prelude';
-import { ProjectId, ProjectMetadata } from '@/domain/Project';
+import {
+  FileEntryType,
+  FileEntryTypeC,
+  FilePermissions,
+  FilePermissionsC,
+  ProjectId,
+  ProjectMetadata,
+  readProjectConfig,
+  writeProjectConfig,
+} from '@/domain/Project';
 import { createSignedAPIRequest } from '@/domain/createAPIRequest';
 import { Exception, fromError, invariantViolated } from '@/domain/exception';
 import { pathEscape } from '@/utils/pathEscape';
 
 const pathJoin = taskEither.tryCatchK(tauriPath.join, fromError);
-
-const FilePermissionsC = iots.keyof({ r: null, rw: null });
-type FilePermissions = iots.TypeOf<typeof FilePermissionsC>;
-
-const FileEntryTypeC = iots.keyof({ file: null, dir: null });
-type FileEntryType = iots.TypeOf<typeof FileEntryTypeC>;
-
-const ProjectConfigC = iots.strict({
-  dir: iots.string,
-  files: iots.array(
-    iots.strict({
-      path: iots.string,
-      version: iots.number,
-      hash: iots.string,
-      type: FileEntryTypeC,
-      permissions: FilePermissionsC,
-    }),
-  ),
-});
-type ProjectConfig = iots.TypeOf<typeof ProjectConfigC>;
-
-const readProjectConfig = (projectId: ProjectId) =>
-  api.readConfigFile(`project_${projectId}.json`, ProjectConfigC);
-
-const writeProjectConfig = (projectId: ProjectId, projectConfig: Readonly<ProjectConfig>) =>
-  api.writeConfigFile(`project_${projectId}.json`, projectConfig);
 
 function writeSingeFile({
   projectFilePath,
