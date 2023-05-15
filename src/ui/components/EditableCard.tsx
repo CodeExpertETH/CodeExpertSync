@@ -30,8 +30,13 @@ const GrayIcon = styled(Icon, ({ tokens }) => ({
   color: tokens.colorIcon,
 }));
 
+const CardMain = styled('div', () => ({
+  display: 'flex',
+  gap: '1rem',
+}));
+
 const CardMainContent = styled('div', () => ({
-  flexGrow: 5,
+  flexGrow: 1,
   display: 'flex',
   justifyContent: 'space-between',
   flexDirection: 'column',
@@ -52,27 +57,29 @@ export const EditableCard = (props: EditableCardProps) => (
     <h2>{props.title}</h2>
     <Card>
       <CardContainer>
-        <GrayIcon name={props.iconName} size="4x" />
-        <CardMainContent>
-          <Typography.Paragraph type="secondary">{props.description}</Typography.Paragraph>
-          <Typography.Paragraph>{props.value}</Typography.Paragraph>
-        </CardMainContent>
+        <CardMain>
+          <GrayIcon name={props.iconName} size="4x" />
+          <CardMainContent>
+            <Typography.Paragraph type="secondary">{props.description}</Typography.Paragraph>
+            <Typography.Paragraph>{props.value}</Typography.Paragraph>
+          </CardMainContent>
+        </CardMain>
         <CardAction>
-          {props.actions.map((action) => (
+          {props.actions.map(({ name, iconName, ...buttonProps }) => (
             <Button
-              key={action.name}
-              {...action}
+              key={name}
+              {...buttonProps}
               style={
-                action.type === 'link'
+                buttonProps.type === 'link'
                   ? {
                       paddingBottom: 0,
                       borderBottom: 0,
                     }
                   : {}
               }
-              icon={<Icon name={action.iconName} />}
+              icon={<Icon name={iconName} />}
             >
-              {action.name}
+              {name}
             </Button>
           ))}
         </CardAction>

@@ -1,75 +1,103 @@
 import { open } from '@tauri-apps/api/dialog';
 import { homeDir } from '@tauri-apps/api/path';
-import { Button, Form, Input, Space, message } from 'antd';
+import { Form, message } from 'antd';
 import { api } from 'api';
 import React from 'react';
 import { iots, task } from '@code-expert/prelude';
 import { routes, useGlobalContextWithActions } from '@/ui/GlobalContext';
+import { EditableCard } from '@/ui/components/EditableCard';
 import { GuardRemoteData } from '@/ui/components/GuardRemoteData';
-import { Icon } from '@/ui/foundation/Icons';
 import { useSettingsFallback } from '@/ui/hooks/useSettings';
 
+// TODO get userName from the server
+// TODO get handler
 function SettingsInner({ projectDir }: { projectDir: string }) {
   const [, dispatch] = useGlobalContextWithActions();
   const [form] = Form.useForm();
 
   const selectDir = async () => {
-    const selected = await open({
+    const projectDir = await open({
       directory: true,
       multiple: false,
       defaultPath: await homeDir(),
     });
-    if (selected != null) {
-      form.setFieldsValue({ projectDir: selected });
+    if (projectDir != null) {
+      form.setFieldsValue({ projectDir });
+      await api.settingWrite('projectDir', projectDir)();
+      void message.success('Saved the settings');
     }
   };
 
-  const onFinish = async (data: { projectDir: string }) => {
-    await api.settingWrite('projectDir', data.projectDir)();
-    void message.success('Saved the settings');
-    dispatch({ currentPage: routes.main() });
+  const logout = () => {
+    dispatch({ currentPage: routes.logout() });
   };
 
+  const deleteDir = () => message.warning('Not implemented yet');
+  const setHandler = () => message.warning('Not implemented yet');
+  const resetHandler = () => message.warning('Not implemented yet');
+
   return (
-    <div>
+    <div style={{ marginTop: '1rem' }}>
       <h1>Settings</h1>
-      <Form requiredMark={false} onFinish={onFinish} form={form} initialValues={{ projectDir }}>
-        <Form.Item label="Project directory" extra="Please select a root folder for your projects.">
-          <Space.Compact style={{ width: '100%' }}>
-            <Form.Item
-              name="projectDir"
-              noStyle
-              rules={[
+      <Form requiredMark={false} form={form} initialValues={{ projectDir }}>
+        <Form.Item dependencies={['projectDir']}>
+          {({ getFieldValue }) => (
+            <EditableCard
+              iconName="user"
+              title="Profile"
+              description="Signed in as"
+              value={getFieldValue('userName')}
+              actions={[
                 {
-                  required: true,
-                  message: 'You need to select a directory to save the projects to.',
+                  name: 'Logout…',
+                  iconName: 'sign-out-alt',
+                  danger: true,
+                  type: 'link',
+                  onClick: logout,
                 },
               ]}
-            >
-              <Input disabled />
-            </Form.Item>
-            <Button onClick={selectDir} title="Select directory">
-              <Icon name="folder-open-regular" />
-            </Button>
-          </Space.Compact>
+            />
+          )}
         </Form.Item>
-        <Form.Item>
-          <Space>
-            <Form.Item shouldUpdate>
-              {() => (
-                <Button
-                  type="primary"
-                  htmlType="submit"
-                  disabled={
-                    !form.isFieldsTouched(true) ||
-                    !!form.getFieldsError().filter(({ errors }) => errors.length).length
-                  }
-                >
-                  Save
-                </Button>
-              )}
-            </Form.Item>
-          </Space>
+        <Form.Item dependencies={['projectDir']}>
+          {({ getFieldValue }) => (
+            <EditableCard
+              iconName="folder-open-regular"
+              title="Project directory"
+              description="All projects are synced into this directory"
+              value={getFieldValue('projectDir')}
+              actions={[
+                { name: 'Change…', iconName: 'edit', type: 'link', onClick: selectDir },
+                {
+                  name: 'Delete…',
+                  iconName: 'trash',
+                  danger: true,
+                  type: 'link',
+                  onClick: deleteDir,
+                },
+              ]}
+            />
+          )}
+        </Form.Item>
+        <Form.Item dependencies={['handler']}>
+          {({ getFieldValue }) => (
+            <EditableCard
+              iconName="external-link-alt"
+              title="Handler application"
+              description="Projects are opened with this application"
+              value={getFieldValue('handler')}
+              actions={[
+                { name: 'Change…', iconName: 'edit', type: 'link', onClick: setHandler },
+                {
+                  name: 'Reset…',
+                  iconName: 'trash',
+                  danger: true,
+                  type: 'link',
+                  onClick: resetHandler,
+                },
+              ]}
+            />
+          )}
         </Form.Item>
       </Form>
     </div>
