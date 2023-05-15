@@ -1,3 +1,4 @@
+import { $Unexpressable } from '@code-expert/type-utils';
 import { nonEmptyArray } from '@code-expert/prelude';
 
 /**

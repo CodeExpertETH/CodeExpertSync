@@ -12,6 +12,7 @@ import {
   normalizeStyle,
   parseStyle,
 } from '@ant-design/cssinjs/es/hooks/useStyleRegister';
+import { $FixMe, $IntentionalAny } from '@code-expert/type-utils';
 import hash from '@emotion/hash';
 import { MapToken, SeedToken } from 'antd/es/theme/interface';
 // eslint-disable-next-line import/no-extraneous-dependencies
