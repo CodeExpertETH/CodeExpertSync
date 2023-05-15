@@ -19,7 +19,6 @@ export const useProjectAccess = (onProjectAccess: (projectId: string) => void) =
 
   React.useEffect(() => {
     const onProjectAccessI = ({ data: projectId }: { data: string }) => {
-      console.log('data', projectId);
       onProjectAccess(projectId);
     };
 
