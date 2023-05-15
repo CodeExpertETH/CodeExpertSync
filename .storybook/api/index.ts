@@ -14,6 +14,7 @@ export const api: Api = {
     settingsStore.set(key, value);
     return Promise.resolve(option.some(undefined));
   },
+  exists: () => task.of(true) /* FIXME Correct implementation */,
   writeConfigFile: (name, value) =>
     taskEither.fromIO(() => {
       configStore.set(name, value);
