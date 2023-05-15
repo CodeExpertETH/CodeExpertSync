@@ -3,15 +3,16 @@ import { homeDir } from '@tauri-apps/api/path';
 import { Form, message } from 'antd';
 import { api } from 'api';
 import React from 'react';
-import { iots, task } from '@code-expert/prelude';
+import { iots, remoteData, task } from '@code-expert/prelude';
+import { UserInfo } from '@/domain/UserInfo';
 import { routes, useGlobalContextWithActions } from '@/ui/GlobalContext';
 import { EditableCard } from '@/ui/components/EditableCard';
 import { GuardRemoteData } from '@/ui/components/GuardRemoteData';
 import { useSettingsFallback } from '@/ui/hooks/useSettings';
+import { useUserInfo } from '@/ui/pages/settings/hooks/useUserInfo';
 
-// TODO get userName from the server
 // TODO get handler
-function SettingsInner({ projectDir }: { projectDir: string }) {
+function SettingsInner({ projectDir, userInfo }: { projectDir: string; userInfo: UserInfo }) {
   const [, dispatch] = useGlobalContextWithActions();
   const [form] = Form.useForm();
 
@@ -39,8 +40,12 @@ function SettingsInner({ projectDir }: { projectDir: string }) {
   return (
     <div style={{ marginTop: '1rem' }}>
       <h1>Settings</h1>
-      <Form requiredMark={false} form={form} initialValues={{ projectDir }}>
-        <Form.Item dependencies={['projectDir']}>
+      <Form
+        requiredMark={false}
+        form={form}
+        initialValues={{ projectDir, userName: userInfo.userName }}
+      >
+        <Form.Item dependencies={['userName']}>
           {({ getFieldValue }) => (
             <EditableCard
               iconName="user"
@@ -105,12 +110,18 @@ function SettingsInner({ projectDir }: { projectDir: string }) {
 }
 
 export function Settings() {
-  const projectDir = useSettingsFallback('projectDir', iots.string, task.of(''), []);
+  const projectDirRD = useSettingsFallback('projectDir', iots.string, task.of(''), []);
+  const [userInfoRD] = useUserInfo();
 
   return (
     <GuardRemoteData
-      value={projectDir}
-      render={(projectDir) => <SettingsInner projectDir={projectDir} />}
+      value={remoteData.sequenceS({
+        projectDir: projectDirRD,
+        userInfo: userInfoRD,
+      })}
+      render={({ projectDir, userInfo }) => (
+        <SettingsInner userInfo={userInfo} projectDir={projectDir} />
+      )}
     />
   );
 }
