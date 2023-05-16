@@ -454,6 +454,7 @@ dependencies = [
 name = "code_expert_desktop"
 version = "0.0.15"
 dependencies = [
+ "brotli",
  "data-encoding",
  "ed25519-compact",
  "jsonwebtoken",
@@ -461,6 +462,7 @@ dependencies = [
  "serde_json",
  "sha2",
  "sysinfo",
+ "tar",
  "tauri",
  "tauri-build",
  "tauri-plugin-persisted-scope",

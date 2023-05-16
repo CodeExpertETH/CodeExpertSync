@@ -29,6 +29,8 @@ ed25519-compact = "2"
 jsonwebtoken = { version= "8", features = ["use_pem"] }
 data-encoding = "2.3.3"
 sha2 = "0.10.6"
+brotli = "3.3.4"
+tar = "0.4.38"
 
 
 

@@ -264,6 +264,16 @@ const getProjectDirRelative = ({ semester, courseName, exerciseName, taskName }:
     libPath.escape(taskName),
   );
 
+const uploadChangedFiles = (
+  localChanges: Array<LocalFileChange>,
+  projectDir: string,
+): taskEither.TaskEither<Exception, string> =>
+  pipe(
+    localChanges,
+    array.map(({ path }) => path),
+    (files) => api.buildTar(projectDir, files),
+  );
+
 export const useProjectSync = () => {
   const time = useTimeContext();
   const { projectRepository } = useGlobalContext();
