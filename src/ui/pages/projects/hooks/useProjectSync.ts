@@ -1,4 +1,4 @@
-import { fs, path as tauriPath } from '@tauri-apps/api';
+import { fs } from '@tauri-apps/api';
 import { ResponseType } from '@tauri-apps/api/http';
 import { api } from 'api';
 import React from 'react';
@@ -29,10 +29,8 @@ import {
   writeProjectConfig,
 } from '@/domain/Project';
 import { createSignedAPIRequest } from '@/domain/createAPIRequest';
-import { Exception, fromError, invariantViolated } from '@/domain/exception';
-import { pathEscape } from '@/utils/pathEscape';
-
-const pathJoin = taskEither.tryCatchK(tauriPath.join, fromError);
+import { Exception, invariantViolated } from '@/domain/exception';
+import { path as fsPath } from '@/lib/tauri';
 
 function writeSingeFile({
   projectFilePath,
@@ -51,7 +49,7 @@ function writeSingeFile({
 }) {
   return pipe(
     taskEither.Do,
-    taskEither.bind('systemFilePath', () => pathJoin(projectDir, projectFilePath)),
+    taskEither.bind('systemFilePath', () => fsPath.join(projectDir, projectFilePath)),
     taskEither.chainFirst(({ systemFilePath }) =>
       pipe(
         createSignedAPIRequest({
@@ -79,7 +77,7 @@ const addHash =
   (projectDir: string) =>
   ({ path, type }: { path: string; type: 'file' }) =>
     pipe(
-      pathJoin(projectDir, path),
+      fsPath.join(projectDir, path),
       taskEither.chain(api.getFileHash),
       taskEither.map((hash) => ({ path, type, hash })),
     );
@@ -279,12 +277,12 @@ export const useProjectSync = () =>
           ),
         ),
         taskEither.bind('projectDir', ({ rootDir }) =>
-          pathJoin(
+          fsPath.join(
             rootDir,
-            pathEscape(project.semester),
-            pathEscape(project.courseName),
-            pathEscape(project.exerciseName),
-            pathEscape(project.taskName),
+            fsPath.escape(project.semester),
+            fsPath.escape(project.courseName),
+            fsPath.escape(project.exerciseName),
+            fsPath.escape(project.taskName),
           ),
         ),
         taskEither.bindTaskK('projectInfoPrevious', ({ projectDir }) =>
