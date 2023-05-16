@@ -111,7 +111,7 @@ function SettingsInner({ projectDir, userInfo }: { projectDir: string; userInfo:
 
 export function Settings() {
   const projectDirRD = useSettingsFallback('projectDir', iots.string, task.of(''), []);
-  const [userInfoRD] = useUserInfo();
+  const userInfoRD = useUserInfo();
 
   return (
     <GuardRemoteData

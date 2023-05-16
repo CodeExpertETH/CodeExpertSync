@@ -1,7 +1,7 @@
 import React from 'react';
 import { pipe, remoteData, taskEither } from '@code-expert/prelude';
 import { UserInfo, getUserInfo } from '@/domain/UserInfo';
-import { Exception, fromError } from '@/domain/exception';
+import { Exception } from '@/domain/exception';
 import { useRaceState } from '@/ui/hooks/useRaceState';
 
 export const useUserInfo = () => {
@@ -13,12 +13,12 @@ export const useUserInfo = () => {
     const setState = mkSetState();
     void pipe(
       getUserInfo(),
-      taskEither.mapLeft(fromError),
+      taskEither.mapLeft(remoteData.failure),
       taskEither.map(remoteData.success),
       taskEither.chainIOK((s) => () => setState(s)),
       taskEither.run,
     );
   }, [mkSetState]);
 
-  return [state] as const;
+  return state;
 };
