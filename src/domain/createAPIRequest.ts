@@ -100,7 +100,7 @@ export const createSignedAPIRequest = <P>({
   path: string;
   codec: iots.Decoder<unknown, P>;
   responseType?: ResponseType;
-}): taskEither.TaskEither<Error, P> =>
+}): taskEither.TaskEither<Exception, P> =>
   pipe(
     createToken(payload),
     taskEither.chain(sendApiRequest(path, method, responseType)),

@@ -1,5 +1,8 @@
 import { $IntentionalAny, $Unexpressable } from '@code-expert/type-utils';
 import { Refinement } from 'fp-ts/Refinement';
+import { Prism } from 'monocle-ts';
+import { identity } from './function';
+import * as option from './option';
 
 /**
  * Tools for working with tagged unions.
@@ -239,3 +242,33 @@ export const build = <A extends Tagged<string>>(): Algebra<A> => {
     },
   });
 };
+
+export type Prisms<A extends Tagged<string>> = {
+  readonly [T in A['_tag']]: Prism<A, Member<A, T>>;
+};
+
+/**
+ * Build a record of prisms to match the elements of a tagged type.
+ *
+ * @example
+ * type NumStr = tagged.Tagged<'num', number> | tagged.Tagged<'str', string>;
+ * const numStr = tagged.build<NumStr>();
+ * const prisms = tagged.prisms<NumStr>();
+ * prisms.num.getOption(numStr.num(1)) // some(1)
+ * prisms.str.getOption(numStr.num(1)) // none
+ */
+export const prisms = <A extends Tagged<string>>(): Prisms<A> =>
+  new Proxy({} as Prisms<A>, {
+    get(prisms, prop) {
+      const _tag = prop as A['_tag'];
+      type T = typeof _tag;
+      if (!(_tag in prisms)) {
+        // eslint-disable-next-line no-param-reassign
+        (prisms as $Unexpressable)[_tag] = new Prism<A, Member<A, T>>(
+          option.fromPredicate((a): a is Member<A, T> => a._tag === _tag),
+          identity,
+        );
+      }
+      return prisms[_tag];
+    },
+  });
