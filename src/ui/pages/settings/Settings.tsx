@@ -11,7 +11,6 @@ import { GuardRemoteData } from '@/ui/components/GuardRemoteData';
 import { useSettingsFallback } from '@/ui/hooks/useSettings';
 import { useUserInfo } from '@/ui/pages/settings/hooks/useUserInfo';
 
-// TODO get handler
 function SettingsInner({ projectDir, userInfo }: { projectDir: string; userInfo: UserInfo }) {
   const [, dispatch] = useGlobalContextWithActions();
   const [form] = Form.useForm();
@@ -33,9 +32,10 @@ function SettingsInner({ projectDir, userInfo }: { projectDir: string; userInfo:
     dispatch({ currentPage: routes.logout() });
   };
 
-  const deleteDir = () => message.warning('Not implemented yet');
-  const setHandler = () => message.warning('Not implemented yet');
-  const resetHandler = () => message.warning('Not implemented yet');
+  const deleteDir = () => {
+    //TODO think about if we want to implement this
+    return message.warning('Not implemented yet');
+  };
 
   return (
     <div style={{ marginTop: '1rem' }}>
@@ -79,26 +79,6 @@ function SettingsInner({ projectDir, userInfo }: { projectDir: string; userInfo:
                   danger: true,
                   type: 'link',
                   onClick: deleteDir,
-                },
-              ]}
-            />
-          )}
-        </Form.Item>
-        <Form.Item dependencies={['handler']}>
-          {({ getFieldValue }) => (
-            <EditableCard
-              iconName="external-link-alt"
-              title="Handler application"
-              description="Projects are opened with this application"
-              value={getFieldValue('handler')}
-              actions={[
-                { name: 'Change…', iconName: 'edit', type: 'link', onClick: setHandler },
-                {
-                  name: 'Reset…',
-                  iconName: 'trash',
-                  danger: true,
-                  type: 'link',
-                  onClick: resetHandler,
                 },
               ]}
             />
