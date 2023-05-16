@@ -1,5 +1,4 @@
 /* eslint-disable max-classes-per-file */
-import { $IntentionalAny } from '@code-expert/type-utils';
 import { FunctionN, adt, array, monoid, pipe, string } from '@code-expert/prelude';
 import { isObject } from '@/utils/fn';
 
@@ -98,7 +97,7 @@ export const mapReason = (f: FunctionN<[string], string>) =>
     UnauthorizedException: (e) => new UnauthorizedException(f(e.reason)),
   });
 
-export function isError(err: $IntentionalAny): err is Error {
+export function isError(err: unknown): err is Error {
   return isObject(err) && typeof err['name'] === 'string' && typeof err['message'] === 'string';
 }
 
@@ -110,8 +109,8 @@ const exceptionTag: { [k in Exception['error']]: null } = {
   UnauthorizedException: null,
 };
 
-export function isException(err: $IntentionalAny): err is Exception {
-  return err.error in exceptionTag;
+export function isException(err: unknown): err is Exception {
+  return isObject(err) && typeof err['error'] === 'string' && err['error'] in exceptionTag;
 }
 
 /**
