@@ -6,7 +6,7 @@ import { Developer } from './pages/Developer';
 import { Logout } from './pages/Logout';
 import { MainWrapper } from './pages/Main';
 import { NotAuthorized } from './pages/NotAuthorized';
-import { Settings } from './pages/Settings';
+import { Settings } from './pages/settings/Settings';
 
 function Routes() {
   const [{ currentPage, authState }, dispatch] = useGlobalContextWithActions();
