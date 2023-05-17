@@ -1,6 +1,7 @@
 import { Result } from 'antd';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { boolean, pipe } from '@code-expert/prelude';
+import { registerApp } from '@/startup/registerApp';
 import { GlobalContextProvider } from '@/ui/GlobalContext';
 import Routes from '@/ui/Routes';
 import useNetworkState from '@/ui/hooks/useNetwork';
@@ -8,6 +9,10 @@ import { AppLayout } from '@/ui/layout';
 
 function App() {
   const { online } = useNetworkState();
+
+  useEffect(() => {
+    void registerApp();
+  }, []);
 
   return (
     <GlobalContextProvider>
