@@ -24,7 +24,7 @@ export const registerApp = async () => {
         taskEither.chain((token) => {
           const requestBody = {
             os,
-            permissions: ['project:read', 'project:write'],
+            permissions: ['user:read', 'project:read', 'project:write'],
             token,
             name,
             version,
