@@ -1,7 +1,7 @@
 import equal from 'fast-deep-equal';
 import React, { useEffect } from 'react';
 import { constVoid, either, iots, pipe, tagged, task } from '@code-expert/prelude';
-import { GlobalAuthState, globalAuthState } from '@/domain/AuthState';
+import { GlobalSetupState, globalSetupState } from '@/domain/Setup';
 import { createSignedAPIRequest } from '@/domain/createAPIRequest';
 import Loading from './components/Loading';
 
@@ -14,11 +14,11 @@ export type Routes =
 export const routes = tagged.build<Routes>();
 
 export interface GlobalContext {
-  readonly authState: GlobalAuthState;
+  readonly setupState: GlobalSetupState;
   readonly currentPage: Routes;
 }
 
-type MandatoryFields = keyof Pick<GlobalContext, 'authState'>;
+type MandatoryFields = keyof Pick<GlobalContext, 'setupState'>;
 
 export function initialState({
   currentPage = routes.main(),
@@ -45,7 +45,7 @@ const reducer = (state: GlobalContext | undefined, action: Action & { _init?: Gl
 const context = React.createContext<[GlobalContext, React.Dispatch<Action>]>([
   initialState({
     currentPage: routes.main(),
-    authState: globalAuthState.notAuthorized(),
+    setupState: globalSetupState.notSetup(),
   }),
   constVoid,
 ]);
@@ -66,15 +66,15 @@ export const GlobalContextProvider = React.memo(function GlobalContextProvider({
         }),
         task.map(
           either.fold(
-            () => globalAuthState.notAuthorized(),
+            () => globalSetupState.notSetup(),
             ({ status }) =>
-              status === 'Success' ? globalAuthState.authorized() : globalAuthState.notAuthorized(),
+              status === 'Success' ? globalSetupState.setup() : globalSetupState.notSetup(),
           ),
         ),
-        task.map((authState) => {
+        task.map((setupState) => {
           stateDispatch({
             _init: initialState({
-              authState,
+              setupState,
             }),
           });
         }),

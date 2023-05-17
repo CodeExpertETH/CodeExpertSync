@@ -1,13 +1,13 @@
 import { Menu } from 'antd';
 import React from 'react';
 import codeExpertLogo from '@/assets/logo_invert.png';
-import { globalAuthState } from '@/domain/AuthState';
+import { globalSetupState } from '@/domain/Setup';
 import { routes, useGlobalContextWithActions } from '@/ui/GlobalContext';
 import { Icon } from '@/ui/foundation/Icons';
 import { HStack } from '@/ui/foundation/Layout';
 
 export const TopNav = () => {
-  const [{ authState }, dispatch] = useGlobalContextWithActions();
+  const [{ setupState }, dispatch] = useGlobalContextWithActions();
 
   const onClick = ({ key }: { key: string }) => {
     if (key === 'settings') {
@@ -31,9 +31,9 @@ export const TopNav = () => {
         mode="horizontal"
         selectedKeys={[]}
         onClick={onClick}
-        disabled={globalAuthState.fold(authState, {
-          notAuthorized: () => true,
-          authorized: () => false,
+        disabled={globalSetupState.fold(setupState, {
+          notSetup: () => true,
+          setup: () => false,
         })}
         triggerSubMenuAction="click"
         items={[

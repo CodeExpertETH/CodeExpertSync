@@ -1,22 +1,22 @@
 import React from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
-import { globalAuthState } from '@/domain/AuthState';
+import { globalSetupState } from '@/domain/Setup';
+import { Setup } from '@/ui/pages/Setup';
 import { routes, useGlobalContextWithActions } from './GlobalContext';
 import { Developer } from './pages/Developer';
 import { Logout } from './pages/Logout';
 import { MainWrapper } from './pages/Main';
-import { NotAuthorized } from './pages/NotAuthorized';
 import { Settings } from './pages/settings/Settings';
 
 function Routes() {
-  const [{ currentPage, authState }, dispatch] = useGlobalContextWithActions();
+  const [{ currentPage, setupState }, dispatch] = useGlobalContextWithActions();
   useHotkeys('ctrl+c+x', () => {
     dispatch({ currentPage: routes.developer() });
   });
 
-  return globalAuthState.fold(authState, {
-    notAuthorized: () => <NotAuthorized />,
-    authorized: () =>
+  return globalSetupState.fold(setupState, {
+    notSetup: () => <Setup />,
+    setup: () =>
       routes.fold(currentPage, {
         settings: () => <Settings />,
         logout: () => <Logout />,
