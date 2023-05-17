@@ -32,10 +32,9 @@ function SettingsInner({ projectDir, userInfo }: { projectDir: string; userInfo:
     dispatch({ currentPage: routes.logout() });
   };
 
-  const deleteDir = () => {
+  const deleteDir = () =>
     //TODO think about if we want to implement this
-    return message.warning('Not implemented yet');
-  };
+    message.warning('Not implemented yet');
 
   return (
     <div style={{ marginTop: '1rem' }}>
