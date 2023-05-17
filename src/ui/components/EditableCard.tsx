@@ -4,17 +4,34 @@ import React from 'react';
 import { Icon, IconName } from '@/ui/foundation/Icons';
 import { styled } from '@/ui/foundation/Theme';
 
-interface Action extends ButtonProps {
+interface EditableCardButtonProps extends Pick<ButtonProps, 'type' | 'danger' | 'onClick'> {
   name: string;
   iconName: IconName;
 }
+const EditableCardButton = ({ name, iconName, ...buttonProps }: EditableCardButtonProps) => (
+  <Button
+    key={name}
+    {...buttonProps}
+    style={
+      buttonProps.type === 'link'
+        ? {
+            paddingBottom: 0,
+            borderBottom: 0,
+          }
+        : {}
+    }
+    icon={<Icon name={iconName} />}
+  >
+    {name}
+  </Button>
+);
 
 export interface EditableCardProps {
   iconName: IconName;
   title: string;
   description: string;
   value: string;
-  actions: Array<Action>;
+  actions: Array<EditableCardButtonProps>;
 }
 
 const CardContainer = styled('div', () => ({
@@ -65,22 +82,8 @@ export const EditableCard = (props: EditableCardProps) => (
           </CardMainContent>
         </CardMain>
         <CardAction>
-          {props.actions.map(({ name, iconName, ...buttonProps }) => (
-            <Button
-              key={name}
-              {...buttonProps}
-              style={
-                buttonProps.type === 'link'
-                  ? {
-                      paddingBottom: 0,
-                      borderBottom: 0,
-                    }
-                  : {}
-              }
-              icon={<Icon name={iconName} />}
-            >
-              {name}
-            </Button>
+          {props.actions.map((props) => (
+            <EditableCardButton {...props} />
           ))}
         </CardAction>
       </CardContainer>
