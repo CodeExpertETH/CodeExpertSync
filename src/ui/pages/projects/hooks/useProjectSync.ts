@@ -261,6 +261,8 @@ const getProjectInfoRemote = (projectId: ProjectId) =>
     }),
   });
 
+const getProjectInfoPrevious = (synced: Synced) => synced.value.files;
+
 const getProjectDirRelative = (project: ExtendedProjectMetadata) =>
   libPath.join(
     libPath.escape(project.semester),
@@ -304,7 +306,7 @@ export const useProjectSync = () =>
         taskEither.let('projectInfoPrevious', () =>
           pipe(
             projectSyncStatePrism.synced.getOption(project.syncState),
-            option.map((x) => x.value),
+            option.map(getProjectInfoPrevious),
           ),
         ),
         taskEither.bind('projectInfoRemote', () => getProjectInfoRemote(project.projectId)),
@@ -319,13 +321,13 @@ export const useProjectSync = () =>
         taskEither.let('remoteChanges', ({ projectInfoRemote, projectInfoPrevious }) =>
           pipe(
             projectInfoPrevious,
-            option.chain((previous) => getRemoteChanges(previous.files, projectInfoRemote.files)),
+            option.chain((previous) => getRemoteChanges(previous, projectInfoRemote.files)),
           ),
         ),
         taskEither.let('localChanges', ({ projectInfoLocal, projectInfoPrevious }) =>
           pipe(
             option.sequenceS({ local: projectInfoLocal, previous: projectInfoPrevious }),
-            option.chain(({ local, previous }) => getLocalChanges(previous.files, local)),
+            option.chain(({ local, previous }) => getLocalChanges(previous, local)),
           ),
         ),
 
