@@ -1,13 +1,17 @@
+import { Meta, StoryObj } from '@storybook/react';
 import React from 'react';
 import { AppLayout } from './AppLayout';
 
-export default {
+const meta = {
   component: AppLayout,
   parameters: {
     layout: 'fullscreen',
     padded: false,
   },
-};
+} satisfies Meta<typeof AppLayout>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
 
 export const Default = {
   args: {
@@ -18,4 +22,4 @@ export const Default = {
       </div>
     ),
   },
-};
+} satisfies Story;

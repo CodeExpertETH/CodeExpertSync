@@ -1,8 +1,11 @@
-import React from 'react';
+import { Meta, StoryObj } from '@storybook/react';
 import App from './App';
 
-export default {
+const meta = {
   component: App,
-};
+} satisfies Meta<typeof App>;
 
-export const Playground = () => <App />;
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const Playground = {} satisfies Story;

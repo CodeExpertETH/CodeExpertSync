@@ -1,11 +1,7 @@
 import { Meta, StoryObj } from '@storybook/react';
 import { EditableCard } from '@/ui/components/EditableCard';
 
-const meta: Meta<typeof EditableCard> = {
-  /* 👇 The title prop is optional.
-   * See https://storybook.js.org/docs/react/configure/overview#configure-story-loading
-   * to learn how to generate automatic titles
-   */
+const meta = {
   title: 'components/EditableCard',
   component: EditableCard,
   args: {
@@ -15,18 +11,18 @@ const meta: Meta<typeof EditableCard> = {
     value: 'This is the value',
     actions: [],
   },
-};
+} satisfies Meta<typeof EditableCard>;
 
 export default meta;
-type Story = StoryObj<typeof EditableCard>;
+type Story = StoryObj<typeof meta>;
 
-export const Primary: Story = {
+export const Primary = {
   args: {
     title: 'Card title2',
   },
-};
+} satisfies Story;
 
-export const Profile: Story = {
+export const Profile = {
   args: {
     iconName: 'user',
     title: 'Profile',
@@ -34,9 +30,9 @@ export const Profile: Story = {
     value: 'Marty McFly',
     actions: [{ name: 'Log out…', iconName: 'sign-out-alt', danger: true, type: 'link' }],
   },
-};
+} satisfies Story;
 
-export const ProjectDir: Story = {
+export const ProjectDir = {
   args: {
     iconName: 'folder-open-regular',
     title: 'Project directory',
@@ -47,4 +43,4 @@ export const ProjectDir: Story = {
       { name: 'Delete…', iconName: 'trash', danger: true, type: 'link' },
     ],
   },
-};
+} satisfies Story;
