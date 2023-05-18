@@ -1,7 +1,7 @@
 import { Button, List, Result } from 'antd';
 import React from 'react';
 import { nonEmptyArray, option, pipe, task, taskEither } from '@code-expert/prelude';
-import { ExtendedProjectMetadata, ProjectMetadata, projectSyncState } from '@/domain/Project';
+import { ExtendedProjectMetadata, projectSyncState } from '@/domain/Project';
 import { ActionMenu } from '@/ui/components/ActionMenu';
 import { Icon } from '@/ui/foundation/Icons';
 import { Box, HStack } from '@/ui/foundation/Layout';
@@ -23,7 +23,7 @@ export const ProjectList = (props: {
   const syncProjectM = useProjectSync();
   const verifyProjectM = useProjectVerify();
 
-  const syncProject = (project: ProjectMetadata) => {
+  const syncProject = (project: ExtendedProjectMetadata) => {
     void pipe(
       task.fromIO(() => setLoading(true)),
       task.chain(() => syncProjectM(project)),
@@ -36,7 +36,7 @@ export const ProjectList = (props: {
     );
   };
 
-  const verifyProject = (project: ProjectMetadata) => {
+  const verifyProject = (project: ExtendedProjectMetadata) => {
     void pipe(
       task.fromIO(() => setLoading(true)),
       task.chain(() => verifyProjectM(project)),

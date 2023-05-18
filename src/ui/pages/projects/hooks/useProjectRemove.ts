@@ -1,7 +1,7 @@
 import { api } from 'api';
 import React from 'react';
 import { iots, pipe, task, taskEither, taskOption } from '@code-expert/prelude';
-import { ProjectId } from '@/domain/Project';
+import { ProjectId, readProjectConfig } from '@/domain/Project';
 import { createSignedAPIRequest } from '@/domain/createAPIRequest';
 import { Exception } from '@/domain/exception';
 import { messageT } from '@/ui/helper/message';
@@ -9,7 +9,7 @@ import { notificationT } from '@/ui/helper/notifications';
 
 export const deleteLocalProject = (projectId: ProjectId): taskEither.TaskEither<Exception, void> =>
   pipe(
-    api.readConfigFile(`project_${projectId}.json`, iots.strict({ dir: iots.string })),
+    readProjectConfig(projectId),
     taskOption.fold(
       () => taskEither.right(undefined),
       ({ dir }) => api.removeDir(dir),

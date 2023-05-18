@@ -1,4 +1,3 @@
-import { fs, path as tauriPath } from '@tauri-apps/api';
 import { ResponseType } from '@tauri-apps/api/http';
 import { api } from 'api';
 import React from 'react';
@@ -13,26 +12,23 @@ import {
   pipe,
   string,
   tagged,
-  task,
   taskEither,
-  taskOption,
   tree,
 } from '@code-expert/prelude';
 import {
+  ExtendedProjectMetadata,
   FileEntryType,
   FileEntryTypeC,
   FilePermissions,
   FilePermissionsC,
   ProjectId,
-  ProjectMetadata,
-  readProjectConfig,
+  Synced,
+  projectSyncStatePrism,
   writeProjectConfig,
 } from '@/domain/Project';
 import { createSignedAPIRequest } from '@/domain/createAPIRequest';
-import { Exception, fromError, invariantViolated } from '@/domain/exception';
-import { pathEscape } from '@/utils/pathEscape';
-
-const pathJoin = taskEither.tryCatchK(tauriPath.join, fromError);
+import { Exception, invariantViolated } from '@/domain/exception';
+import { fs as libFs, path as libPath } from '@/lib/tauri';
 
 function writeSingeFile({
   projectFilePath,
@@ -51,7 +47,7 @@ function writeSingeFile({
 }) {
   return pipe(
     taskEither.Do,
-    taskEither.bind('systemFilePath', () => pathJoin(projectDir, projectFilePath)),
+    taskEither.bind('systemFilePath', () => libPath.join(projectDir, projectFilePath)),
     taskEither.chainFirst(({ systemFilePath }) =>
       pipe(
         createSignedAPIRequest({
@@ -79,7 +75,7 @@ const addHash =
   (projectDir: string) =>
   ({ path, type }: { path: string; type: 'file' }) =>
     pipe(
-      pathJoin(projectDir, path),
+      libPath.join(projectDir, path),
       taskEither.chain(api.getFileHash),
       taskEither.map((hash) => ({ path, type, hash })),
     );
@@ -87,37 +83,45 @@ const addHash =
 const isFile = <E extends { type: FileEntryType }>(e: E): e is E & { type: 'file' } =>
   e.type === 'file';
 
-const getProjectInfoLocal = (
+const getProjectFilesLocal = (
   projectDir: string,
-): taskEither.TaskEither<Exception, option.Option<Array<LocalFileState>>> =>
+): taskEither.TaskEither<Exception, ReadonlyArray<{ path: string; type: 'file' }>> =>
   pipe(
-    taskOption.tryCatch(() => fs.readDir(projectDir, { recursive: true })),
-    taskOption.map(
+    libFs.readDirTree(projectDir),
+    taskEither.map(
       flow(
-        (files) =>
-          tree.make<{ path: string; type: FileEntryType }>(
-            { path: projectDir, type: 'dir' },
-            tree.unfoldForest(files, ({ path, children }) => [
-              { path, type: children == null ? 'file' : 'dir' },
-              children ?? [],
-            ]),
-          ),
-        tree.map(({ path, type }) => ({
-          path: `.${path.slice(projectDir.length)}`,
-          type,
-        })),
-        tree.foldMap(array.getMonoid<{ path: string; type: 'file' }>())((entry) =>
-          isFile(entry) ? array.of(entry) : [],
+        tree.foldMap(array.getMonoid<{ path: string; type: FileEntryType }>())(array.of),
+        array.filter(isFile),
+      ),
+    ),
+    taskEither.chain(
+      taskEither.traverseArray(({ path, type }) =>
+        pipe(
+          libPath.stripAncestor(projectDir)(path),
+          taskEither.map((relative) => ({
+            path: relative,
+            type,
+          })),
         ),
       ),
     ),
-    task.chain(
-      option.traverse(taskEither.ApplicativePar)(
-        flow(
-          taskEither.traverseArray(addHash(projectDir)),
-          taskEither.map(array.unsafeFromReadonly),
-        ),
-      ),
+  );
+
+/**
+ * Possible Exceptions:
+ * - has been synced before, but dir not present
+ * - can't read dir or subdir
+ *
+ * By requiring projectSyncState.synced we have handled case 1. Case 2 & 3 are textbook exception, no need to differentiate
+ */
+const getProjectInfoLocal = (
+  projectDir: string,
+  _: Synced,
+): taskEither.TaskEither<Exception, Array<LocalFileState>> =>
+  pipe(
+    getProjectFilesLocal(projectDir),
+    taskEither.chain(
+      flow(taskEither.traverseArray(addHash(projectDir)), taskEither.map(array.unsafeFromReadonly)),
     ),
   );
 
@@ -194,7 +198,7 @@ const getRemoteChanges = (
   );
   return pipe(
     [removed, added, updated],
-    monoid.concatAll(array.getMonoid<RemoteFileChange>()),
+    monoid.concatAll(array.getMonoid()),
     nonEmptyArray.fromArray,
   );
 };
@@ -234,7 +238,7 @@ const getLocalChanges = (
   );
   return pipe(
     [removed, added, updated],
-    monoid.concatAll(array.getMonoid<LocalFileChange>()),
+    monoid.concatAll(array.getMonoid()),
     nonEmptyArray.fromArray,
   );
 };
@@ -257,17 +261,23 @@ const getProjectInfoRemote = (projectId: ProjectId) =>
     }),
   });
 
-const getPreviousProjectInfo = (projectId: ProjectId, projectDir: string) =>
-  pipe(
-    readProjectConfig(projectId),
-    taskOption.filter((e) => e.dir === projectDir),
+const getProjectInfoPrevious = (synced: Synced) => synced.value.files;
+
+const getProjectDirRelative = (project: ExtendedProjectMetadata) =>
+  libPath.join(
+    libPath.escape(project.semester),
+    libPath.escape(project.courseName),
+    libPath.escape(project.exerciseName),
+    libPath.escape(project.taskName),
   );
 
 export const useProjectSync = () =>
   React.useCallback(
-    (project: ProjectMetadata) =>
+    (project: ExtendedProjectMetadata): taskEither.TaskEither<Exception, unknown> =>
       pipe(
         taskEither.Do,
+
+        // setup
         taskEither.bind('rootDir', () =>
           pipe(
             api.settingRead('projectDir', iots.string),
@@ -278,33 +288,54 @@ export const useProjectSync = () =>
             ),
           ),
         ),
-        taskEither.bind('projectDir', ({ rootDir }) =>
-          pathJoin(
-            rootDir,
-            pathEscape(project.semester),
-            pathEscape(project.courseName),
-            pathEscape(project.exerciseName),
-            pathEscape(project.taskName),
+        // This is where it *should* be
+        taskEither.bind('projectDirRelative', () =>
+          pipe(
+            projectSyncStatePrism.synced.getOption(project.syncState),
+            option.fold(
+              () => getProjectDirRelative(project),
+              (synced) => taskEither.of(synced.value.dir),
+            ),
           ),
         ),
-        taskEither.bindTaskK('projectInfoPrevious', ({ projectDir }) =>
-          getPreviousProjectInfo(project.projectId, projectDir),
+        taskEither.bind('projectDir', ({ rootDir, projectDirRelative }) =>
+          libPath.join(rootDir, projectDirRelative),
+        ),
+
+        // change detection
+        taskEither.let('projectInfoPrevious', () =>
+          pipe(
+            projectSyncStatePrism.synced.getOption(project.syncState),
+            option.map(getProjectInfoPrevious),
+          ),
         ),
         taskEither.bind('projectInfoRemote', () => getProjectInfoRemote(project.projectId)),
-        taskEither.bindW('projectInfoLocal', ({ projectDir }) => getProjectInfoLocal(projectDir)),
+        taskEither.bind('projectInfoLocal', ({ projectDir }) =>
+          pipe(
+            projectSyncStatePrism.synced.getOption(project.syncState),
+            option.traverse(taskEither.ApplicativePar)((syncState) =>
+              getProjectInfoLocal(projectDir, syncState),
+            ),
+          ),
+        ),
         taskEither.let('remoteChanges', ({ projectInfoRemote, projectInfoPrevious }) =>
           pipe(
             projectInfoPrevious,
-            option.chain((previous) => getRemoteChanges(previous.files, projectInfoRemote.files)),
+            option.chain((previous) => getRemoteChanges(previous, projectInfoRemote.files)),
           ),
         ),
         taskEither.let('localChanges', ({ projectInfoLocal, projectInfoPrevious }) =>
           pipe(
             option.sequenceS({ local: projectInfoLocal, previous: projectInfoPrevious }),
-            option.chain(({ local, previous }) => getLocalChanges(previous.files, local)),
+            option.chain(({ local, previous }) => getLocalChanges(previous, local)),
           ),
         ),
-        taskEither.chainFirstW(({ projectDir }) => api.createProjectDir(projectDir)),
+
+        // syncing
+        // -> up
+        // TODO
+        // -> down
+        taskEither.chainFirst(({ projectDir }) => api.createProjectDir(projectDir)),
         taskEither.bind('updatedProjectInfo', ({ projectInfoRemote, projectDir }) =>
           pipe(
             projectInfoRemote.files,
@@ -322,6 +353,8 @@ export const useProjectSync = () =>
             taskEither.map(array.unsafeFromReadonly),
           ),
         ),
+
+        // store new state
         taskEither.chainFirstTaskK(({ updatedProjectInfo, projectDir }) =>
           writeProjectConfig(project.projectId, {
             files: updatedProjectInfo,

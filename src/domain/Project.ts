@@ -1,17 +1,19 @@
 import { api } from 'api';
 import { iots, pipe, tagged, taskEither } from '@code-expert/prelude';
-import { Exception, invariantViolated } from '@/domain/exception';
+import { Exception } from '@/domain/exception';
 import { mkEntityIdCodec } from '@/utils/identity';
 
 export const ProjectIdBrand = Symbol('ProjectId');
 export const ProjectId = mkEntityIdCodec(ProjectIdBrand);
 export type ProjectId = iots.TypeOf<typeof ProjectId>;
 
-export type ProjectSyncState =
-  | tagged.Tagged<'notSynced'>
-  | tagged.Tagged<'synced', { dir: string }>;
+export type NotSynced = tagged.Tagged<'notSynced'>;
+export type Synced = tagged.Tagged<'synced', ProjectConfig>;
+export type ProjectSyncState = NotSynced | Synced;
 
 export const projectSyncState = tagged.build<ProjectSyncState>();
+
+export const projectSyncStatePrism = tagged.prisms<ProjectSyncState>();
 
 export const ProjectMetadata = iots.strict({
   projectId: ProjectId,
@@ -74,14 +76,6 @@ export const verifyProjectExistsLocal = (
 
 export const readProjectConfig = (projectId: ProjectId) =>
   api.readConfigFile(`project_${projectId}.json`, ProjectConfigC);
-
-export const loadProjectConfig = (project: ProjectMetadata) =>
-  pipe(
-    readProjectConfig(project.projectId),
-    taskEither.fromTaskOption(() =>
-      invariantViolated('No project info was found. Please contact the developers.'),
-    ),
-  );
 
 export const writeProjectConfig = (projectId: ProjectId, projectConfig: Readonly<ProjectConfig>) =>
   api.writeConfigFile(`project_${projectId}.json`, projectConfig);
