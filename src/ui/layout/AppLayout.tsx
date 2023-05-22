@@ -11,7 +11,7 @@ const StyledLayoutHeader = styled(Layout.Header, ({ tokens }) => ({
   paddingInline: `${tokens.paddingSM}px !important`,
 }));
 
-const StyledContent = styled(Layout.Content, ({}) => ({
+const StyledContent = styled(Layout.Content, () => ({
   overflow: 'auto',
 }));
 

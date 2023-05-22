@@ -16,13 +16,14 @@ const Version = () => {
   const [version, setVersion] = React.useState<string>('');
 
   React.useEffect(() => {
-    pipe(api.getVersion(), taskEither.map(setVersion), taskEither.run);
+    void pipe(api.getVersion(), taskEither.map(setVersion), taskEither.run);
   }, []);
 
   return (
     <VersionDiv>
       <span>
-        Version: {version} (Build: {config.GITHUB_SHA ? config.GITHUB_SHA.slice(0, 7) : 'dev'})
+        Version: {version} (Build:{' '}
+        {config.GITHUB_SHA != null ? config.GITHUB_SHA.slice(0, 7) : 'dev'})
       </span>
     </VersionDiv>
   );
