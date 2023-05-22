@@ -2,7 +2,7 @@ import { Button, Result } from 'antd';
 import { api } from 'api';
 import React from 'react';
 import { pipe, task } from '@code-expert/prelude';
-import { globalSetupState } from '@/domain/Setup';
+import { globalSetupState, setupState } from '@/domain/Setup';
 import { routes, useGlobalContextWithActions } from '@/ui/GlobalContext';
 import { Icon } from '@/ui/foundation/Icons';
 
@@ -13,7 +13,10 @@ export function Logout() {
     pipe(
       api.logout(),
       task.map(() => {
-        dispatch({ setupState: globalSetupState.notSetup(), currentPage: routes.main() });
+        dispatch({
+          setupState: globalSetupState.setup({ state: setupState.notAuthorized() }),
+          currentPage: routes.main(),
+        });
       }),
       task.run,
     );

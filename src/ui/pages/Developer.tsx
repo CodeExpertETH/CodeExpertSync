@@ -4,7 +4,7 @@ import { api } from 'api';
 import React from 'react';
 import { iots, pipe, task, taskEither, taskOption } from '@code-expert/prelude';
 import { ProjectMetadata } from '@/domain/Project';
-import { globalSetupState } from '@/domain/Setup';
+import { globalSetupState, setupState } from '@/domain/Setup';
 import { createSignedAPIRequest } from '@/domain/createAPIRequest';
 import { Exception } from '@/domain/exception';
 import { fs } from '@/lib/tauri';
@@ -62,7 +62,10 @@ export function Developer() {
         () => notificationT.success('deleted config data'),
       ),
       task.map(() => {
-        dispatchContext({ setupState: globalSetupState.notSetup(), currentPage: routes.main() });
+        dispatchContext({
+          setupState: globalSetupState.setup({ state: setupState.notAuthorized() }),
+          currentPage: routes.main(),
+        });
         return undefined;
       }),
       task.run,
