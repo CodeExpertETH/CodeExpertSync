@@ -1,9 +1,10 @@
-import { eq, option, predicate, taskEither, taskOption } from 'fp-ts';
+import { apply, eq, option, predicate, taskEither, taskOption } from 'fp-ts';
 import { flow, pipe } from 'fp-ts/function';
-
 import * as task from './task';
 
 export * from 'fp-ts/TaskOption';
+
+export const sequenceT = apply.sequenceT(taskOption.ApplicativePar);
 
 export const elem =
   <A>(eq: eq.Eq<A>) =>

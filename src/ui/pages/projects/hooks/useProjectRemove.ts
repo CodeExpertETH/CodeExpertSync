@@ -4,20 +4,21 @@ import { iots, pipe, task, taskEither, taskOption } from '@code-expert/prelude';
 import { ProjectId, readProjectConfig } from '@/domain/Project';
 import { createSignedAPIRequest } from '@/domain/createAPIRequest';
 import { Exception } from '@/domain/exception';
+import { path } from '@/lib/tauri';
 import { messageT } from '@/ui/helper/message';
 import { notificationT } from '@/ui/helper/notifications';
 
 export const deleteLocalProject = (projectId: ProjectId): taskEither.TaskEither<Exception, void> =>
   pipe(
-    readProjectConfig(projectId),
-    taskOption.fold(
-      () => taskEither.right(undefined),
-      ({ dir }) => api.removeDir(dir),
+    taskOption.sequenceT(api.settingRead('projectDir', iots.string), readProjectConfig(projectId)),
+    taskOption.chain(([rootDir, project]) =>
+      taskOption.fromTaskEither(path.join(rootDir, project.dir)),
     ),
+    taskOption.fold(() => taskEither.right(undefined), api.removeDir),
   );
 
-export const useProjectRemove = (onProjectRemove: () => void) => {
-  const removeProject = React.useCallback(
+export const useProjectRemove = (onProjectRemove: () => void) =>
+  React.useCallback(
     (projectId: ProjectId, projectName: string) => {
       void pipe(
         createSignedAPIRequest({
@@ -36,6 +37,3 @@ export const useProjectRemove = (onProjectRemove: () => void) => {
     },
     [onProjectRemove],
   );
-
-  return [removeProject] as const;
-};
