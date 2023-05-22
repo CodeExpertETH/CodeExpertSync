@@ -1,8 +1,7 @@
 import equal from 'fast-deep-equal';
 import React, { useEffect } from 'react';
-import { constVoid, either, iots, pipe, tagged, task } from '@code-expert/prelude';
-import { GlobalSetupState, globalSetupState } from '@/domain/Setup';
-import { createSignedAPIRequest } from '@/domain/createAPIRequest';
+import { constVoid, pipe, tagged, task } from '@code-expert/prelude';
+import { GlobalSetupState, getSetupState, globalSetupState, setupState } from '@/domain/Setup';
 import Loading from './components/Loading';
 
 export type Routes =
@@ -45,7 +44,7 @@ const reducer = (state: GlobalContext | undefined, action: Action & { _init?: Gl
 const context = React.createContext<[GlobalContext, React.Dispatch<Action>]>([
   initialState({
     currentPage: routes.main(),
-    setupState: globalSetupState.notSetup(),
+    setupState: globalSetupState.setup({ state: setupState.notAuthorized() }),
   }),
   constVoid,
 ]);
@@ -56,21 +55,10 @@ export const GlobalContextProvider = React.memo(function GlobalContextProvider({
   const [state, stateDispatch] = React.useReducer(reducer, undefined);
 
   useEffect(() => {
+    console.log('run use effect globalcontect');
     if (state == null) {
       void pipe(
-        createSignedAPIRequest({
-          path: 'app/checkAccess',
-          method: 'GET',
-          payload: {},
-          codec: iots.strict({ status: iots.string }),
-        }),
-        task.map(
-          either.fold(
-            () => globalSetupState.notSetup(),
-            ({ status }) =>
-              status === 'Success' ? globalSetupState.setup() : globalSetupState.notSetup(),
-          ),
-        ),
+        getSetupState(),
         task.map((setupState) => {
           stateDispatch({
             _init: initialState({

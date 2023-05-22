@@ -1,7 +1,9 @@
-import { Button, List, Result } from 'antd';
+import { Button, List } from 'antd';
 import React from 'react';
 import { nonEmptyArray, option, pipe, task, taskEither } from '@code-expert/prelude';
 import { ExtendedProjectMetadata, projectSyncState } from '@/domain/Project';
+import { getSetupState } from '@/domain/Setup';
+import { useGlobalContextWithActions } from '@/ui/GlobalContext';
 import { ActionMenu } from '@/ui/components/ActionMenu';
 import { Icon } from '@/ui/foundation/Icons';
 import { Box, HStack } from '@/ui/foundation/Layout';
@@ -15,6 +17,19 @@ export const ProjectList = (props: {
   projects: ExtendedProjectMetadata[];
   updateProjects: () => void;
 }) => {
+  const [, dispatch] = useGlobalContextWithActions();
+
+  const updateState = () => {
+    void pipe(
+      getSetupState(),
+      task.map((state) => {
+        console.log(state);
+        dispatch({ setupState: state });
+      }),
+      task.run,
+    );
+  };
+
   const [loading, setLoading] = React.useState(false);
   const [removeProject] = useProjectRemove(() => {
     props.updateProjects();
@@ -54,16 +69,10 @@ export const ProjectList = (props: {
     props.projects,
     nonEmptyArray.fromArray,
     option.fold(
-      () => (
-        <Result
-          title="No local projects found"
-          extra={
-            <Button type="primary" onClick={props.updateProjects} icon={<Icon name="sync" />}>
-              Sync with code expert
-            </Button>
-          }
-        />
-      ),
+      () => {
+        updateState();
+        return null;
+      },
       (projects) => (
         <List
           header={

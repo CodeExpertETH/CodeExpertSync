@@ -14,9 +14,11 @@ function Routes() {
     dispatch({ currentPage: routes.developer() });
   });
 
+  console.log(setupState);
+
   return globalSetupState.fold(setupState, {
-    notSetup: () => <Setup />,
-    setup: () =>
+    setup: ({ state }) => <Setup state={state} />,
+    setupDone: () =>
       routes.fold(currentPage, {
         settings: () => <Settings />,
         logout: () => <Logout />,

@@ -32,8 +32,8 @@ export const TopNav = () => {
         selectedKeys={[]}
         onClick={onClick}
         disabled={globalSetupState.fold(setupState, {
-          notSetup: () => true,
-          setup: () => false,
+          setup: () => true,
+          setupDone: () => false,
         })}
         triggerSubMenuAction="click"
         items={[

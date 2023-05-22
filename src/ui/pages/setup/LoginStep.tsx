@@ -1,8 +1,9 @@
 import { Alert, Button, Typography } from 'antd';
 import React from 'react';
+import { pipe, task } from '@code-expert/prelude';
 import { authState, useAuthState } from '@/domain/AuthState';
 import { ClientId } from '@/domain/ClientId';
-import { globalSetupState } from '@/domain/Setup';
+import { getSetupState } from '@/domain/Setup';
 import { useGlobalContextWithActions } from '@/ui/GlobalContext';
 
 const AuthWarning = ({
@@ -30,12 +31,16 @@ export const LoginStep = ({ clientId, active }: { clientId: ClientId; active: bo
   const [, dispatch] = useGlobalContextWithActions();
 
   const { state, startAuthorization, cancelAuthorization } = useAuthState(clientId, () => {
-    dispatch({ setupState: globalSetupState.setup() });
+    void pipe(
+      getSetupState(),
+      task.map((state) => dispatch({ setupState: state })),
+      task.run,
+    );
   });
 
-  return (
+  return active ? (
     <>
-      <Typography.Paragraph type={active ? undefined : 'secondary'}>
+      <Typography.Paragraph>
         You will be redirected to the Code Expert website to confirm that this app is authorised to
         access your projects.
       </Typography.Paragraph>
@@ -72,5 +77,5 @@ export const LoginStep = ({ clientId, active }: { clientId: ClientId; active: bo
           ),
         })}
     </>
-  );
+  ) : null;
 };
