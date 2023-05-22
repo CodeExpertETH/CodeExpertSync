@@ -8,9 +8,6 @@ import useTimeout from '@/ui/hooks/useTimeout';
 import { pkceChallenge } from '@/utils/crypto';
 import { ClientId } from './ClientId';
 
-export type GlobalAuthState = tagged.Tagged<'notAuthorized'> | tagged.Tagged<'authorized'>;
-export const globalAuthState = tagged.build<GlobalAuthState>();
-
 export type AuthState =
   | tagged.Tagged<'startingAuthorization', { code_verifier: string; redirectLink: string }>
   | tagged.Tagged<'waitingForAuthorization', { code_verifier: string }>

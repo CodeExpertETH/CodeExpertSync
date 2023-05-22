@@ -1,8 +1,7 @@
 import equal from 'fast-deep-equal';
 import React, { useEffect } from 'react';
-import { constVoid, either, iots, pipe, tagged, task } from '@code-expert/prelude';
-import { GlobalAuthState, globalAuthState } from '@/domain/AuthState';
-import { createSignedAPIRequest } from '@/domain/createAPIRequest';
+import { constVoid, pipe, tagged, task } from '@code-expert/prelude';
+import { GlobalSetupState, getSetupState, globalSetupState, setupState } from '@/domain/Setup';
 import Loading from './components/Loading';
 
 export type Routes =
@@ -14,11 +13,11 @@ export type Routes =
 export const routes = tagged.build<Routes>();
 
 export interface GlobalContext {
-  readonly authState: GlobalAuthState;
+  readonly setupState: GlobalSetupState;
   readonly currentPage: Routes;
 }
 
-type MandatoryFields = keyof Pick<GlobalContext, 'authState'>;
+type MandatoryFields = keyof Pick<GlobalContext, 'setupState'>;
 
 export function initialState({
   currentPage = routes.main(),
@@ -45,7 +44,7 @@ const reducer = (state: GlobalContext | undefined, action: Action & { _init?: Gl
 const context = React.createContext<[GlobalContext, React.Dispatch<Action>]>([
   initialState({
     currentPage: routes.main(),
-    authState: globalAuthState.notAuthorized(),
+    setupState: globalSetupState.setup({ state: setupState.notAuthorized() }),
   }),
   constVoid,
 ]);
@@ -56,25 +55,14 @@ export const GlobalContextProvider = React.memo(function GlobalContextProvider({
   const [state, stateDispatch] = React.useReducer(reducer, undefined);
 
   useEffect(() => {
+    console.log('run use effect globalcontect');
     if (state == null) {
       void pipe(
-        createSignedAPIRequest({
-          path: 'app/checkAccess',
-          method: 'GET',
-          payload: {},
-          codec: iots.strict({ status: iots.string }),
-        }),
-        task.map(
-          either.fold(
-            () => globalAuthState.notAuthorized(),
-            ({ status }) =>
-              status === 'Success' ? globalAuthState.authorized() : globalAuthState.notAuthorized(),
-          ),
-        ),
-        task.map((authState) => {
+        getSetupState(),
+        task.map((setupState) => {
           stateDispatch({
             _init: initialState({
-              authState,
+              setupState,
             }),
           });
         }),

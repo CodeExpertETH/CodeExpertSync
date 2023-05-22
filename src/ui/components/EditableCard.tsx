@@ -28,9 +28,9 @@ const EditableCardButton = ({ name, iconName, ...buttonProps }: EditableCardButt
 
 export interface EditableCardProps {
   iconName: IconName;
-  title: string;
+  title?: string;
   description: string;
-  value: string;
+  value?: string;
   actions: Array<EditableCardButtonProps>;
 }
 
@@ -71,19 +71,19 @@ const CardAction = styled('div', () => ({
 
 export const EditableCard = (props: EditableCardProps) => (
   <div>
-    <h2>{props.title}</h2>
+    {props.title == null && <h2>{props.title}</h2>}
     <Card>
       <CardContainer>
         <CardMain>
           <GrayIcon name={props.iconName} size="4x" />
           <CardMainContent>
             <Typography.Paragraph type="secondary">{props.description}</Typography.Paragraph>
-            <Typography.Paragraph>{props.value}</Typography.Paragraph>
+            {props.value == null && <Typography.Paragraph>{props.value}</Typography.Paragraph>}
           </CardMainContent>
         </CardMain>
         <CardAction>
           {props.actions.map((props) => (
-            <EditableCardButton {...props} />
+            <EditableCardButton key={props.name} {...props} />
           ))}
         </CardAction>
       </CardContainer>
