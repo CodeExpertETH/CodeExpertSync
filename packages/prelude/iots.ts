@@ -3,12 +3,12 @@ import { fold, mapLeft } from 'fp-ts/Either';
 import { flow } from 'fp-ts/function';
 import * as t from 'io-ts';
 import { formatValidationErrors } from 'io-ts-reporters';
-
 import * as string from './string';
 
 export * from 'io-ts';
 export {
   date,
+  DateFromISOString,
   nonEmptyArray,
   withFallback,
   withMessage,

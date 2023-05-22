@@ -43,6 +43,7 @@ export const ProjectConfigC = iots.strict({
       permissions: FilePermissionsC,
     }),
   ),
+  syncedAt: iots.DateFromISOString,
 });
 export type ProjectConfig = iots.TypeOf<typeof ProjectConfigC>;
 
@@ -78,4 +79,4 @@ export const readProjectConfig = (projectId: ProjectId) =>
   api.readConfigFile(`project_${projectId}.json`, ProjectConfigC);
 
 export const writeProjectConfig = (projectId: ProjectId, projectConfig: Readonly<ProjectConfig>) =>
-  api.writeConfigFile(`project_${projectId}.json`, projectConfig);
+  api.writeConfigFile(`project_${projectId}.json`, ProjectConfigC.encode(projectConfig));

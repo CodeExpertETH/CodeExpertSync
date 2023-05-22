@@ -29,6 +29,7 @@ import {
 import { createSignedAPIRequest } from '@/domain/createAPIRequest';
 import { Exception, invariantViolated } from '@/domain/exception';
 import { fs as libFs, path as libPath } from '@/lib/tauri';
+import { useTimeContext } from '@/ui/contexts/TimeContext';
 
 function writeSingeFile({
   projectFilePath,
@@ -271,8 +272,9 @@ const getProjectDirRelative = (project: ExtendedProjectMetadata) =>
     libPath.escape(project.taskName),
   );
 
-export const useProjectSync = () =>
-  React.useCallback(
+export const useProjectSync = () => {
+  const time = useTimeContext();
+  return React.useCallback(
     (project: ExtendedProjectMetadata): taskEither.TaskEither<Exception, unknown> =>
       pipe(
         taskEither.Do,
@@ -359,8 +361,10 @@ export const useProjectSync = () =>
           writeProjectConfig(project.projectId, {
             files: updatedProjectInfo,
             dir: projectDirRelative,
+            syncedAt: time.now(),
           }),
         ),
       ),
-    [],
+    [time],
   );
+};
