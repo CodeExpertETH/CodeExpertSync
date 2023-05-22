@@ -11,9 +11,8 @@ const StyledLayoutHeader = styled(Layout.Header, ({ tokens }) => ({
   paddingInline: `${tokens.paddingSM}px !important`,
 }));
 
-const StyledContent = styled(Layout.Content, ({ tokens }) => ({
+const StyledContent = styled(Layout.Content, ({}) => ({
   overflow: 'auto',
-  paddingInline: tokens.paddingSM,
 }));
 
 export const AppLayout = ({ children }: React.PropsWithChildren) => (
