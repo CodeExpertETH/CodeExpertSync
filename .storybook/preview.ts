@@ -1,7 +1,11 @@
 import { Preview } from '@storybook/react';
 import React from 'react';
 import { GlobalContextProvider } from '../src/ui/GlobalContext';
+import { TimeContextProvider } from '../src/ui/contexts/TimeContext';
 
+const testTimeContext = {
+  now: () => new Date('2023-05-06T11:00:00Z'),
+};
 const preview: Preview = {
   parameters: {
     backgrounds: {
@@ -17,6 +21,12 @@ const preview: Preview = {
   },
   decorators: [
     (Story) => React.createElement(GlobalContextProvider, {}, React.createElement(Story)),
+    (Story) =>
+      React.createElement(
+        TimeContextProvider,
+        { value: testTimeContext },
+        React.createElement(Story),
+      ),
   ],
 };
 
