@@ -31,10 +31,10 @@ export const ProjectList = (props: {
   };
 
   const [loading, setLoading] = React.useState(false);
-  const [removeProject] = useProjectRemove(() => {
+  const removeProject = useProjectRemove(() => {
     props.updateProjects();
   });
-  const [openProject] = useProjectOpen();
+  const openProject = useProjectOpen();
   const syncProjectM = useProjectSync();
   const verifyProjectM = useProjectVerify();
 

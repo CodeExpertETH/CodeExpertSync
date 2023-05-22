@@ -355,10 +355,10 @@ export const useProjectSync = () =>
         ),
 
         // store new state
-        taskEither.chainFirstTaskK(({ updatedProjectInfo, projectDir }) =>
+        taskEither.chainFirstTaskK(({ updatedProjectInfo, projectDirRelative }) =>
           writeProjectConfig(project.projectId, {
             files: updatedProjectInfo,
-            dir: projectDir,
+            dir: projectDirRelative,
           }),
         ),
       ),
