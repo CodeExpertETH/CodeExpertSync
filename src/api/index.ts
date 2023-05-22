@@ -21,7 +21,11 @@ export interface Api {
   getVersion(): taskEither.TaskEither<Exception, string>;
   create_keys(): taskEither.TaskEither<Exception, string>;
   create_jwt_tokens(claims: Record<string, unknown>): taskEither.TaskEither<Exception, string>;
-  buildTar(rootDir: string, files: Array<string>): taskEither.TaskEither<Exception, string>;
+  buildTar(
+    fileName: string,
+    rootDir: string,
+    files: Array<string>,
+  ): taskEither.TaskEither<Exception, void>;
   settingRead<T>(key: string, decoder: iots.Decoder<unknown, T>): taskOption.TaskOption<T>;
   settingWrite(key: string, value: unknown): taskOption.TaskOption<void>;
   writeFile(filePath: string, content: string): taskEither.TaskEither<Exception, void>;
@@ -37,8 +41,8 @@ export const api: Api = {
   create_keys: () => taskEither.tryCatch(() => invoke('create_keys', {}), fromError),
   create_jwt_tokens: (claims) =>
     taskEither.tryCatch(() => invoke('create_jwt_token', { claims }), fromError),
-  buildTar: (rootDir, files) =>
-    taskEither.tryCatch(() => invoke('build_tar', { rootDir, files }), fromError),
+  buildTar: (file_name, root_dir, files) =>
+    taskEither.tryCatch(() => invoke('build_tar', { file_name, root_dir, files }), fromError),
   settingRead: (key, decoder) =>
     pipe(
       taskOption.tryCatch(() => store.get(key)),

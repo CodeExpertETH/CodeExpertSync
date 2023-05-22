@@ -1,17 +1,18 @@
-use brotli;
+use brotli::CompressorWriter;
 use std::fs::File;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use tar::Builder;
 
 #[tauri::command]
-pub fn build_tar(root_dir: String, files: Vec<String>) -> Result<String, String> {
-    let tar_br = "archive.tar.br";
-    let tar_br = File::create(tar_br).map_err(|e| {
+pub fn build_tar(file_name: String, root_dir: String, files: Vec<String>) -> Result<(), String> {
+    let file = File::create(file_name).map_err(|e| {
         eprintln!("{e}");
         "Could not create archive file".to_string()
     })?;
 
-    let mut tar = Builder::new(tar_br);
+    let compress = CompressorWriter::new(file, 4096, 11, 20);
+
+    let mut tar = Builder::new(compress);
     tar.follow_symlinks(false);
 
     let root_dir = Path::new(&root_dir);
@@ -29,7 +30,5 @@ pub fn build_tar(root_dir: String, files: Vec<String>) -> Result<String, String>
     tar.finish().map_err(|e| {
         eprintln!("{e}");
         "Could not close archive".to_string()
-    })?;
-
-    Ok("archive.tar".to_string())
+    })
 }

@@ -265,13 +265,14 @@ const getProjectDirRelative = ({ semester, courseName, exerciseName, taskName }:
   );
 
 const uploadChangedFiles = (
-  localChanges: Array<LocalFileChange>,
+  fileName: string,
   projectDir: string,
-): taskEither.TaskEither<Exception, string> =>
+  localChanges: Array<LocalFileChange>,
+): taskEither.TaskEither<Exception, void> =>
   pipe(
     localChanges,
     array.map(({ path }) => path),
-    (files) => api.buildTar(projectDir, files),
+    (files) => api.buildTar(fileName, projectDir, files),
   );
 
 export const useProjectSync = () => {

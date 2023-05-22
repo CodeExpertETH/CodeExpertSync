@@ -37,7 +37,8 @@ export const ProjectList = (props: { projects: Array<Project>; updateProjects: (
   const syncProject = (project: Project) => {
     void pipe(
       task.fromIO(() => setLoading(true)),
-      task.chain(() => syncProjectM(project)),
+      task.chain(() => task.fromIO(() => new Date())),
+      task.chain((now) => syncProjectM(project, now)),
       taskEither.fold(
         (e) => notificationT.error(e),
         () =>
