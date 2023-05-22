@@ -19,8 +19,6 @@ const Version = () => {
     pipe(api.getVersion(), taskEither.map(setVersion), taskEither.run);
   }, []);
 
-  console.log(version);
-
   return (
     <VersionDiv>
       <span>

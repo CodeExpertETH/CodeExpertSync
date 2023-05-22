@@ -30,8 +30,6 @@ export function Setup(props: { state: SetupState }) {
     [],
   );
 
-  console.log(props);
-
   const step = setupState.fold(props.state, {
     notAuthorized: () => 0,
     noProjectDir: () => 1,

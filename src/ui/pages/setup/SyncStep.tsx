@@ -22,7 +22,6 @@ export const SyncStep = ({ clientId, active }: { clientId: ClientId; active: boo
     void pipe(
       getSetupState(),
       task.map((state) => {
-        console.log(state);
         dispatch({ setupState: state });
       }),
       task.run,

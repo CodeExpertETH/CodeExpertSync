@@ -55,7 +55,6 @@ export const GlobalContextProvider = React.memo(function GlobalContextProvider({
   const [state, stateDispatch] = React.useReducer(reducer, undefined);
 
   useEffect(() => {
-    console.log('run use effect globalcontect');
     if (state == null) {
       void pipe(
         getSetupState(),
