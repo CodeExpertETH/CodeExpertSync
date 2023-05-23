@@ -14,8 +14,6 @@ function Routes() {
     dispatch({ currentPage: routes.developer() });
   });
 
-  console.log(setupState);
-
   return globalSetupState.fold(setupState, {
     setup: ({ state }) => <Setup state={state} />,
     setupDone: () =>

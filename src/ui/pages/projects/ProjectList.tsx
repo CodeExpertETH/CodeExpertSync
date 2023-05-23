@@ -23,7 +23,6 @@ export const ProjectList = (props: {
     void pipe(
       getSetupState(),
       task.map((state) => {
-        console.log(state);
         dispatch({ setupState: state });
       }),
       task.run,

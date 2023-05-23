@@ -8,8 +8,22 @@ import { UserInfo } from '@/domain/UserInfo';
 import { routes, useGlobalContextWithActions } from '@/ui/GlobalContext';
 import { EditableCard } from '@/ui/components/EditableCard';
 import { GuardRemoteData } from '@/ui/components/GuardRemoteData';
+import { styled } from '@/ui/foundation/Theme';
 import { useSettingsFallback } from '@/ui/hooks/useSettings';
+import Version from '@/ui/pages/settings/Version';
 import { useUserInfo } from '@/ui/pages/settings/hooks/useUserInfo';
+
+const Container = styled('div', () => ({
+  marginTop: '1rem',
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'space-between',
+  height: 'calc(100% - 18px)',
+}));
+
+const SettingsDiv = styled('div', ({ tokens }) => ({
+  padding: tokens.padding,
+}));
 
 function SettingsInner({ projectDir, userInfo }: { projectDir: string; userInfo: UserInfo }) {
   const [, dispatch] = useGlobalContextWithActions();
@@ -36,54 +50,57 @@ function SettingsInner({ projectDir, userInfo }: { projectDir: string; userInfo:
   const deleteDir = () => message.warning('Not implemented yet');
 
   return (
-    <div style={{ marginTop: '1rem' }}>
-      <h1>Settings</h1>
-      <Form
-        requiredMark={false}
-        form={form}
-        initialValues={{ projectDir, userName: userInfo.userName }}
-      >
-        <Form.Item dependencies={['userName']}>
-          {({ getFieldValue }) => (
-            <EditableCard
-              iconName="user"
-              title="Profile"
-              description="Signed in as"
-              value={getFieldValue('userName')}
-              actions={[
-                {
-                  name: 'Logout…',
-                  iconName: 'sign-out-alt',
-                  danger: true,
-                  type: 'link',
-                  onClick: logout,
-                },
-              ]}
-            />
-          )}
-        </Form.Item>
-        <Form.Item dependencies={['projectDir']}>
-          {({ getFieldValue }) => (
-            <EditableCard
-              iconName="folder-open-regular"
-              title="Project directory"
-              description="All projects are synced into this directory"
-              value={getFieldValue('projectDir')}
-              actions={[
-                { name: 'Change…', iconName: 'edit', type: 'link', onClick: selectDir },
-                {
-                  name: 'Delete…',
-                  iconName: 'trash',
-                  danger: true,
-                  type: 'link',
-                  onClick: deleteDir,
-                },
-              ]}
-            />
-          )}
-        </Form.Item>
-      </Form>
-    </div>
+    <Container>
+      <SettingsDiv>
+        <h1>Settings</h1>
+        <Form
+          requiredMark={false}
+          form={form}
+          initialValues={{ projectDir, userName: userInfo.userName }}
+        >
+          <Form.Item dependencies={['userName']}>
+            {({ getFieldValue }) => (
+              <EditableCard
+                iconName="user"
+                title="Profile"
+                description="Signed in as"
+                value={getFieldValue('userName')}
+                actions={[
+                  {
+                    name: 'Logout…',
+                    iconName: 'sign-out-alt',
+                    danger: true,
+                    type: 'link',
+                    onClick: logout,
+                  },
+                ]}
+              />
+            )}
+          </Form.Item>
+          <Form.Item dependencies={['projectDir']}>
+            {({ getFieldValue }) => (
+              <EditableCard
+                iconName="folder-open-regular"
+                title="Project directory"
+                description="All projects are synced into this directory"
+                value={getFieldValue('projectDir')}
+                actions={[
+                  { name: 'Change…', iconName: 'edit', type: 'link', onClick: selectDir },
+                  {
+                    name: 'Delete…',
+                    iconName: 'trash',
+                    danger: true,
+                    type: 'link',
+                    onClick: deleteDir,
+                  },
+                ]}
+              />
+            )}
+          </Form.Item>
+        </Form>
+      </SettingsDiv>
+      <Version />
+    </Container>
   );
 }
 

@@ -17,7 +17,6 @@ export const ProjectDirStep = ({ active }: { active: boolean }) => {
       multiple: false,
       defaultPath: await homeDir(),
     });
-    console.log(projectDir);
     if (projectDir != null) {
       await pipe(
         api.settingWrite('projectDir', projectDir),
