@@ -25,4 +25,6 @@ export const ProjectMetadata = iots.strict({
 
 export type ProjectMetadata = iots.TypeOf<typeof ProjectMetadata>;
 
-export type ExtendedProjectMetadata = ProjectMetadata & { syncState: ProjectSyncState };
+export interface Project extends ProjectMetadata {
+  syncState: ProjectSyncState;
+}

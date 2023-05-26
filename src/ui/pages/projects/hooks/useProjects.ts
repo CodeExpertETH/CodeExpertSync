@@ -1,12 +1,7 @@
 import { api } from 'api';
 import React from 'react';
 import { array, iots, pipe, remoteData, task, taskEither, taskOption } from '@code-expert/prelude';
-import {
-  ExtendedProjectMetadata,
-  ProjectMetadata,
-  ProjectSyncState,
-  projectSyncState,
-} from '@/domain/Project';
+import { Project, ProjectMetadata, ProjectSyncState, projectSyncState } from '@/domain/Project';
 import { readProjectConfig } from '@/domain/ProjectConfig';
 import { createSignedAPIRequest } from '@/domain/createAPIRequest';
 import { Exception } from '@/domain/exception';
@@ -27,9 +22,9 @@ const getSyncState = (projects: Array<ProjectMetadata>) =>
   );
 
 export const useProjects = () => {
-  const [state, mkSetState] = useRaceState<
-    remoteData.RemoteData<Exception, Array<ExtendedProjectMetadata>>
-  >(remoteData.initial);
+  const [state, mkSetState] = useRaceState<remoteData.RemoteData<Exception, Array<Project>>>(
+    remoteData.initial,
+  );
 
   React.useEffect(() => {
     const setState = mkSetState();

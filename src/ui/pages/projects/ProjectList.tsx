@@ -1,7 +1,7 @@
 import { Button, List } from 'antd';
 import React from 'react';
 import { nonEmptyArray, option, pipe, task, taskEither } from '@code-expert/prelude';
-import { ExtendedProjectMetadata, projectSyncState } from '@/domain/Project';
+import { Project, projectSyncState } from '@/domain/Project';
 import { getSetupState } from '@/domain/Setup';
 import { useGlobalContextWithActions } from '@/ui/GlobalContext';
 import { ActionMenu } from '@/ui/components/ActionMenu';
@@ -13,10 +13,7 @@ import { useProjectOpen } from './hooks/useProjectOpen';
 import { useProjectRemove } from './hooks/useProjectRemove';
 import { useProjectSync } from './hooks/useProjectSync';
 
-export const ProjectList = (props: {
-  projects: ExtendedProjectMetadata[];
-  updateProjects: () => void;
-}) => {
+export const ProjectList = (props: { projects: Array<Project>; updateProjects: () => void }) => {
   const [, dispatch] = useGlobalContextWithActions();
 
   const updateState = () => {
@@ -37,7 +34,7 @@ export const ProjectList = (props: {
   const syncProjectM = useProjectSync();
   const verifyProjectM = useProjectVerify();
 
-  const syncProject = (project: ExtendedProjectMetadata) => {
+  const syncProject = (project: Project) => {
     void pipe(
       task.fromIO(() => setLoading(true)),
       task.chain(() => syncProjectM(project)),
@@ -50,7 +47,7 @@ export const ProjectList = (props: {
     );
   };
 
-  const verifyProject = (project: ExtendedProjectMetadata) => {
+  const verifyProject = (project: Project) => {
     void pipe(
       task.fromIO(() => setLoading(true)),
       task.chain(() => verifyProjectM(project)),

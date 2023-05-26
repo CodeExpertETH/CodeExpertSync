@@ -15,12 +15,7 @@ import {
   taskEither,
   tree,
 } from '@code-expert/prelude';
-import {
-  ExtendedProjectMetadata,
-  ProjectId,
-  Synced,
-  projectSyncStatePrism,
-} from '@/domain/Project';
+import { Project, ProjectId, Synced, projectSyncStatePrism } from '@/domain/Project';
 import {
   FileEntryType,
   FileEntryTypeC,
@@ -266,7 +261,7 @@ const getProjectInfoRemote = (projectId: ProjectId) =>
 
 const getProjectInfoPrevious = (synced: Synced) => synced.value.files;
 
-const getProjectDirRelative = (project: ExtendedProjectMetadata) =>
+const getProjectDirRelative = (project: Project) =>
   libPath.join(
     libPath.escape(project.semester),
     libPath.escape(project.courseName),
@@ -277,7 +272,7 @@ const getProjectDirRelative = (project: ExtendedProjectMetadata) =>
 export const useProjectSync = () => {
   const time = useTimeContext();
   return React.useCallback(
-    (project: ExtendedProjectMetadata): taskEither.TaskEither<Exception, unknown> =>
+    (project: Project): taskEither.TaskEither<Exception, unknown> =>
       pipe(
         taskEither.Do,
 
