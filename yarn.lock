@@ -1962,6 +1962,41 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@frp-ts/core@npm:^1.0.0-beta.3":
+  version: 1.0.0-beta.3
+  resolution: "@frp-ts/core@npm:1.0.0-beta.3"
+  dependencies:
+    "@frp-ts/utils": ^1.0.0-beta.3
+  peerDependencies:
+    tslib: ^2.3.1
+  checksum: ccf7d61a835449512c473decd5d763a506e729610ddc573fc2e92605d408247c80bd9035f3927cf2079d2472b90088d9e88d21f015beeff044744f6d1ede3d27
+  languageName: node
+  linkType: hard
+
+"@frp-ts/react@npm:^1.0.0-beta.3":
+  version: 1.0.0-beta.3
+  resolution: "@frp-ts/react@npm:1.0.0-beta.3"
+  dependencies:
+    "@frp-ts/core": ^1.0.0-beta.3
+    "@frp-ts/utils": ^1.0.0-beta.3
+    use-sync-external-store: ^1.2.0
+  peerDependencies:
+    "@types/react": ">=16.8.0"
+    react: ">=16.8.0"
+    tslib: ^2.3.1
+  checksum: ee811248b01599fba65d4657039f2c3e3c77df4ea07e6a1da8de90c0e441478402326e73e56e9ba6c703d0456c0ad414f9285102c000eb6ea210c366693ef259
+  languageName: node
+  linkType: hard
+
+"@frp-ts/utils@npm:^1.0.0-beta.3":
+  version: 1.0.0-beta.3
+  resolution: "@frp-ts/utils@npm:1.0.0-beta.3"
+  peerDependencies:
+    tslib: ^2.3.1
+  checksum: 7d18cec77b8c78bbf1f6767d8c74d41695141ebc4268ec0575c517181b4f7fd57d5229bbe691c7faac9a0e425040f5a5d15724b94e389b685a44b3bd073d86ae
+  languageName: node
+  linkType: hard
+
 "@gar/promisify@npm:^1.1.3":
   version: 1.1.3
   resolution: "@gar/promisify@npm:1.1.3"
@@ -5429,6 +5464,8 @@ __metadata:
     "@fortawesome/free-brands-svg-icons": ^6.2.1
     "@fortawesome/free-regular-svg-icons": ^6.2.1
     "@fortawesome/free-solid-svg-icons": ^6.2.1
+    "@frp-ts/core": ^1.0.0-beta.3
+    "@frp-ts/react": ^1.0.0-beta.3
     "@noble/hashes": ^1.2.0
     "@storybook/addon-essentials": ^7.0.0-beta.46
     "@storybook/addon-interactions": ^7.0.0-beta.46
@@ -12972,6 +13009,15 @@ __metadata:
     react: 16.8.0 - 18
     react-dom: 16.8.0 - 18
   checksum: 92be0ac34a3b3cf884cd55847c90792b5b44833dc258e96d650152815ad246afe45825aa223332203004d836535a927ab74f18dc0313229e2c7c69510eddf382
+  languageName: node
+  linkType: hard
+
+"use-sync-external-store@npm:^1.2.0":
+  version: 1.2.0
+  resolution: "use-sync-external-store@npm:1.2.0"
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0
+  checksum: 5c639e0f8da3521d605f59ce5be9e094ca772bd44a4ce7322b055a6f58eeed8dda3c94cabd90c7a41fb6fa852210092008afe48f7038792fd47501f33299116a
   languageName: node
   linkType: hard
 
