@@ -2,7 +2,8 @@ import { open } from '@tauri-apps/api/shell';
 import { api } from 'api';
 import React from 'react';
 import { iots, pipe, taskOption } from '@code-expert/prelude';
-import { ProjectId, readProjectConfig } from '@/domain/Project';
+import { ProjectId } from '@/domain/Project';
+import { readProjectConfig } from '@/domain/ProjectConfig';
 import { path } from '@/lib/tauri';
 
 export const useProjectOpen = () =>

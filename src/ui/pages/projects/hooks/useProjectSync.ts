@@ -17,15 +17,17 @@ import {
 } from '@code-expert/prelude';
 import {
   ExtendedProjectMetadata,
+  ProjectId,
+  Synced,
+  projectSyncStatePrism,
+} from '@/domain/Project';
+import {
   FileEntryType,
   FileEntryTypeC,
   FilePermissions,
   FilePermissionsC,
-  ProjectId,
-  Synced,
-  projectSyncStatePrism,
   writeProjectConfig,
-} from '@/domain/Project';
+} from '@/domain/ProjectConfig';
 import { createSignedAPIRequest } from '@/domain/createAPIRequest';
 import { Exception, invariantViolated } from '@/domain/exception';
 import { fs as libFs, path as libPath } from '@/lib/tauri';

@@ -1,7 +1,8 @@
 import { api } from 'api';
 import React from 'react';
 import { iots, pipe, task, taskEither, taskOption } from '@code-expert/prelude';
-import { ProjectId, readProjectConfig } from '@/domain/Project';
+import { ProjectId } from '@/domain/Project';
+import { readProjectConfig } from '@/domain/ProjectConfig';
 import { createSignedAPIRequest } from '@/domain/createAPIRequest';
 import { Exception } from '@/domain/exception';
 import { path } from '@/lib/tauri';

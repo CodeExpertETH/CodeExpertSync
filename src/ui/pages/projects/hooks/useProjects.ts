@@ -6,8 +6,8 @@ import {
   ProjectMetadata,
   ProjectSyncState,
   projectSyncState,
-  readProjectConfig,
 } from '@/domain/Project';
+import { readProjectConfig } from '@/domain/ProjectConfig';
 import { createSignedAPIRequest } from '@/domain/createAPIRequest';
 import { Exception } from '@/domain/exception';
 import { notificationT } from '@/ui/helper/notifications';

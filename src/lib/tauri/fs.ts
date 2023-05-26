@@ -1,6 +1,6 @@
 import { fs } from '@tauri-apps/api';
 import { pipe, taskEither, tree } from '@code-expert/prelude';
-import { FileEntryType } from '@/domain/Project';
+import { FileEntryType } from '@/domain/ProjectConfig';
 import { fromError } from '@/domain/exception';
 
 export const readDir = taskEither.tryCatchK(fs.readDir, fromError);
