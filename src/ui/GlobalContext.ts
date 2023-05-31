@@ -2,6 +2,7 @@ import { $Unexpressable } from '@code-expert/type-utils';
 import equal from 'fast-deep-equal';
 import React, { useEffect } from 'react';
 import { pipe, tagged, task } from '@code-expert/prelude';
+import { ProjectRepository } from '@/domain/ProjectRepository';
 import { GlobalSetupState, getSetupState } from '@/domain/Setup';
 import Loading from './components/Loading';
 
@@ -16,9 +17,10 @@ export const routes = tagged.build<Routes>();
 export interface GlobalContext {
   readonly setupState: GlobalSetupState;
   readonly currentPage: Routes;
+  readonly projectRepository: ProjectRepository;
 }
 
-type MandatoryFields = keyof Pick<GlobalContext, 'setupState'>;
+type MandatoryFields = keyof Pick<GlobalContext, 'setupState' | 'projectRepository'>;
 
 export function initialState({
   currentPage = routes.main(),
@@ -48,7 +50,8 @@ const context = React.createContext<[GlobalContext, React.Dispatch<Action>]>(
 
 export const GlobalContextProvider = React.memo(function GlobalContextProvider({
   children,
-}: React.PropsWithChildren) {
+  projectRepository,
+}: React.PropsWithChildren<{ projectRepository: ProjectRepository }>) {
   const [state, stateDispatch] = React.useReducer(reducer, undefined);
 
   useEffect(() => {
@@ -59,13 +62,14 @@ export const GlobalContextProvider = React.memo(function GlobalContextProvider({
           stateDispatch({
             _init: initialState({
               setupState,
+              projectRepository,
             }),
           });
         }),
         task.run,
       );
     }
-  }, [state]);
+  }, [projectRepository, state]);
 
   return state == null
     ? React.createElement(Loading, { delayTime: 1000 })

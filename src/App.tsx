@@ -1,6 +1,7 @@
 import { Result } from 'antd';
 import React, { useEffect } from 'react';
 import { boolean, pipe } from '@code-expert/prelude';
+import { ProjectRepository } from '@/domain/ProjectRepository';
 import { registerApp } from '@/startup/registerApp';
 import { GlobalContextProvider } from '@/ui/GlobalContext';
 import Routes from '@/ui/Routes';
@@ -8,7 +9,11 @@ import { TimeContextProvider, timeContext } from '@/ui/contexts/TimeContext';
 import useNetworkState from '@/ui/hooks/useNetwork';
 import { AppLayout } from '@/ui/layout';
 
-function App() {
+export interface AppProps {
+  projectRepository: ProjectRepository;
+}
+
+export function App({ projectRepository }: AppProps) {
   const { online } = useNetworkState();
 
   useEffect(() => {
@@ -16,7 +21,7 @@ function App() {
   }, []);
 
   return (
-    <GlobalContextProvider>
+    <GlobalContextProvider projectRepository={projectRepository}>
       <TimeContextProvider value={timeContext}>
         <AppLayout>
           {pipe(
@@ -37,5 +42,3 @@ function App() {
     </GlobalContextProvider>
   );
 }
-
-export default App;
