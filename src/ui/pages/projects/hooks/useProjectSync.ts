@@ -15,7 +15,7 @@ import {
   taskEither,
   tree,
 } from '@code-expert/prelude';
-import { Project, ProjectId, Synced, projectSyncStatePrism } from '@/domain/Project';
+import { Project, ProjectId, projectADT, projectPrism } from '@/domain/Project';
 import {
   FileEntryType,
   FileEntryTypeC,
@@ -23,6 +23,8 @@ import {
   FilePermissionsC,
   writeProjectConfig,
 } from '@/domain/ProjectConfig';
+import { ProjectMetadata } from '@/domain/ProjectMetadata';
+import { SyncState } from '@/domain/SyncState';
 import { createSignedAPIRequest } from '@/domain/createAPIRequest';
 import { Exception, invariantViolated } from '@/domain/exception';
 import { fs as libFs, path as libPath } from '@/lib/tauri';
@@ -114,7 +116,7 @@ const getProjectFilesLocal = (
  */
 const getProjectInfoLocal = (
   projectDir: string,
-  _: Synced,
+  _: SyncState,
 ): taskEither.TaskEither<Exception, Array<LocalFileState>> =>
   pipe(
     getProjectFilesLocal(projectDir),
@@ -259,14 +261,12 @@ const getProjectInfoRemote = (projectId: ProjectId) =>
     }),
   });
 
-const getProjectInfoPrevious = (synced: Synced) => synced.value.files;
-
-const getProjectDirRelative = (project: Project) =>
+const getProjectDirRelative = ({ semester, courseName, exerciseName, taskName }: ProjectMetadata) =>
   libPath.join(
-    libPath.escape(project.semester),
-    libPath.escape(project.courseName),
-    libPath.escape(project.exerciseName),
-    libPath.escape(project.taskName),
+    libPath.escape(semester),
+    libPath.escape(courseName),
+    libPath.escape(exerciseName),
+    libPath.escape(taskName),
   );
 
 export const useProjectSync = () => {
@@ -289,13 +289,10 @@ export const useProjectSync = () => {
         ),
         // This is where it *should* be
         taskEither.bind('projectDirRelative', () =>
-          pipe(
-            projectSyncStatePrism.synced.getOption(project.syncState),
-            option.fold(
-              () => getProjectDirRelative(project),
-              (synced) => taskEither.of(synced.value.dir),
-            ),
-          ),
+          projectADT.fold(project, {
+            remote: (metadata) => getProjectDirRelative(metadata),
+            local: ({ dir }) => taskEither.of(dir),
+          }),
         ),
         taskEither.bind('projectDir', ({ rootDir, projectDirRelative }) =>
           libPath.join(rootDir, projectDirRelative),
@@ -304,15 +301,15 @@ export const useProjectSync = () => {
         // change detection
         taskEither.let('projectInfoPrevious', () =>
           pipe(
-            projectSyncStatePrism.synced.getOption(project.syncState),
-            option.map(getProjectInfoPrevious),
+            projectPrism.local.getOption(project),
+            option.map(({ value: { files } }) => files),
           ),
         ),
-        taskEither.bind('projectInfoRemote', () => getProjectInfoRemote(project.projectId)),
+        taskEither.bind('projectInfoRemote', () => getProjectInfoRemote(project.value.projectId)),
         taskEither.bind('projectInfoLocal', ({ projectDir }) =>
           pipe(
-            projectSyncStatePrism.synced.getOption(project.syncState),
-            option.traverse(taskEither.ApplicativePar)((syncState) =>
+            projectPrism.local.getOption(project),
+            option.traverse(taskEither.ApplicativePar)(({ value: { syncState } }) =>
               getProjectInfoLocal(projectDir, syncState),
             ),
           ),
@@ -342,7 +339,7 @@ export const useProjectSync = () => {
             taskEither.traverseSeqArray(({ path, permissions, type, version }) =>
               writeSingeFile({
                 projectFilePath: path,
-                projectId: project.projectId,
+                projectId: project.value.projectId,
                 projectDir,
                 type,
                 version,
@@ -355,7 +352,7 @@ export const useProjectSync = () => {
 
         // store new state
         taskEither.chainFirstTaskK(({ updatedProjectInfo, projectDirRelative }) =>
-          writeProjectConfig(project.projectId, {
+          writeProjectConfig(project.value.projectId, {
             files: updatedProjectInfo,
             dir: projectDirRelative,
             syncedAt: time.now(),
