@@ -31,10 +31,6 @@ const getSetupStateNoSync = (): task.Task<GlobalSetupState> =>
 const getSetupNoProjectDir = (): task.Task<GlobalSetupState> =>
   pipe(
     api.settingRead('projectDir', iots.string),
-    taskOption.map((x) => {
-      console.log('projectDir', x);
-      return x;
-    }),
     taskOption.fold<GlobalSetupState, string>(
       () => task.fromIO(() => globalSetupState.setup({ state: setupState.noProjectDir() })),
       () => getSetupStateNoSync(),
