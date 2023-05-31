@@ -1,7 +1,7 @@
 import { api } from 'api';
 import React from 'react';
 import { array, iots, pipe, tagged, task, taskEither, taskOption } from '@code-expert/prelude';
-import { ProjectMetadata } from '@/domain/Project';
+import { ProjectMetadata } from '@/domain/ProjectMetadata';
 import { createSignedAPIRequest } from '@/domain/createAPIRequest';
 
 export type SetupState =

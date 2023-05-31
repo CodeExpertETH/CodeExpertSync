@@ -1,8 +1,9 @@
 import { api } from 'api';
 import React from 'react';
 import { array, iots, pipe, remoteData, task, taskEither, taskOption } from '@code-expert/prelude';
-import { Project, ProjectMetadata, ProjectSyncState, projectSyncState } from '@/domain/Project';
+import { Project, ProjectSyncState, projectSyncState } from '@/domain/Project';
 import { readProjectConfig } from '@/domain/ProjectConfig';
+import { ProjectMetadata } from '@/domain/ProjectMetadata';
 import { createSignedAPIRequest } from '@/domain/createAPIRequest';
 import { Exception } from '@/domain/exception';
 import { notificationT } from '@/ui/helper/notifications';

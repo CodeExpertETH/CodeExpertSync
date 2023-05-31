@@ -1,5 +1,6 @@
 import { iots, tagged } from '@code-expert/prelude';
 import { ProjectConfig } from '@/domain/ProjectConfig';
+import { ProjectMetadata } from '@/domain/ProjectMetadata';
 import { mkEntityIdCodec } from '@/utils/identity';
 
 export const ProjectIdBrand = Symbol('ProjectId');
@@ -13,17 +14,6 @@ export type ProjectSyncState = NotSynced | Synced;
 export const projectSyncState = tagged.build<ProjectSyncState>();
 
 export const projectSyncStatePrism = tagged.prisms<ProjectSyncState>();
-
-export const ProjectMetadata = iots.strict({
-  projectId: ProjectId,
-  exerciseName: iots.string,
-  projectName: iots.string,
-  taskName: iots.string,
-  courseName: iots.string,
-  semester: iots.string,
-});
-
-export type ProjectMetadata = iots.TypeOf<typeof ProjectMetadata>;
 
 export interface Project extends ProjectMetadata {
   syncState: ProjectSyncState;
