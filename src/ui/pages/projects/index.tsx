@@ -1,20 +1,15 @@
+import { useProperty } from '@frp-ts/react';
 import React from 'react';
 import { ClientId } from '@/domain/ClientId';
-import { GuardRemoteData } from '@/ui/components/GuardRemoteData';
+import { useGlobalContext } from '@/ui/GlobalContext';
 import { ProjectList } from './ProjectList';
 import { useProjectEventUpdate } from './hooks/useProjectEventUpdate';
-import { useProjects } from './hooks/useProjects';
 
 export function Projects(props: { clientId: ClientId }) {
-  const [projectsRD, updateProjects] = useProjects();
-  useProjectEventUpdate(() => {
-    updateProjects();
-  }, props.clientId);
+  const { projectRepository } = useGlobalContext();
+  const projects = useProperty(projectRepository.projects);
 
-  return (
-    <GuardRemoteData
-      value={projectsRD}
-      render={(projects) => <ProjectList projects={projects} updateProjects={updateProjects} />}
-    />
-  );
+  useProjectEventUpdate(projectRepository.fetchChanges, props.clientId);
+
+  return <ProjectList projects={projects} updateProjects={projectRepository.fetchChanges} />;
 }
