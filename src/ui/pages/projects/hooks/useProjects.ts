@@ -1,15 +1,15 @@
 import { api } from 'api';
 import React from 'react';
 import { array, iots, pipe, remoteData, task, taskEither, taskOption } from '@code-expert/prelude';
-import { Project, getProject } from '@/domain/Project';
+import { Project, projectFromMetadata } from '@/domain/Project';
 import { ProjectMetadata } from '@/domain/ProjectMetadata';
 import { createSignedAPIRequest } from '@/domain/createAPIRequest';
 import { Exception } from '@/domain/exception';
 import { notificationT } from '@/ui/helper/notifications';
 import { useRaceState } from '@/ui/hooks/useRaceState';
 
-const getProjects = (projects: Array<ProjectMetadata>): task.Task<Array<Project>> =>
-  pipe(projects, task.traverseArray(getProject), task.map(array.unsafeFromReadonly));
+const projectsFromMetadata = (projects: Array<ProjectMetadata>): task.Task<Array<Project>> =>
+  pipe(projects, task.traverseArray(projectFromMetadata), task.map(array.unsafeFromReadonly));
 
 export const useProjects = () => {
   const [state, mkSetState] = useRaceState<remoteData.RemoteData<Exception, Array<Project>>>(
@@ -21,7 +21,7 @@ export const useProjects = () => {
     void pipe(
       api.settingRead('projects', iots.array(ProjectMetadata)),
       taskOption.getOrElseW(() => task.of([])),
-      task.chain(getProjects),
+      task.chain(projectsFromMetadata),
       task.map(remoteData.success),
       task.chainIOK((s) => () => setState(s)),
       task.run,
@@ -38,7 +38,7 @@ export const useProjects = () => {
         codec: iots.array(ProjectMetadata),
       }),
       taskEither.chainFirstTaskK((projects) => api.settingWrite('projects', projects)),
-      taskEither.chainTaskK(getProjects),
+      taskEither.chainTaskK(projectsFromMetadata),
       taskEither.map(remoteData.success),
       taskEither.chainIOK((s) => () => setState(s)),
       taskEither.fold(notificationT.error, task.of),

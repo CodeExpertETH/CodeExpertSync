@@ -23,7 +23,7 @@ export const projectPrism = tagged.prisms<Project>();
 
 // -------------------------------------------------------------------------------------------------
 
-export const getProject = (metadata: ProjectMetadata): task.Task<Project> =>
+export const projectFromMetadata = (metadata: ProjectMetadata): task.Task<Project> =>
   pipe(
     readProjectConfig(metadata.projectId),
     taskOption.matchW(
