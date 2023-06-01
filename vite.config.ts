@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react';
 import Path from 'path';
 import { defineConfig, loadEnv } from 'vite';
 import eslint from 'vite-plugin-eslint';
+import topLevelAwait from 'vite-plugin-top-level-await';
 import GithubActionsReporter from 'vitest-github-actions-reporter';
 
 // https://vitejs.dev/config/
@@ -15,6 +16,7 @@ export default defineConfig(({ mode }) => ({
     'process.env': loadEnv(mode, process.cwd(), ['CX_', 'TAURI_', 'VITE_']),
   },
   plugins: [
+    topLevelAwait(),
     react(),
     eslint({
       failOnWarning: false,
