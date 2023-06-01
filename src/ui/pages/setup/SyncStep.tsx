@@ -1,3 +1,4 @@
+import { useProperty } from '@frp-ts/react';
 import { Alert, Typography } from 'antd';
 import React from 'react';
 import { pipe, task } from '@code-expert/prelude';
@@ -7,16 +8,12 @@ import { getSetupState } from '@/domain/Setup';
 import { useGlobalContextWithActions } from '@/ui/GlobalContext';
 import { Icon } from '@/ui/foundation/Icons';
 import { useProjectEventUpdate } from '@/ui/pages/projects/hooks/useProjectEventUpdate';
-import { useProjects } from '@/ui/pages/projects/hooks/useProjects';
 
 export const SyncStep = ({ clientId, active }: { clientId: ClientId; active: boolean }) => {
-  const [, dispatch] = useGlobalContextWithActions();
+  const [{ projectRepository }, dispatch] = useGlobalContextWithActions();
+  const projects = useProperty(projectRepository.projects);
 
-  const [projectsRD, updateProjects] = useProjects();
-
-  useProjectEventUpdate(() => {
-    updateProjects();
-  }, clientId);
+  useProjectEventUpdate(projectRepository.fetchChanges, clientId);
 
   React.useEffect(() => {
     void pipe(
@@ -26,7 +23,7 @@ export const SyncStep = ({ clientId, active }: { clientId: ClientId; active: boo
       }),
       task.run,
     );
-  }, [projectsRD, dispatch]);
+  }, [projects, dispatch]);
 
   return active ? (
     <>

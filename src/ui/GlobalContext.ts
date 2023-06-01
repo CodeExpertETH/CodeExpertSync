@@ -1,7 +1,9 @@
+import { $Unexpressable } from '@code-expert/type-utils';
 import equal from 'fast-deep-equal';
 import React, { useEffect } from 'react';
-import { constVoid, pipe, tagged, task } from '@code-expert/prelude';
-import { GlobalSetupState, getSetupState, globalSetupState, setupState } from '@/domain/Setup';
+import { pipe, tagged, task } from '@code-expert/prelude';
+import { ProjectRepository } from '@/domain/ProjectRepository';
+import { GlobalSetupState, getSetupState } from '@/domain/Setup';
 import Loading from './components/Loading';
 
 export type Routes =
@@ -15,9 +17,10 @@ export const routes = tagged.build<Routes>();
 export interface GlobalContext {
   readonly setupState: GlobalSetupState;
   readonly currentPage: Routes;
+  readonly projectRepository: ProjectRepository;
 }
 
-type MandatoryFields = keyof Pick<GlobalContext, 'setupState'>;
+type MandatoryFields = keyof Pick<GlobalContext, 'setupState' | 'projectRepository'>;
 
 export function initialState({
   currentPage = routes.main(),
@@ -41,17 +44,14 @@ const reducer = (state: GlobalContext | undefined, action: Action & { _init?: Gl
 
 // -------------------------------------------------------------------------------------------------
 
-const context = React.createContext<[GlobalContext, React.Dispatch<Action>]>([
-  initialState({
-    currentPage: routes.main(),
-    setupState: globalSetupState.setup({ state: setupState.notAuthorized() }),
-  }),
-  constVoid,
-]);
+const context = React.createContext<[GlobalContext, React.Dispatch<Action>]>(
+  undefined as $Unexpressable /* Throw if no context is set */,
+);
 
 export const GlobalContextProvider = React.memo(function GlobalContextProvider({
   children,
-}: React.PropsWithChildren) {
+  projectRepository,
+}: React.PropsWithChildren<{ projectRepository: ProjectRepository }>) {
   const [state, stateDispatch] = React.useReducer(reducer, undefined);
 
   useEffect(() => {
@@ -62,13 +62,14 @@ export const GlobalContextProvider = React.memo(function GlobalContextProvider({
           stateDispatch({
             _init: initialState({
               setupState,
+              projectRepository,
             }),
           });
         }),
         task.run,
       );
     }
-  }, [state]);
+  }, [projectRepository, state]);
 
   return state == null
     ? React.createElement(Loading, { delayTime: 1000 })
@@ -77,6 +78,13 @@ export const GlobalContextProvider = React.memo(function GlobalContextProvider({
 
 // -------------------------------------------------------------------------------------------------
 
-export const useGlobalContext = () => React.useContext(context)[0];
+export const useGlobalContextWithActions = () => {
+  const value = React.useContext(context);
+  if (value == null)
+    throw new Error(
+      'GlobalContext needs to be defined before use. Did you forget to add a Provider? Or did you use it before it was initialised?',
+    );
+  return value;
+};
 
-export const useGlobalContextWithActions = () => React.useContext(context);
+export const useGlobalContext = () => useGlobalContextWithActions()[0];
