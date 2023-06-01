@@ -1,7 +1,7 @@
 import { Button, List } from 'antd';
 import React from 'react';
 import { nonEmptyArray, option, pipe, task, taskEither } from '@code-expert/prelude';
-import { Project, projectSyncState } from '@/domain/Project';
+import { Project, projectADT } from '@/domain/Project';
 import { getSetupState } from '@/domain/Setup';
 import { useGlobalContextWithActions } from '@/ui/GlobalContext';
 import { ActionMenu } from '@/ui/components/ActionMenu';
@@ -40,7 +40,10 @@ export const ProjectList = (props: { projects: Array<Project>; updateProjects: (
       task.chain(() => syncProjectM(project)),
       taskEither.fold(
         (e) => notificationT.error(e),
-        () => notificationT.success(`The project ${project.projectName} was synced successfully.`),
+        () =>
+          notificationT.success(
+            `The project ${project.value.projectName} was synced successfully.`,
+          ),
       ),
       task.chainIOK(() => () => setLoading(false)),
       task.run,
@@ -50,11 +53,13 @@ export const ProjectList = (props: { projects: Array<Project>; updateProjects: (
   const verifyProject = (project: Project) => {
     void pipe(
       task.fromIO(() => setLoading(true)),
-      task.chain(() => verifyProjectM(project)),
+      task.chain(() => verifyProjectM(project.value)),
       taskEither.fold(
         (e) => notificationT.error(e),
         () =>
-          notificationT.success(`The project ${project.projectName} was successfully verified.`),
+          notificationT.success(
+            `The project ${project.value.projectName} was successfully verified.`,
+          ),
       ),
       task.chainIOK(() => () => setLoading(false)),
       task.run,
@@ -97,9 +102,9 @@ export const ProjectList = (props: { projects: Array<Project>; updateProjects: (
                       {
                         label: 'Open directory',
                         key: 'open',
-                        disabled: projectSyncState.is.notSynced(project.syncState),
+                        disabled: projectADT.is.remote(project),
                         icon: <Icon name="folder-open-regular" />,
-                        onClick: openProject(project.projectId),
+                        onClick: openProject(project.value.projectId),
                       },
                       {
                         label: 'Sync to local computer',
@@ -123,7 +128,7 @@ export const ProjectList = (props: { projects: Array<Project>; updateProjects: (
                         key: 'remove',
                         icon: <Icon name="trash" />,
                         onClick: () => {
-                          removeProject(project.projectId, project.projectName);
+                          removeProject(project.value.projectId, project.value.projectName);
                         },
                       },
                     ],
@@ -132,8 +137,8 @@ export const ProjectList = (props: { projects: Array<Project>; updateProjects: (
               }
             >
               <List.Item.Meta
-                title={project.projectName}
-                description={`${project.semester}/${project.courseName}/${project.exerciseName}`}
+                title={project.value.projectName}
+                description={`${project.value.semester}/${project.value.courseName}/${project.value.exerciseName}`}
               />
             </List.Item>
           )}

@@ -9,17 +9,18 @@ export type FilePermissions = iots.TypeOf<typeof FilePermissionsC>;
 export const FileEntryTypeC = iots.keyof({ file: null, dir: null });
 export type FileEntryType = iots.TypeOf<typeof FileEntryTypeC>;
 
+export const FileC = iots.strict({
+  path: iots.string,
+  version: iots.number,
+  hash: iots.string,
+  type: FileEntryTypeC,
+  permissions: FilePermissionsC,
+});
+export type File = iots.TypeOf<typeof FileC>;
+
 export const ProjectConfigC = iots.strict({
   dir: iots.string,
-  files: iots.array(
-    iots.strict({
-      path: iots.string,
-      version: iots.number,
-      hash: iots.string,
-      type: FileEntryTypeC,
-      permissions: FilePermissionsC,
-    }),
-  ),
+  files: iots.array(FileC),
   syncedAt: iots.DateFromISOString,
 });
 export type ProjectConfig = iots.TypeOf<typeof ProjectConfigC>;

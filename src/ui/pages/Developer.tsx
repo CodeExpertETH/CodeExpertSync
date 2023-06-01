@@ -3,7 +3,7 @@ import { Alert, Button } from 'antd';
 import { api } from 'api';
 import React from 'react';
 import { iots, pipe, task, taskEither, taskOption } from '@code-expert/prelude';
-import { ProjectMetadata } from '@/domain/Project';
+import { ProjectMetadata } from '@/domain/ProjectMetadata';
 import { globalSetupState, setupState } from '@/domain/Setup';
 import { createSignedAPIRequest } from '@/domain/createAPIRequest';
 import { Exception } from '@/domain/exception';

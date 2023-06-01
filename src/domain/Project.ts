@@ -1,30 +1,38 @@
-import { iots, tagged } from '@code-expert/prelude';
-import { ProjectConfig } from '@/domain/ProjectConfig';
+import { iots, pipe, tagged, task, taskOption } from '@code-expert/prelude';
+import { ProjectConfig, readProjectConfig } from '@/domain/ProjectConfig';
+import { ProjectMetadata } from '@/domain/ProjectMetadata';
+import { SyncState, changesADT, syncStateADT } from '@/domain/SyncState';
 import { mkEntityIdCodec } from '@/utils/identity';
 
 export const ProjectIdBrand = Symbol('ProjectId');
 export const ProjectId = mkEntityIdCodec(ProjectIdBrand);
 export type ProjectId = iots.TypeOf<typeof ProjectId>;
 
-export type NotSynced = tagged.Tagged<'notSynced'>;
-export type Synced = tagged.Tagged<'synced', ProjectConfig>;
-export type ProjectSyncState = NotSynced | Synced;
+export type RemoteProject = tagged.Tagged<'remote', ProjectMetadata>;
 
-export const projectSyncState = tagged.build<ProjectSyncState>();
+export type LocalProject = tagged.Tagged<
+  'local',
+  ProjectMetadata & ProjectConfig & { syncState: SyncState }
+>;
 
-export const projectSyncStatePrism = tagged.prisms<ProjectSyncState>();
+export type Project = RemoteProject | LocalProject;
 
-export const ProjectMetadata = iots.strict({
-  projectId: ProjectId,
-  exerciseName: iots.string,
-  projectName: iots.string,
-  taskName: iots.string,
-  courseName: iots.string,
-  semester: iots.string,
-});
+export const projectADT = tagged.build<Project>();
 
-export type ProjectMetadata = iots.TypeOf<typeof ProjectMetadata>;
+export const projectPrism = tagged.prisms<Project>();
 
-export interface Project extends ProjectMetadata {
-  syncState: ProjectSyncState;
-}
+// -------------------------------------------------------------------------------------------------
+
+export const projectFromMetadata = (metadata: ProjectMetadata): task.Task<Project> =>
+  pipe(
+    readProjectConfig(metadata.projectId),
+    taskOption.matchW(
+      () => projectADT.remote(metadata),
+      (config) =>
+        projectADT.local({
+          ...metadata,
+          ...config,
+          syncState: syncStateADT.synced(changesADT.unknown()),
+        }),
+    ),
+  );

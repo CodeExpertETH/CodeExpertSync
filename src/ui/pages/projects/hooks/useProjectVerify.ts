@@ -1,7 +1,7 @@
 import React from 'react';
 import { pipe, taskEither } from '@code-expert/prelude';
-import { ProjectMetadata } from '@/domain/Project';
 import { readProjectConfig, verifyProjectExistsLocal } from '@/domain/ProjectConfig';
+import { ProjectMetadata } from '@/domain/ProjectMetadata';
 import { invariantViolated } from '@/domain/exception';
 
 export const useProjectVerify = () =>
