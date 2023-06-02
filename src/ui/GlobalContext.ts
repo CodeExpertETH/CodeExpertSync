@@ -57,7 +57,7 @@ export const GlobalContextProvider = React.memo(function GlobalContextProvider({
   useEffect(() => {
     if (state == null) {
       void pipe(
-        getSetupState(),
+        getSetupState(projectRepository),
         task.map((setupState) => {
           stateDispatch({
             _init: initialState({

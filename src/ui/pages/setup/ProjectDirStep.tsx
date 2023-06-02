@@ -9,7 +9,7 @@ import { useGlobalContextWithActions } from '@/ui/GlobalContext';
 import { EditableCard } from '@/ui/components/EditableCard';
 
 export const ProjectDirStep = ({ active }: { active: boolean }) => {
-  const [, dispatch] = useGlobalContextWithActions();
+  const [{ projectRepository }, dispatch] = useGlobalContextWithActions();
 
   const selectDir = async () => {
     const projectDir = await open({
@@ -20,7 +20,7 @@ export const ProjectDirStep = ({ active }: { active: boolean }) => {
     if (projectDir != null) {
       await pipe(
         api.settingWrite('projectDir', projectDir),
-        taskOption.chainTaskK(getSetupState),
+        taskOption.chainTaskK(() => getSetupState(projectRepository)),
         taskOption.map((state) => dispatch({ setupState: state })),
         task.run,
       );

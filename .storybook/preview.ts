@@ -1,6 +1,6 @@
 import { Preview } from '@storybook/react';
 import React from 'react';
-import { mkProjectRepositoryTauri } from '../src/infrastructure/ProjectRepositoryTauri';
+import { mkProjectRepositoryTauri } from '../src/infrastructure/tauri/ProjectRepository';
 import { GlobalContextProvider } from '../src/ui/GlobalContext';
 import { TimeContextProvider } from '../src/ui/contexts/TimeContext';
 

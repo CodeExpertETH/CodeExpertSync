@@ -17,11 +17,12 @@ import {
 } from '@code-expert/prelude';
 import { FileEntryType, FileEntryTypeC, FilePermissions, FilePermissionsC } from '@/domain/File';
 import { LocalProject, Project, ProjectId, projectADT, projectPrism } from '@/domain/Project';
-import { writeProjectConfig } from '@/domain/ProjectConfig';
 import { ProjectMetadata } from '@/domain/ProjectMetadata';
+import { changesADT, syncStateADT } from '@/domain/SyncState';
 import { createSignedAPIRequest } from '@/domain/createAPIRequest';
 import { Exception, invariantViolated } from '@/domain/exception';
 import { fs as libFs, path as libPath } from '@/lib/tauri';
+import { useGlobalContext } from '@/ui/GlobalContext';
 import { useTimeContext } from '@/ui/contexts/TimeContext';
 
 function writeSingeFile({
@@ -265,6 +266,8 @@ const getProjectDirRelative = ({ semester, courseName, exerciseName, taskName }:
 
 export const useProjectSync = () => {
   const time = useTimeContext();
+  const { projectRepository } = useGlobalContext();
+
   return React.useCallback(
     (project: Project): taskEither.TaskEither<Exception, unknown> =>
       pipe(
@@ -346,13 +349,20 @@ export const useProjectSync = () => {
 
         // store new state
         taskEither.chainFirstTaskK(({ updatedProjectInfo, projectDirRelative }) =>
-          writeProjectConfig(project.value.projectId, {
-            files: updatedProjectInfo,
-            dir: projectDirRelative,
-            syncedAt: time.now(),
-          }),
+          projectRepository.upsertOne(
+            projectADT.local({
+              ...project.value,
+              files: updatedProjectInfo,
+              dir: projectDirRelative,
+              syncedAt: time.now(),
+              syncState: projectADT.fold(project, {
+                remote: () => syncStateADT.synced(changesADT.unknown()),
+                local: ({ syncState }) => syncState,
+              }),
+            }),
+          ),
         ),
       ),
-    [time],
+    [projectRepository, time],
   );
 };

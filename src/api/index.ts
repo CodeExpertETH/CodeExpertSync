@@ -1,20 +1,12 @@
 import { invoke } from '@tauri-apps/api';
 import { getVersion } from '@tauri-apps/api/app';
-import {
-  BaseDirectory,
-  createDir,
-  exists as fsExists,
-  readTextFile,
-  removeDir,
-  writeTextFile,
-} from '@tauri-apps/api/fs';
+import { createDir, exists as fsExists, removeDir, writeTextFile } from '@tauri-apps/api/fs';
 import { dirname } from '@tauri-apps/api/path';
 import { Store as TauriStore } from 'tauri-plugin-store-api';
 import {
   constFalse,
   flow,
   iots,
-  json,
   option,
   pipe,
   task,
@@ -31,13 +23,10 @@ export interface Api {
   create_jwt_tokens(claims: Record<string, unknown>): taskEither.TaskEither<Exception, string>;
   settingRead<T>(key: string, decoder: iots.Decoder<unknown, T>): taskOption.TaskOption<T>;
   settingWrite(key: string, value: unknown): taskOption.TaskOption<void>;
-  writeConfigFile(name: string, value: json.Json): taskEither.TaskEither<Exception, void>;
   writeFile(filePath: string, content: string): taskEither.TaskEither<Exception, void>;
   removeDir(filePath: string): taskEither.TaskEither<Exception, void>;
   getFileHash(filePath: string): taskEither.TaskEither<Exception, string>;
   createProjectDir(filePath: string): taskEither.TaskEither<Exception, void>;
-  readConfigFile<T>(name: string, decoder: iots.Decoder<unknown, T>): taskOption.TaskOption<T>;
-  hasConfigFile(name: string): task.Task<boolean>;
   exists(path: string): task.Task<boolean>;
   logout(): taskOption.TaskOption<void>;
 }
@@ -81,18 +70,5 @@ export const api: Api = {
   getFileHash: (path) => taskEither.tryCatch(() => invoke('get_file_hash', { path }), fromError),
   createProjectDir: (path) =>
     taskEither.tryCatch(() => invoke('create_project_dir', { path }), fromError),
-  writeConfigFile: (name, value) =>
-    taskEither.tryCatch(
-      () => writeTextFile(name, JSON.stringify(value), { dir: BaseDirectory.AppLocalData }),
-      fromError,
-    ),
-  readConfigFile: (name, decoder) =>
-    pipe(
-      taskOption.tryCatch(
-        pipe(() => readTextFile(name, { dir: BaseDirectory.AppLocalData }), task.map(JSON.parse)),
-      ),
-      taskOption.chainOptionK(flow(decoder.decode, option.fromEither)),
-    ),
-  hasConfigFile: (name) => () => fsExists(name, { dir: BaseDirectory.AppLocalData }),
   logout: () => api.settingWrite('accessToken', null),
 };

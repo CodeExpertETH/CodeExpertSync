@@ -1,7 +1,6 @@
 import { api } from 'api';
 import { iots, pipe, taskEither } from '@code-expert/prelude';
 import { FileC } from '@/domain/File';
-import { ProjectId } from '@/domain/Project';
 import { Exception } from '@/domain/exception';
 
 export const ProjectConfigC = iots.strict({
@@ -37,9 +36,3 @@ export const verifyProjectExistsLocal = (
     }),
   );
 };
-
-export const readProjectConfig = (projectId: ProjectId) =>
-  api.readConfigFile(`project_${projectId}.json`, ProjectConfigC);
-
-export const writeProjectConfig = (projectId: ProjectId, projectConfig: Readonly<ProjectConfig>) =>
-  api.writeConfigFile(`project_${projectId}.json`, ProjectConfigC.encode(projectConfig));
