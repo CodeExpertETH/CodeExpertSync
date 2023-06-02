@@ -16,10 +16,9 @@ import {
   tree,
 } from '@code-expert/prelude';
 import { FileEntryType, FileEntryTypeC, FilePermissions, FilePermissionsC } from '@/domain/File';
-import { Project, ProjectId, projectADT, projectPrism } from '@/domain/Project';
+import { LocalProject, Project, ProjectId, projectADT, projectPrism } from '@/domain/Project';
 import { writeProjectConfig } from '@/domain/ProjectConfig';
 import { ProjectMetadata } from '@/domain/ProjectMetadata';
-import { SyncState } from '@/domain/SyncState';
 import { createSignedAPIRequest } from '@/domain/createAPIRequest';
 import { Exception, invariantViolated } from '@/domain/exception';
 import { fs as libFs, path as libPath } from '@/lib/tauri';
@@ -107,11 +106,11 @@ const getProjectFilesLocal = (
  * - has been synced before, but dir not present
  * - can't read dir or subdir
  *
- * By requiring projectSyncState.synced we have handled case 1. Case 2 & 3 are textbook exception, no need to differentiate
+ * By requiring {@link LocalProject} we have handled case 1. Case 2 & 3 are textbook exception, no need to differentiate
  */
 const getProjectInfoLocal = (
   projectDir: string,
-  _: SyncState,
+  _: LocalProject,
 ): taskEither.TaskEither<Exception, Array<LocalFileState>> =>
   pipe(
     getProjectFilesLocal(projectDir),
@@ -304,8 +303,8 @@ export const useProjectSync = () => {
         taskEither.bind('projectInfoLocal', ({ projectDir }) =>
           pipe(
             projectPrism.local.getOption(project),
-            option.traverse(taskEither.ApplicativePar)(({ value: { syncState } }) =>
-              getProjectInfoLocal(projectDir, syncState),
+            option.traverse(taskEither.ApplicativePar)((project) =>
+              getProjectInfoLocal(projectDir, project),
             ),
           ),
         ),
