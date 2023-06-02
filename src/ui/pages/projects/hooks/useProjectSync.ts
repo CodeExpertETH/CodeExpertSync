@@ -15,14 +15,9 @@ import {
   taskEither,
   tree,
 } from '@code-expert/prelude';
+import { FileEntryType, FileEntryTypeC, FilePermissions, FilePermissionsC } from '@/domain/File';
 import { Project, ProjectId, projectADT, projectPrism } from '@/domain/Project';
-import {
-  FileEntryType,
-  FileEntryTypeC,
-  FilePermissions,
-  FilePermissionsC,
-  writeProjectConfig,
-} from '@/domain/ProjectConfig';
+import { writeProjectConfig } from '@/domain/ProjectConfig';
 import { ProjectMetadata } from '@/domain/ProjectMetadata';
 import { SyncState } from '@/domain/SyncState';
 import { createSignedAPIRequest } from '@/domain/createAPIRequest';
