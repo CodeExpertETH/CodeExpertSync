@@ -12,7 +12,7 @@
       <excludeFolder url="file://$MODULE_DIR$/packages/type-utils/build" />
       <excludeFolder url="file://$MODULE_DIR$/.idea/inspectionProfiles" />
       <excludeFolder url="file://$MODULE_DIR$/.idea/jsLinters" />
-      <excludeFolder url="file://$MODULE_DIR$/.yarn/cache" />
+      <excludeFolder url="file://$MODULE_DIR$/.yarn" />
       <excludeFolder url="file://$MODULE_DIR$/src/build" />
       <excludePattern pattern=".eslintcache" />
       <excludePattern pattern="yarn.lock" />
