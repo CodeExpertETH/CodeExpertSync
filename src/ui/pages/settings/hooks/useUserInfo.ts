@@ -1,8 +1,17 @@
 import React from 'react';
 import { pipe, remoteData, taskEither } from '@code-expert/prelude';
-import { UserInfo, getUserInfo } from '@/domain/UserInfo';
+import { UserInfo, UserInfoC } from '@/domain/UserInfo';
+import { createSignedAPIRequest } from '@/domain/createAPIRequest';
 import { Exception } from '@/domain/exception';
 import { useRaceState } from '@/ui/hooks/useRaceState';
+
+const getUserInfo = () =>
+  createSignedAPIRequest({
+    path: 'user/info',
+    payload: {},
+    method: 'GET',
+    codec: UserInfoC,
+  });
 
 export const useUserInfo = () => {
   const [state, mkSetState] = useRaceState<remoteData.RemoteData<Exception, UserInfo>>(
