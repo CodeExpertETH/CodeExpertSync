@@ -21,8 +21,8 @@ import { ProjectRepository } from '@/domain/ProjectRepository';
 import { changesADT, syncStateADT } from '@/domain/SyncState';
 import { createSignedAPIRequest } from '@/domain/createAPIRequest';
 import { fromError } from '@/domain/exception';
-import { projectConfigStore } from './ProjectConfigStore';
-import { projectMetadataStore } from './ProjectMetadataStore';
+import { projectConfigStore } from './internal/ProjectConfigStore';
+import { projectMetadataStore } from './internal/ProjectMetadataStore';
 
 const projectsDb = atom.newAtom<Array<Project>>([]);
 
