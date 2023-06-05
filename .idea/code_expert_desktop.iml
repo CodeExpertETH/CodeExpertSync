@@ -16,6 +16,7 @@
       <excludeFolder url="file://$MODULE_DIR$/src/build" />
       <excludePattern pattern=".eslintcache" />
       <excludePattern pattern="yarn.lock" />
+      <excludePattern pattern="tsconfig.tsbuildinfo" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
