@@ -35,7 +35,7 @@ export const projectMetadataStore = {
           iots.array(ProjectMetadata).decode(projects),
           either.getOrThrow(fromError),
           array.map((x) => store.set(x.projectId, x)),
-          Promise.allSettled,
+          (xs) => Promise.allSettled(xs),
         ),
       ),
       taskOption.chainFirstTaskK(() => () => store.save()),
