@@ -4,6 +4,8 @@ import * as task from './task';
 
 export * from 'fp-ts/TaskOption';
 
+export const sequenceS = apply.sequenceS(taskOption.ApplicativePar);
+
 export const sequenceT = apply.sequenceT(taskOption.ApplicativePar);
 
 export const elem =
