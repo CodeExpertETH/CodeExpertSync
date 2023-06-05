@@ -1,7 +1,15 @@
 import { BaseDirectory, readTextFile, writeTextFile } from '@tauri-apps/api/fs';
-import { flow, option, pipe, task, taskOption } from '@code-expert/prelude';
+import { flow, iots, option, pipe, task, taskOption } from '@code-expert/prelude';
+import { FileC } from '@/domain/File';
 import { LocalProject, ProjectId } from '@/domain/Project';
-import { ProjectConfig, ProjectConfigC } from '@/domain/ProjectConfig';
+
+const ProjectConfigC = iots.strict({
+  basePath: iots.string,
+  files: iots.array(FileC),
+  syncedAt: iots.DateFromISOString,
+});
+
+export type ProjectConfig = iots.TypeOf<typeof ProjectConfigC>;
 
 export const projectConfigStore = {
   read: (projectId: ProjectId): taskOption.TaskOption<ProjectConfig> =>

@@ -1,14 +1,7 @@
 import { api } from 'api';
-import { iots, pipe, taskEither } from '@code-expert/prelude';
-import { FileC } from '@/domain/File';
+import { pipe, taskEither } from '@code-expert/prelude';
+import { LocalProject } from '@/domain/Project';
 import { Exception } from '@/domain/exception';
-
-export const ProjectConfigC = iots.strict({
-  basePath: iots.string,
-  files: iots.array(FileC),
-  syncedAt: iots.DateFromISOString,
-});
-export type ProjectConfig = iots.TypeOf<typeof ProjectConfigC>;
 
 export class ProjectVerifyException extends Error {
   declare error: 'ProjectVerifyException';
@@ -20,11 +13,10 @@ export class ProjectVerifyException extends Error {
   }
 }
 
-export const verifyProjectExistsLocal = (
-  projectConfig: ProjectConfig,
-): taskEither.TaskEither<ProjectVerifyException | Exception, void> => {
-  const { basePath } = projectConfig;
-  return pipe(
+export const verifyProjectExistsLocal = ({
+  value: { basePath },
+}: LocalProject): taskEither.TaskEither<ProjectVerifyException | Exception, void> =>
+  pipe(
     taskEither.fromTask(api.exists(basePath)),
     taskEither.chainW((doesExists) => {
       if (!doesExists) {
@@ -35,4 +27,3 @@ export const verifyProjectExistsLocal = (
       return taskEither.right(undefined);
     }),
   );
-};

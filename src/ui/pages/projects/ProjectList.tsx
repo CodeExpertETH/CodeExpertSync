@@ -52,7 +52,7 @@ export const ProjectList = (props: { projects: Array<Project>; updateProjects: (
   const verifyProject = (project: LocalProject) => {
     void pipe(
       task.fromIO(() => setLoading(true)),
-      task.chain(() => verifyProjectExistsLocal(project.value)),
+      task.chain(() => verifyProjectExistsLocal(project)),
       taskEither.fold(
         (e) => notificationT.error(e),
         () =>
