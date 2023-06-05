@@ -38,6 +38,7 @@ export const projectMetadataStore = {
           Promise.allSettled,
         ),
       ),
+      taskOption.chainFirstTaskK(() => () => store.save()),
       taskOption.chainOptionK(flow(iots.array(ProjectMetadata).decode, option.fromEither)),
       taskOption.map(constVoid),
     ),
