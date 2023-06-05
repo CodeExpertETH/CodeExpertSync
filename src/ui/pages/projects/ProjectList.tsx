@@ -1,9 +1,10 @@
 import { Button, List } from 'antd';
 import React from 'react';
-import { nonEmptyArray, option, pipe, task, taskEither } from '@code-expert/prelude';
+import { flow, nonEmptyArray, option, pipe, task, taskEither } from '@code-expert/prelude';
+import { verifyProjectConsistency } from '@/application/verifyProjectConsistency';
 import { LocalProject, Project, projectADT } from '@/domain/Project';
-import { verifyProjectExistsLocal } from '@/domain/ProjectConfig';
 import { getSetupState } from '@/domain/Setup';
+import { syncExceptionADT } from '@/domain/SyncState';
 import { useGlobalContextWithActions } from '@/ui/GlobalContext';
 import { ActionMenu } from '@/ui/components/ActionMenu';
 import { Icon } from '@/ui/foundation/Icons';
@@ -52,9 +53,14 @@ export const ProjectList = (props: { projects: Array<Project>; updateProjects: (
   const verifyProject = (project: LocalProject) => {
     void pipe(
       task.fromIO(() => setLoading(true)),
-      task.chain(() => verifyProjectExistsLocal(project)),
+      task.chain(() => verifyProjectConsistency(project)),
       taskEither.fold(
-        (e) => notificationT.error(e),
+        flow(
+          syncExceptionADT.fold({
+            fileSystemCorrupted: ({ path, reason }) => `${reason} (${path})`,
+          }),
+          notificationT.error,
+        ),
         () =>
           notificationT.success(
             `The project ${project.value.projectName} was successfully verified.`,
