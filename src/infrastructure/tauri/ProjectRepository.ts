@@ -81,6 +81,7 @@ export const mkProjectRepositoryTauri = (): task.Task<ProjectRepository> => {
           taskEither.chainTaskK(projectsFromMetadata),
           taskEither.chainFirstIOK(setProjects),
           task.map(flow(either.getOrThrow(fromError), constVoid)), // FIXME Don't throw network errors
+          task.run,
         );
       },
 
