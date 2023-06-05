@@ -1,24 +1,25 @@
 import { Button, List } from 'antd';
 import React from 'react';
-import { nonEmptyArray, option, pipe, task, taskEither } from '@code-expert/prelude';
-import { Project, projectADT } from '@/domain/Project';
+import { flow, nonEmptyArray, option, pipe, task, taskEither } from '@code-expert/prelude';
+import { verifyProjectConsistency } from '@/application/verifyProjectConsistency';
+import { LocalProject, Project, projectADT } from '@/domain/Project';
 import { getSetupState } from '@/domain/Setup';
+import { syncExceptionADT } from '@/domain/SyncState';
 import { useGlobalContextWithActions } from '@/ui/GlobalContext';
 import { ActionMenu } from '@/ui/components/ActionMenu';
 import { Icon } from '@/ui/foundation/Icons';
 import { Box, HStack } from '@/ui/foundation/Layout';
 import { notificationT } from '@/ui/helper/notifications';
-import { useProjectVerify } from '@/ui/pages/projects/hooks/useProjectVerify';
 import { useProjectOpen } from './hooks/useProjectOpen';
 import { useProjectRemove } from './hooks/useProjectRemove';
 import { useProjectSync } from './hooks/useProjectSync';
 
 export const ProjectList = (props: { projects: Array<Project>; updateProjects: () => void }) => {
-  const [, dispatch] = useGlobalContextWithActions();
+  const [{ projectRepository }, dispatch] = useGlobalContextWithActions();
 
   const updateState = () => {
     void pipe(
-      getSetupState(),
+      getSetupState(projectRepository),
       task.map((state) => {
         dispatch({ setupState: state });
       }),
@@ -32,7 +33,6 @@ export const ProjectList = (props: { projects: Array<Project>; updateProjects: (
   });
   const openProject = useProjectOpen();
   const syncProjectM = useProjectSync();
-  const verifyProjectM = useProjectVerify();
 
   const syncProject = (project: Project) => {
     void pipe(
@@ -50,12 +50,17 @@ export const ProjectList = (props: { projects: Array<Project>; updateProjects: (
     );
   };
 
-  const verifyProject = (project: Project) => {
+  const verifyProject = (project: LocalProject) => {
     void pipe(
       task.fromIO(() => setLoading(true)),
-      task.chain(() => verifyProjectM(project.value)),
+      task.chain(() => verifyProjectConsistency(project)),
       taskEither.fold(
-        (e) => notificationT.error(e),
+        flow(
+          syncExceptionADT.fold({
+            fileSystemCorrupted: ({ path, reason }) => `${reason} (${path})`,
+          }),
+          notificationT.error,
+        ),
         () =>
           notificationT.success(
             `The project ${project.value.projectName} was successfully verified.`,
@@ -118,8 +123,11 @@ export const ProjectList = (props: { projects: Array<Project>; updateProjects: (
                         label: 'Verify project',
                         key: 'verify',
                         icon: <Icon name="check" />,
+                        disabled: projectADT.is.remote(project),
                         onClick: () => {
-                          void verifyProject(project);
+                          if (projectADT.is.local(project)) {
+                            void verifyProject(project);
+                          }
                         },
                       },
                       { type: 'divider' },

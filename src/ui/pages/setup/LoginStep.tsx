@@ -28,11 +28,11 @@ const AuthWarning = ({
   />
 );
 export const LoginStep = ({ clientId, active }: { clientId: ClientId; active: boolean }) => {
-  const [, dispatch] = useGlobalContextWithActions();
+  const [{ projectRepository }, dispatch] = useGlobalContextWithActions();
 
   const { state, startAuthorization, cancelAuthorization } = useAuthState(clientId, () => {
     void pipe(
-      getSetupState(),
+      getSetupState(projectRepository),
       task.map((state) => dispatch({ setupState: state })),
       task.run,
     );

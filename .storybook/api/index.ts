@@ -1,7 +1,6 @@
-import { either, option, pipe, task, taskEither, taskOption } from '@code-expert/prelude';
+import { either, option, task, taskEither, taskOption } from '@code-expert/prelude';
 import type { Api } from '../../src/api';
 
-const configStore = new Map();
 const fileStore = new Map();
 const settingsStore = new Map();
 
@@ -15,10 +14,6 @@ export const api: Api = {
     return Promise.resolve(option.some(undefined));
   },
   exists: () => task.of(true) /* FIXME Correct implementation */,
-  writeConfigFile: (name, value) =>
-    taskEither.fromIO(() => {
-      configStore.set(name, value);
-    }),
   writeFile: (filePath, content) =>
     taskEither.fromIO(() => {
       fileStore.set(filePath, content);
@@ -32,8 +27,5 @@ export const api: Api = {
   createProjectDir: () => {
     throw new Error('[Storybook] Not implemented');
   },
-  readConfigFile: (name, decoder) =>
-    pipe(configStore.get(name), decoder.decode, taskOption.fromEither),
-  hasConfigFile: (name) => task.fromIO(() => configStore.get(name) != null),
   logout: () => taskOption.of(undefined),
 };

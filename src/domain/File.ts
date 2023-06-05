@@ -13,4 +13,5 @@ export const FileC = iots.strict({
   type: FileEntryTypeC,
   permissions: FilePermissionsC,
 });
+
 export type File = iots.TypeOf<typeof FileC>;

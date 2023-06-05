@@ -1,9 +1,7 @@
 import { BaseDirectory } from '@tauri-apps/api/fs';
 import { Alert, Button } from 'antd';
-import { api } from 'api';
 import React from 'react';
 import { iots, pipe, task, taskEither, taskOption } from '@code-expert/prelude';
-import { ProjectMetadata } from '@/domain/ProjectMetadata';
 import { globalSetupState, setupState } from '@/domain/Setup';
 import { createSignedAPIRequest } from '@/domain/createAPIRequest';
 import { Exception } from '@/domain/exception';
@@ -15,7 +13,7 @@ import { notificationT } from '@/ui/helper/notifications';
 import { deleteLocalProject } from './projects/hooks/useProjectRemove';
 
 export function Developer() {
-  const [, dispatchContext] = useGlobalContextWithActions();
+  const [{ projectRepository }, dispatchContext] = useGlobalContextWithActions();
 
   const testAuth = () => {
     void pipe(
@@ -35,14 +33,15 @@ export function Developer() {
 
   const cleanConfig = () => {
     void pipe(
-      api.settingRead('projects', iots.array(ProjectMetadata)),
+      projectRepository.projects.get(),
+      taskOption.fromPredicate((projects) => projects.length > 0),
       taskOption.fold(
         () => taskEither.right<Exception, unknown>(undefined),
         taskEither.traverseSeqArray((project) =>
           pipe(
-            deleteLocalProject(project.projectId),
+            deleteLocalProject(projectRepository)(project.value.projectId),
             taskEither.chain(() =>
-              fs.removeFile(`project_${project.projectId}.json`, {
+              fs.removeFile(`project_${project.value.projectId}.json`, {
                 dir: BaseDirectory.AppLocalData,
               }),
             ),

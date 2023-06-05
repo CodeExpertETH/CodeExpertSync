@@ -16,13 +16,13 @@ import {
   tree,
 } from '@code-expert/prelude';
 import { FileEntryType, FileEntryTypeC, FilePermissions, FilePermissionsC } from '@/domain/File';
-import { Project, ProjectId, projectADT, projectPrism } from '@/domain/Project';
-import { writeProjectConfig } from '@/domain/ProjectConfig';
+import { LocalProject, Project, ProjectId, projectADT, projectPrism } from '@/domain/Project';
 import { ProjectMetadata } from '@/domain/ProjectMetadata';
-import { SyncState } from '@/domain/SyncState';
+import { changesADT, syncStateADT } from '@/domain/SyncState';
 import { createSignedAPIRequest } from '@/domain/createAPIRequest';
 import { Exception, invariantViolated } from '@/domain/exception';
 import { fs as libFs, path as libPath } from '@/lib/tauri';
+import { useGlobalContext } from '@/ui/GlobalContext';
 import { useTimeContext } from '@/ui/contexts/TimeContext';
 
 function writeSingeFile({
@@ -107,11 +107,11 @@ const getProjectFilesLocal = (
  * - has been synced before, but dir not present
  * - can't read dir or subdir
  *
- * By requiring projectSyncState.synced we have handled case 1. Case 2 & 3 are textbook exception, no need to differentiate
+ * By requiring {@link LocalProject} we have handled case 1. Case 2 & 3 are textbook exception, no need to differentiate
  */
 const getProjectInfoLocal = (
   projectDir: string,
-  _: SyncState,
+  _: LocalProject,
 ): taskEither.TaskEither<Exception, Array<LocalFileState>> =>
   pipe(
     getProjectFilesLocal(projectDir),
@@ -266,6 +266,8 @@ const getProjectDirRelative = ({ semester, courseName, exerciseName, taskName }:
 
 export const useProjectSync = () => {
   const time = useTimeContext();
+  const { projectRepository } = useGlobalContext();
+
   return React.useCallback(
     (project: Project): taskEither.TaskEither<Exception, unknown> =>
       pipe(
@@ -286,7 +288,7 @@ export const useProjectSync = () => {
         taskEither.bind('projectDirRelative', () =>
           projectADT.fold(project, {
             remote: (metadata) => getProjectDirRelative(metadata),
-            local: ({ dir }) => taskEither.of(dir),
+            local: ({ basePath }) => taskEither.of(basePath),
           }),
         ),
         taskEither.bind('projectDir', ({ rootDir, projectDirRelative }) =>
@@ -304,8 +306,8 @@ export const useProjectSync = () => {
         taskEither.bind('projectInfoLocal', ({ projectDir }) =>
           pipe(
             projectPrism.local.getOption(project),
-            option.traverse(taskEither.ApplicativePar)(({ value: { syncState } }) =>
-              getProjectInfoLocal(projectDir, syncState),
+            option.traverse(taskEither.ApplicativePar)((project) =>
+              getProjectInfoLocal(projectDir, project),
             ),
           ),
         ),
@@ -347,13 +349,20 @@ export const useProjectSync = () => {
 
         // store new state
         taskEither.chainFirstTaskK(({ updatedProjectInfo, projectDirRelative }) =>
-          writeProjectConfig(project.value.projectId, {
-            files: updatedProjectInfo,
-            dir: projectDirRelative,
-            syncedAt: time.now(),
-          }),
+          projectRepository.upsertOne(
+            projectADT.local({
+              ...project.value,
+              files: updatedProjectInfo,
+              basePath: projectDirRelative,
+              syncedAt: time.now(),
+              syncState: projectADT.fold(project, {
+                remote: () => syncStateADT.synced(changesADT.unknown()),
+                local: ({ syncState }) => syncState,
+              }),
+            }),
+          ),
         ),
       ),
-    [time],
+    [projectRepository, time],
   );
 };

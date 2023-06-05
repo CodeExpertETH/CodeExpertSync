@@ -17,13 +17,13 @@ export const SyncStep = ({ clientId, active }: { clientId: ClientId; active: boo
 
   React.useEffect(() => {
     void pipe(
-      getSetupState(),
+      getSetupState(projectRepository),
       task.map((state) => {
         dispatch({ setupState: state });
       }),
       task.run,
     );
-  }, [projects, dispatch]);
+  }, [projectRepository, projects, dispatch]);
 
   return active ? (
     <>

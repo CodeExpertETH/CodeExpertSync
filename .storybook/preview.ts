@@ -1,10 +1,25 @@
 import { Preview } from '@storybook/react';
 import React from 'react';
-import { mkProjectRepositoryTauri } from '../src/infrastructure/ProjectRepositoryTauri';
+import { ProjectId, projectADT } from '../src/domain/Project';
+import { changesADT, syncStateADT } from '../src/domain/SyncState';
+import { mkProjectRepositoryTesting } from '../src/infrastructure/testing/ProjectRepository';
 import { GlobalContextProvider } from '../src/ui/GlobalContext';
 import { TimeContextProvider } from '../src/ui/contexts/TimeContext';
 
-const projectRepository = await mkProjectRepositoryTauri()(); // FIXME Needs a pure implementation for testing
+const projectRepository = await mkProjectRepositoryTesting([
+  projectADT.local({
+    projectId: 'p1' as ProjectId,
+    exerciseName: 'Exercise One',
+    projectName: 'Project One',
+    taskName: 'Task One',
+    courseName: 'Course One',
+    semester: 'AS22',
+    basePath: '/tmp/cxsync-test',
+    files: [],
+    syncedAt: new Date(),
+    syncState: syncStateADT.synced(changesADT.unknown()),
+  }),
+]);
 
 const testTimeContext = {
   now: () => new Date('2023-05-06T11:00:00Z'),

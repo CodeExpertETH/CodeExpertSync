@@ -1,6 +1,6 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { mkProjectRepositoryTauri } from '@/infrastructure/ProjectRepositoryTauri';
+import { mkProjectRepositoryTauri } from '@/infrastructure/tauri/ProjectRepository';
 import { App } from './App';
 import './global.css';
 import './reset.css';
