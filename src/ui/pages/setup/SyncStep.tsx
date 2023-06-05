@@ -23,7 +23,7 @@ export const SyncStep = ({ clientId, active }: { clientId: ClientId; active: boo
       }),
       task.run,
     );
-  }, [projects, dispatch]);
+  }, [projectRepository, projects, dispatch]);
 
   return active ? (
     <>
