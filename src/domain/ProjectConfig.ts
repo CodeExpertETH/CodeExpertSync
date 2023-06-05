@@ -4,7 +4,7 @@ import { FileC } from '@/domain/File';
 import { Exception } from '@/domain/exception';
 
 export const ProjectConfigC = iots.strict({
-  dir: iots.string,
+  basePath: iots.string,
   files: iots.array(FileC),
   syncedAt: iots.DateFromISOString,
 });
@@ -23,13 +23,13 @@ export class ProjectVerifyException extends Error {
 export const verifyProjectExistsLocal = (
   projectConfig: ProjectConfig,
 ): taskEither.TaskEither<ProjectVerifyException | Exception, void> => {
-  const { dir } = projectConfig;
+  const { basePath } = projectConfig;
   return pipe(
-    taskEither.fromTask(api.exists(dir)),
+    taskEither.fromTask(api.exists(basePath)),
     taskEither.chainW((doesExists) => {
       if (!doesExists) {
         return taskEither.left(
-          new ProjectVerifyException(`Project directory "${dir}" does not exist.`),
+          new ProjectVerifyException(`Project directory "${basePath}" does not exist.`),
         );
       }
       return taskEither.right(undefined);

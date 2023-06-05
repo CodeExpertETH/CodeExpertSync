@@ -19,7 +19,7 @@ export const useProjectOpen = () => {
           ),
         }),
         taskOption.chain(({ rootDir, project }) =>
-          taskOption.fromTaskEither(path.join(rootDir, project.value.dir)),
+          taskOption.fromTaskEither(path.join(rootDir, project.value.basePath)),
         ),
         taskOption.chainTaskK((dir) => () => open(dir)),
       ),

@@ -288,7 +288,7 @@ export const useProjectSync = () => {
         taskEither.bind('projectDirRelative', () =>
           projectADT.fold(project, {
             remote: (metadata) => getProjectDirRelative(metadata),
-            local: ({ dir }) => taskEither.of(dir),
+            local: ({ basePath }) => taskEither.of(basePath),
           }),
         ),
         taskEither.bind('projectDir', ({ rootDir, projectDirRelative }) =>
@@ -353,7 +353,7 @@ export const useProjectSync = () => {
             projectADT.local({
               ...project.value,
               files: updatedProjectInfo,
-              dir: projectDirRelative,
+              basePath: projectDirRelative,
               syncedAt: time.now(),
               syncState: projectADT.fold(project, {
                 remote: () => syncStateADT.synced(changesADT.unknown()),

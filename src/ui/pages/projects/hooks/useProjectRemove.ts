@@ -22,7 +22,7 @@ export const deleteLocalProject =
         ),
       }),
       taskOption.chain(({ rootDir, project }) =>
-        taskOption.fromTaskEither(path.join(rootDir, project.value.dir)),
+        taskOption.fromTaskEither(path.join(rootDir, project.value.basePath)),
       ),
       taskOption.fold(() => taskEither.right(undefined), api.removeDir),
     );
