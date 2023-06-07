@@ -1,5 +1,5 @@
 import React from 'react';
-import { flow, remoteData, task } from '@code-expert/prelude';
+import { either, flow, pipe, remoteData, task, taskEither } from '@code-expert/prelude';
 import { Exception, fromError } from '@/domain/exception';
 import { useRaceState } from './useRaceState';
 
@@ -22,6 +22,40 @@ export function useRemoteData<P, A>(run: (props: P) => task.Task<A>) {
           setState(remoteData.failure(fromError(e)));
         }
       })();
+    },
+  });
+
+  current.run = run;
+
+  return [state, current.refresh] as const;
+}
+
+/**
+ * Run a `Task` and represent the states before, during and after as `RemoteData`.
+ *
+ * Because we're dealing with a Task, there is no error channel.
+ */
+export function useRemoteData2<P, A>(run: (props: P) => task.Task<A>) {
+  return useRemoteDataEither(flow(run, task.map(either.right)));
+}
+
+/**
+ * Run a `TaskEither` and represent the states before, during and after as `RemoteData`.
+ */
+export function useRemoteDataEither<P, E, A>(run: (props: P) => taskEither.TaskEither<E, A>) {
+  const [state, mkSetState] = useRaceState<remoteData.RemoteData<E, A>>(remoteData.initial);
+
+  const { current } = React.useRef({
+    run,
+    refresh(props: P) {
+      const setState = mkSetState();
+      setState(remoteData.pending);
+      void pipe(
+        current.run(props),
+        taskEither.matchW(remoteData.failure, remoteData.success),
+        task.chainIOK((x) => () => setState(x)),
+        task.run,
+      );
     },
   });
 
