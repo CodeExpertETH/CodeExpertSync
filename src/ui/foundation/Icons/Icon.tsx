@@ -28,6 +28,9 @@ import { faAlignJustify } from '@fortawesome/free-solid-svg-icons/faAlignJustify
 import { faAngleDown } from '@fortawesome/free-solid-svg-icons/faAngleDown';
 import { faAngleRight } from '@fortawesome/free-solid-svg-icons/faAngleRight';
 import { faArchive } from '@fortawesome/free-solid-svg-icons/faArchive';
+import { faArrowDown } from '@fortawesome/free-solid-svg-icons/faArrowDown';
+import { faArrowRightArrowLeft } from '@fortawesome/free-solid-svg-icons/faArrowRightArrowLeft';
+import { faArrowUp } from '@fortawesome/free-solid-svg-icons/faArrowUp';
 import { faBan } from '@fortawesome/free-solid-svg-icons/faBan';
 import { faBars } from '@fortawesome/free-solid-svg-icons/faBars';
 import { faBell } from '@fortawesome/free-solid-svg-icons/faBell';
@@ -171,6 +174,9 @@ const icons_ = {
   'align-justify': faAlignJustify,
   'angle-down': faAngleDown,
   'angle-right': faAngleRight,
+  'arrow-down': faArrowDown,
+  'arrow-right-arrow-left': faArrowRightArrowLeft,
+  'arrow-up': faArrowUp,
   'bell-slash': faBellSlash,
   'book-open': faBookOpen,
   'book-reader': faBookReader,

@@ -11,6 +11,9 @@ export default {
 const comments: Record<IconName, string> = {
   'angle-down': 'dropdown, select (use with text)',
   'angle-right': 'dropdown, select (use with text)',
+  'arrow-down': 'pull from remote',
+  'arrow-right-arrow-left': 'push/pull (rotate by 90deg)',
+  'arrow-up': 'push to remote',
   'chart-bar': 'charts',
   'ellipsis-v': 'menu',
   'file-export': 'export to file',
