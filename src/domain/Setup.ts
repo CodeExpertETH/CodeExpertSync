@@ -46,7 +46,7 @@ export const getSetupState = (projectRepository: ProjectRepository): task.Task<G
     createSignedAPIRequest({
       path: 'app/checkAccess',
       method: 'GET',
-      payload: {},
+      jwtPayload: {},
       codec: iots.strict({ status: iots.string }),
     }),
     taskEither.fold<Error, { status: string }, GlobalSetupState>(

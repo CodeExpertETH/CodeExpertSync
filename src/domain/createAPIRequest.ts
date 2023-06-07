@@ -1,7 +1,19 @@
 import { $Unexpressable } from '@code-expert/type-utils';
 import { Body, Response, ResponseType, fetch } from '@tauri-apps/api/http';
 import { api } from 'api';
-import { either, flow, iots, json, pipe, taskEither } from '@code-expert/prelude';
+import {
+  constUndefined,
+  constant,
+  either,
+  flow,
+  iots,
+  json,
+  option,
+  pipe,
+  record,
+  tagged,
+  taskEither,
+} from '@code-expert/prelude';
 import { config } from '@/config';
 import { ClientId } from './ClientId';
 import {
@@ -12,6 +24,36 @@ import {
   invariantViolated,
 } from './exception';
 
+type RequestBody =
+  | tagged.Tagged<'json', json.Json>
+  | tagged.Tagged<
+      'binary',
+      {
+        body: ArrayBuffer;
+        type: string;
+        encoding: option.Option<string>;
+      }
+    >;
+
+export const requestBody = tagged.build<RequestBody>();
+
+const constEmpty = constant({});
+
+const toHeaders: (b: RequestBody) => Record<string, string> = requestBody.fold({
+  json: () => ({ 'content-Type': 'application/json' }),
+  binary: ({ type, encoding }) =>
+    pipe(
+      encoding,
+      option.fold(constEmpty, (e) => ({ 'Content-Encoding': e })),
+      record.upsertAt('Content-Type', type),
+    ),
+});
+
+const toBody: (b: RequestBody) => Body = requestBody.fold({
+  json: (j) => Body.json(j as $Unexpressable), // fixme: tauri types say Body.json doesn't accept 'null', check what happens in that case
+  binary: ({ body }) => Body.bytes(body),
+});
+
 export function createTokenWithClientId(payload: Record<string, unknown>) {
   return (clientId: ClientId) =>
     api.create_jwt_tokens({
@@ -21,7 +63,12 @@ export function createTokenWithClientId(payload: Record<string, unknown>) {
     });
 }
 
-function sendApiRequest(path: string, method: 'GET' | 'POST', responseType: ResponseType) {
+function sendApiRequest(
+  method: 'GET' | 'POST',
+  path: string,
+  body: option.Option<RequestBody>,
+  responseType: ResponseType,
+) {
   return (token: string) =>
     taskEither.tryCatch(
       () =>
@@ -29,39 +76,32 @@ function sendApiRequest(path: string, method: 'GET' | 'POST', responseType: Resp
           method,
           headers: {
             Authorization: `Bearer ${token}`,
+            ...pipe(body, option.fold(constEmpty, toHeaders)),
           },
+          body: pipe(body, option.fold(constUndefined, toBody)),
           responseType,
         }),
       fromError,
     );
 }
 
-type Payload<C extends 'json' | 'bytes'> = {
-  json: json.Json;
-  bytes: Iterable<number> | ArrayLike<number> | ArrayBuffer;
-}[C];
-function sendApiRequestPayload<C extends 'json' | 'bytes'>(
+function sendApiRequestPayload(
   path: string,
   method: 'GET' | 'POST',
-  bodyContentType: C,
+  body: option.Option<RequestBody>,
 ) {
-  return (payload: Payload<C>) =>
-    taskEither.tryCatch(
-      () =>
-        fetch(new URL(path, config.CX_API_URL).href, {
-          method,
-          body: Body[bodyContentType](payload as $Unexpressable),
-          responseType: ResponseType.JSON,
-          headers:
-            bodyContentType === 'json'
-              ? undefined
-              : {
-                  'Content-Type': 'application/octet-stream',
-                  'Content-Encoding': 'br',
-                },
-        }),
-      fromError,
-    );
+  return taskEither.tryCatch(
+    () =>
+      fetch(new URL(path, config.CX_API_URL).href, {
+        method,
+        headers: {
+          ...pipe(body, option.fold(constEmpty, toHeaders)),
+        },
+        body: pipe(body, option.fold(constUndefined, toBody)),
+        responseType: ResponseType.JSON,
+      }),
+    fromError,
+  );
 }
 
 const ErrorResponseC = iots.strict({
@@ -104,42 +144,69 @@ export const createToken = (payload: Record<string, unknown>) =>
     taskEither.chain(createTokenWithClientId(payload)),
   );
 
-export const createSignedAPIRequest = <P>({
-  payload,
+export function createSignedAPIRequest<R>(options: {
+  method: 'GET';
+  path: string;
+  jwtPayload: Record<string, unknown>;
+  responseType?: ResponseType;
+  codec: iots.Decoder<unknown, R>;
+}): taskEither.TaskEither<Exception, R>;
+export function createSignedAPIRequest<R>(options: {
+  method: 'POST';
+  path: string;
+  jwtPayload: Record<string, unknown>;
+  body?: RequestBody;
+  responseType?: ResponseType;
+  codec: iots.Decoder<unknown, R>;
+}): taskEither.TaskEither<Exception, R>;
+export function createSignedAPIRequest<R>({
   method,
   path,
-  codec,
+  jwtPayload,
+  body,
   responseType = ResponseType.JSON,
+  codec,
 }: {
-  payload: Record<string, unknown>;
   method: 'GET' | 'POST';
   path: string;
-  codec: iots.Decoder<unknown, P>;
+  jwtPayload: Record<string, unknown>;
+  body?: RequestBody;
   responseType?: ResponseType;
-}): taskEither.TaskEither<Exception, P> =>
-  pipe(
-    createToken(payload),
-    taskEither.chain(sendApiRequest(path, method, responseType)),
+  codec: iots.Decoder<unknown, R>;
+}): taskEither.TaskEither<Exception, R> {
+  return pipe(
+    createToken(jwtPayload),
+    taskEither.chain(sendApiRequest(method, path, option.fromNullable(body), responseType)),
     taskEither.chainEitherK(parseResponse),
     taskEither.chainEitherK(decodeResponse(codec)),
   );
+}
 
-export const createAPIRequest = <P extends 'json' | 'bytes', R>({
-  payloadType,
-  payload,
-  method,
-  path,
-  codec,
-}: {
-  payloadType: P;
-  payload: Payload<P>;
-  method: 'GET' | 'POST';
+export function createAPIRequest<R>(options: {
+  method: 'GET';
   path: string;
   codec: iots.Decoder<unknown, R>;
-}): taskEither.TaskEither<Exception, R> =>
-  pipe(
-    payload,
-    sendApiRequestPayload(path, method, payloadType),
+}): taskEither.TaskEither<Exception, R>;
+export function createAPIRequest<R>(options: {
+  method: 'POST';
+  path: string;
+  body?: RequestBody;
+  codec: iots.Decoder<unknown, R>;
+}): taskEither.TaskEither<Exception, R>;
+export function createAPIRequest<R>({
+  method,
+  path,
+  body,
+  codec,
+}: {
+  method: 'GET' | 'POST';
+  path: string;
+  body?: RequestBody;
+  codec: iots.Decoder<unknown, R>;
+}): taskEither.TaskEither<Exception, R> {
+  return pipe(
+    sendApiRequestPayload(path, method, option.fromNullable(body)),
     taskEither.chainEitherK(parseResponse),
     taskEither.chainEitherK(decodeResponse(codec)),
   );
+}

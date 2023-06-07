@@ -2,7 +2,7 @@ import { getName, getVersion } from '@tauri-apps/api/app';
 import { api } from 'api';
 import { iots, option, pipe, task, taskEither } from '@code-expert/prelude';
 import { ClientId } from '@/domain/ClientId';
-import { createAPIRequest } from '@/domain/createAPIRequest';
+import { createAPIRequest, requestBody } from '@/domain/createAPIRequest';
 import { notificationT } from '@/ui/helper/notifications';
 import { getClientToken } from './getClientToken';
 
@@ -24,19 +24,18 @@ export const registerApp = async () => {
       pipe(
         getClientToken,
         taskEither.chain((token) => {
-          const requestBody = {
+          const body = requestBody.json({
             os,
             permissions: ['user:read', 'project:read', 'project:write'],
             token,
             name,
             version,
-          };
+          });
           return pipe(
             createAPIRequest({
-              path: 'app/register',
               method: 'POST',
-              payloadType: 'json',
-              payload: requestBody,
+              path: 'app/register',
+              body,
               codec: iots.strict({ clientId: iots.string }),
             }),
             taskEither.chainFirstTaskK(({ clientId }) => api.settingWrite('clientId', clientId)),

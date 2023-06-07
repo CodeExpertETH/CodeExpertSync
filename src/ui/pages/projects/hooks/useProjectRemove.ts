@@ -36,7 +36,7 @@ export const useProjectRemove = (onProjectRemove: () => void) => {
         createSignedAPIRequest({
           path: 'app/projectAccess/remove',
           method: 'POST',
-          payload: { projectId },
+          jwtPayload: { projectId },
           codec: iots.strict({ removed: iots.boolean }),
         }),
         taskEither.chainW(() => deleteLocalProject(projectRepository)(projectId)),

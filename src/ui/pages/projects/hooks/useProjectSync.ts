@@ -31,7 +31,7 @@ import {
 import { LocalProject, Project, ProjectId, projectADT, projectPrism } from '@/domain/Project';
 import { ProjectMetadata } from '@/domain/ProjectMetadata';
 import { changesADT, syncStateADT } from '@/domain/SyncState';
-import { createAPIRequest, createSignedAPIRequest } from '@/domain/createAPIRequest';
+import { createSignedAPIRequest, requestBody } from '@/domain/createAPIRequest';
 import { Exception, invariantViolated } from '@/domain/exception';
 import { fs as libFs, path as libPath } from '@/lib/tauri';
 import { useGlobalContext } from '@/ui/GlobalContext';
@@ -60,7 +60,7 @@ function writeSingeFile({
         createSignedAPIRequest({
           path: `project/${projectId}/file`,
           method: 'GET',
-          payload: { path: projectFilePath },
+          jwtPayload: { path: projectFilePath },
           codec: iots.string,
           responseType: ResponseType.Text,
         }),
@@ -266,7 +266,7 @@ const getProjectInfoRemote = (projectId: ProjectId) =>
   createSignedAPIRequest({
     path: `project/${projectId}/info`,
     method: 'GET',
-    payload: {},
+    jwtPayload: {},
     codec: iots.strict({
       _id: ProjectId,
       files: iots.array(RemoteFileInfoC),
@@ -435,13 +435,19 @@ export const uploadChangedFiles = (
     localChanges,
     array.map(({ path }) => path),
     (files) => api.buildTar(fileName, projectDir, files),
-    taskEither.chain(() => libFs.readBinaryFile(fileName)),
-    taskEither.chain((payload) =>
-      createAPIRequest({
-        path: `project/${projectId}/files`,
+    taskEither.chain(() =>
+      taskEither.sequenceT(libFs.readBinaryFile(fileName), api.getFileHash(fileName)),
+    ),
+    taskEither.chain(([body, tarHash]) =>
+      createSignedAPIRequest({
         method: 'POST',
-        payloadType: 'bytes',
-        payload,
+        path: `project/${projectId}/files`,
+        jwtPayload: { tarHash },
+        body: requestBody.binary({
+          body,
+          type: 'application/x-tar',
+          encoding: option.some('br'),
+        }),
         codec: iots.strict({
           _id: ProjectId,
           files: iots.array(RemoteFileInfoC),

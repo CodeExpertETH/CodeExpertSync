@@ -20,7 +20,7 @@ export function Developer() {
       createSignedAPIRequest({
         path: 'app/checkAccess',
         method: 'GET',
-        payload: {},
+        jwtPayload: {},
         codec: iots.strict({ status: iots.string }),
       }),
       taskEither.fold(
