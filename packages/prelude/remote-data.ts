@@ -51,4 +51,6 @@ export const filterOrPending: {
 
 export const sequenceS = Ap.sequenceS(RD.remoteData);
 
+export const sequenceT = Ap.sequenceT(RD.remoteData);
+
 export const of = RD.success;
