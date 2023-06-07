@@ -39,24 +39,27 @@ const StyledButton = styled(Button, ({ tokens }) => ({
 
 export interface ActionButtonProps extends Omit<ButtonProps, 'icon' | 'shape' | 'title' | 'type'> {
   label: string;
-  icon: IconName;
+  icon: IconName | React.ReactElement;
   state?: 'default' | 'hover' | 'active';
   type?: 'default' | 'primary';
 }
 
 export const ActionButton = React.forwardRef<HTMLButtonElement, ActionButtonProps>(
-  ({ label, icon, state = 'default', type = 'default', ...buttonProps }, ref) => (
-    <StyledButton
-      key={label}
-      {...buttonProps}
-      ref={ref}
-      className={`is-${state} type-${type}`}
-      shape={'circle'}
-      type="text"
-      title={label}
-      aria-label={label}
-      icon={<Icon name={icon} />}
-    />
-  ),
+  ({ label, icon, state = 'default', type = 'default', ...buttonProps }, ref) => {
+    const iconElement = React.isValidElement(icon) ? icon : <Icon name={icon} />;
+    return (
+      <StyledButton
+        key={label}
+        {...buttonProps}
+        ref={ref}
+        className={`is-${state} type-${type}`}
+        shape={'circle'}
+        type="text"
+        title={label}
+        aria-label={label}
+        icon={iconElement}
+      />
+    );
+  },
 );
 ActionButton.displayName = 'ActionButton';

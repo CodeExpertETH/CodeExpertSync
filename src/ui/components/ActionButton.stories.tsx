@@ -1,5 +1,6 @@
 import { Story } from '@storybook/react';
 import React from 'react';
+import { Icon } from '@/ui/foundation/Icons';
 import { ActionButton, ActionButtonProps } from './ActionButton';
 
 export default {
@@ -24,3 +25,6 @@ Active.args = { state: 'active' };
 
 export const Primary = Template.bind({});
 Primary.args = { type: 'primary' };
+
+export const CustomIcon = Template.bind({});
+CustomIcon.args = { icon: <Icon name={'question-circle'} /> };
