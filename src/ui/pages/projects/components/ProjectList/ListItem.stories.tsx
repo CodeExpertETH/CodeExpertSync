@@ -2,11 +2,15 @@ import { Meta, StoryObj } from '@storybook/react';
 import { List } from 'antd';
 import React from 'react';
 import { either, flow, taskEither } from '@code-expert/prelude';
-import { localProject, openProject, syncProject } from '@/ui/components/ProjectList/testData';
+import {
+  localProject,
+  openProject,
+  syncProject,
+} from '@/ui/pages/projects/components/ProjectList/testData';
 import { ListItem } from './ListItem';
 
 const meta = {
-  title: 'components/ProjectList/ListItem',
+  title: 'pages/projects/ProjectList/ListItem',
   component: ListItem,
   args: {
     project: localProject,

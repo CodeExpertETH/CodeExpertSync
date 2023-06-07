@@ -5,11 +5,11 @@ import {
   openProject,
   remoteProject,
   syncProject,
-} from '@/ui/components/ProjectList/testData';
+} from '@/ui/pages/projects/components/ProjectList/testData';
 import { List } from './List';
 
 const meta = {
-  title: 'components/ProjectList/List',
+  title: 'pages/projects/ProjectList/List',
   component: List,
   args: {
     exerciseName: 'Exercise 8: Two-Dimensional vectors, Characters, Recursion',

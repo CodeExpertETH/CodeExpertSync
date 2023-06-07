@@ -4,11 +4,11 @@ import { constNull, remoteData, taskEither } from '@code-expert/prelude';
 import { Project, ProjectId } from '@/domain/Project';
 import { ActionMenu } from '@/ui/components/ActionMenu';
 import { GuardRemoteEitherData } from '@/ui/components/GuardRemoteData';
-import { fromProject } from '@/ui/components/ProjectList/model/SyncButtonState';
 import { useTimeContext } from '@/ui/contexts/TimeContext';
 import { HStack, VStack } from '@/ui/foundation/Layout';
 import { styled } from '@/ui/foundation/Theme';
 import { useRemoteDataEither } from '@/ui/hooks/useRemoteData';
+import { fromProject } from '@/ui/pages/projects/components/ProjectList/model/SyncButtonState';
 import { SyncButton } from './SyncButton';
 
 const StyledListItem = styled(List.Item, () => ({

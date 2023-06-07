@@ -1,10 +1,10 @@
 import { Meta, StoryObj } from '@storybook/react';
 import React from 'react';
-import { syncButtonStateADT } from '@/ui/components/ProjectList/model/SyncButtonState';
+import { syncButtonStateADT } from '@/ui/pages/projects/components/ProjectList/model/SyncButtonState';
 import { SyncButton } from './SyncButton';
 
 const meta = {
-  title: 'components/ProjectList/SyncButton',
+  title: 'pages/projects/ProjectList/SyncButton',
   component: SyncButton,
   args: {
     now: () => new Date(),

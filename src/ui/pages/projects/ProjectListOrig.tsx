@@ -14,7 +14,10 @@ import { useProjectOpen } from './hooks/useProjectOpen';
 import { useProjectRemove } from './hooks/useProjectRemove';
 import { useProjectSync } from './hooks/useProjectSync';
 
-export const ProjectList = (props: { projects: Array<Project>; updateProjects: () => void }) => {
+export const ProjectListOrig = (props: {
+  projects: Array<Project>;
+  updateProjects: () => void;
+}) => {
   const [{ projectRepository }, dispatch] = useGlobalContextWithActions();
 
   const updateState = () => {

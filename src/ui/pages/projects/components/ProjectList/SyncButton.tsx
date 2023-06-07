@@ -1,13 +1,13 @@
 import React from 'react';
 import { io } from '@code-expert/prelude';
 import { ActionButton } from '@/ui/components/ActionButton';
-import {
-  SyncButtonState,
-  syncButtonStateADT,
-} from '@/ui/components/ProjectList/model/SyncButtonState';
 import { Icon } from '@/ui/foundation/Icons';
 import { keyframes, styled, useTheme } from '@/ui/foundation/Theme';
 import useTimeout from '@/ui/hooks/useTimeout';
+import {
+  SyncButtonState,
+  syncButtonStateADT,
+} from '@/ui/pages/projects/components/ProjectList/model/SyncButtonState';
 
 const RotatingIcon = styled(Icon, () => ({
   animationName: keyframes({ to: { rotate: '360deg' } }),
