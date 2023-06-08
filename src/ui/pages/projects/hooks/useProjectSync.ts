@@ -31,7 +31,7 @@ import {
 import { LocalProject, Project, ProjectId, projectADT, projectPrism } from '@/domain/Project';
 import { ProjectMetadata } from '@/domain/ProjectMetadata';
 import { changesADT, syncStateADT } from '@/domain/SyncState';
-import { createSignedAPIRequest } from '@/domain/createAPIRequest';
+import { createAPIRequest, createSignedAPIRequest } from '@/domain/createAPIRequest';
 import { Exception, invariantViolated } from '@/domain/exception';
 import { fs as libFs, path as libPath } from '@/lib/tauri';
 import { useGlobalContext } from '@/ui/GlobalContext';
@@ -425,15 +425,29 @@ const getFilesToUpload = (local: Array<LocalFileChange>, remote: Array<RemoteFil
     taskEither.map(array.unsafeFromReadonly),
   );
 
-const uploadChangedFiles = (
+export const uploadChangedFiles = (
   fileName: string,
+  projectId: ProjectId,
   projectDir: string,
   localChanges: Array<LocalFileChange>,
-): taskEither.TaskEither<Exception, void> =>
+): taskEither.TaskEither<Exception, unknown> =>
   pipe(
     localChanges,
     array.map(({ path }) => path),
     (files) => api.buildTar(fileName, projectDir, files),
+    taskEither.chain(() => libFs.readBinaryFile(fileName)),
+    taskEither.chain((payload) =>
+      createAPIRequest({
+        path: `project/${projectId}/files`,
+        method: 'POST',
+        payloadType: 'bytes',
+        payload,
+        codec: iots.strict({
+          _id: ProjectId,
+          files: iots.array(RemoteFileInfoC),
+        }),
+      }),
+    ),
   );
 
 export const useProjectSync = () => {
@@ -516,6 +530,7 @@ export const useProjectSync = () => {
               (filesToUpload) =>
                 uploadChangedFiles(
                   `project_${project.value.projectId}_${time.now().getTime()}.tar.br`,
+                  project.value.projectId,
                   projectDir,
                   filesToUpload,
                 ),

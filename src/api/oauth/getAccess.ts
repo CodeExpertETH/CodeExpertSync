@@ -18,6 +18,7 @@ export const getAccess = (
 
   return createAPIRequest({
     path: 'app/oauth/gainAccess',
+    payloadType: 'json',
     payload: requestBody,
     method: 'POST',
     codec: responseCodec,

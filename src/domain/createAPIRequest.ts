@@ -1,6 +1,7 @@
+import { $Unexpressable } from '@code-expert/type-utils';
 import { Body, Response, ResponseType, fetch } from '@tauri-apps/api/http';
 import { api } from 'api';
-import { either, flow, iots, pipe, taskEither } from '@code-expert/prelude';
+import { either, flow, iots, json, pipe, taskEither } from '@code-expert/prelude';
 import { config } from '@/config';
 import { ClientId } from './ClientId';
 import {
@@ -35,14 +36,29 @@ function sendApiRequest(path: string, method: 'GET' | 'POST', responseType: Resp
     );
 }
 
-function sendApiRequestPayload(path: string, method: 'GET' | 'POST') {
-  return (payload: Record<string, unknown>) =>
+type Payload<C extends 'json' | 'bytes'> = {
+  json: json.Json;
+  bytes: Iterable<number> | ArrayLike<number> | ArrayBuffer;
+}[C];
+function sendApiRequestPayload<C extends 'json' | 'bytes'>(
+  path: string,
+  method: 'GET' | 'POST',
+  bodyContentType: C,
+) {
+  return (payload: Payload<C>) =>
     taskEither.tryCatch(
       () =>
         fetch(new URL(path, config.CX_API_URL).href, {
           method,
-          body: Body.json(payload),
+          body: Body[bodyContentType](payload as $Unexpressable),
           responseType: ResponseType.JSON,
+          headers:
+            bodyContentType === 'json'
+              ? undefined
+              : {
+                  'Content-Type': 'application/octet-stream',
+                  'Content-Encoding': 'br',
+                },
         }),
       fromError,
     );
@@ -108,20 +124,22 @@ export const createSignedAPIRequest = <P>({
     taskEither.chainEitherK(decodeResponse(codec)),
   );
 
-export const createAPIRequest = <P>({
+export const createAPIRequest = <P extends 'json' | 'bytes', R>({
+  payloadType,
   payload,
   method,
   path,
   codec,
 }: {
-  payload: Record<string, unknown>;
+  payloadType: P;
+  payload: Payload<P>;
   method: 'GET' | 'POST';
   path: string;
-  codec: iots.Decoder<unknown, P>;
-}): taskEither.TaskEither<Error, P> =>
+  codec: iots.Decoder<unknown, R>;
+}): taskEither.TaskEither<Exception, R> =>
   pipe(
     payload,
-    sendApiRequestPayload(path, method),
+    sendApiRequestPayload(path, method, payloadType),
     taskEither.chainEitherK(parseResponse),
     taskEither.chainEitherK(decodeResponse(codec)),
   );

@@ -34,6 +34,7 @@ export interface Api {
   createProjectDir(filePath: string): taskEither.TaskEither<Exception, void>;
   exists(path: string): task.Task<boolean>;
   logout(): taskOption.TaskOption<void>;
+  getSystemInfo: taskOption.TaskOption<string>;
 }
 
 export const api: Api = {
@@ -78,4 +79,5 @@ export const api: Api = {
   createProjectDir: (path) =>
     taskEither.tryCatch(() => invoke('create_project_dir', { path }), fromError),
   logout: () => api.settingWrite('accessToken', null),
+  getSystemInfo: () => invoke('system_info'),
 };

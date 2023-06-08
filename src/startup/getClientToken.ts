@@ -5,6 +5,7 @@ export const getClientToken = pipe(
   createAPIRequest({
     path: 'app/clientId',
     method: 'GET',
+    payloadType: 'json',
     payload: {},
     codec: iots.strict({ token: iots.string }),
   }),
