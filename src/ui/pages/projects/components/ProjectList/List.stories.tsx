@@ -23,3 +23,9 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default = {} satisfies Story;
+
+export const Empty = {
+  args: {
+    projects: [],
+  },
+} satisfies Story;

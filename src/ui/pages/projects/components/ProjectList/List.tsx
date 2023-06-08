@@ -15,7 +15,7 @@ const StyledCard = styled(Card, ({ tokens }) => ({
 
 export interface ListProps {
   exerciseName: string;
-  projects: NonEmptyArray<Project>;
+  projects: Array<Project>;
   onOpen(id: ProjectId): taskEither.TaskEither<string, void>;
   onSync(id: ProjectId): taskEither.TaskEither<string, void>;
 }
@@ -28,6 +28,9 @@ export const List = ({ exerciseName, projects, onOpen, onSync }: ListProps) => (
         size="small"
         dataSource={projects}
         renderItem={(project) => <ListItem project={project} onOpen={onOpen} onSync={onSync} />}
+        locale={{
+          emptyText: 'No projects',
+        }}
       />
     </StyledCard>
   </VStack>
