@@ -41,8 +41,8 @@ export const api: Api = {
   create_keys: () => taskEither.tryCatch(() => invoke('create_keys', {}), fromError),
   create_jwt_tokens: (claims) =>
     taskEither.tryCatch(() => invoke('create_jwt_token', { claims }), fromError),
-  buildTar: (file_name, root_dir, files) =>
-    taskEither.tryCatch(() => invoke('build_tar', { file_name, root_dir, files }), fromError),
+  buildTar: (fileName, rootDir, files) =>
+    taskEither.tryCatch(() => invoke('build_tar', { fileName, rootDir, files }), fromError),
   settingRead: (key, decoder) =>
     pipe(
       taskOption.tryCatch(() => store.get(key)),

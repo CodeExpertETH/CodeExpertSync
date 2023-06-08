@@ -10,12 +10,16 @@ import {
   record,
   semigroup,
   separated,
+  task,
+  taskOption,
 } from 'fp-ts';
+// import { Alt } from 'fp-ts/Alt';
+// import { Applicative } from 'fp-ts/Applicative';
+// import { HKT } from 'fp-ts/HKT';
 import { Kind, Kind2, URIS, URIS2 } from 'fp-ts/HKT';
 import { NonEmptyArray } from 'fp-ts/NonEmptyArray';
 import { Refinement } from 'fp-ts/Refinement';
 import { flow, tuple } from 'fp-ts/function';
-
 import * as option from './option';
 
 export * from 'fp-ts/Array';
@@ -103,3 +107,83 @@ export const min = <A>(o: ord.Ord<A>): ((a: Array<A>) => option.Option<A>) =>
   flow(nonEmptyArray.fromArray, option.map(nonEmptyArray.min(o)));
 
 export const unsafeFromReadonly = <A>(as: ReadonlyArray<A>) => as as Array<A>;
+
+export const unfoldTaskK =
+  <A, B>(b: B, f: (b: B) => taskOption.TaskOption<readonly [A, B]>): task.Task<Array<A>> =>
+  async () => {
+    const out: Array<A> = [];
+    let bb: B = b;
+
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const mt = await f(bb)();
+      if (option.isSome(mt)) {
+        const [a, b] = mt.value;
+        out.push(a);
+        bb = b;
+      } else {
+        break;
+      }
+    }
+
+    return out;
+  };
+
+// const stopUnfold = Symbol();
+// type StopUnfold = typeof stopUnfold;
+// export const unfoldFromAlt =
+//   <F extends URIS>(A: Alt<F> & Applicative<F>) =>
+//   <A, B>(b: B, f: (b: B) => HKT<F, [A, B]>) => {
+//     // const out: Array<A> = [];
+//     // let bb: B = b;
+//     //
+//     // const accumulator = (aa: StopUnfold | readonly [A, B]) => {
+//     //   if (aa === stopUnfold) {
+//     //     stop = true;
+//     //   } else {
+//     //     const [a] = aa;
+//     //     out.push(a);
+//     //   }
+//     //   return accumulator;
+//     // };
+//     //
+//     // const recur = flow();
+//     //
+//     // return pipe(A.of(accumulator), (x) =>
+//     //   A.ap(
+//     //     x,
+//     //     A.alt<StopUnfold | readonly [A, B]>(f(b), () => A.of(stopUnfold)),
+//     //   ),
+//     // );
+//
+//     const out: Array<A> = [];
+//     let bb: B = b;
+//
+//     const fab1 = f(b);
+//     const fabstop1 = A.alt(fab1, () => A.of<StopUnfold | [A, B]>(stopUnfold));
+//     return A.ap(
+//       A.of((abstop: StopUnfold | [A, B]) => {
+//         if (abstop === stopUnfold) {
+//           return [];
+//         } else {
+//           const [a1, b2] = abstop;
+//           const fab2 = f(b2);
+//           const fabstop2 = A.alt(fab2, () => A.of<StopUnfold | [A, B]>(stopUnfold));
+//           return A.ap(
+//             A.of((abstop: StopUnfold | [A, B]) => {
+//               if (abstop === stopUnfold) {
+//                 return [a1];
+//               } else {
+//                 const [a2, b3] = abstop;
+//                 const fab3 = f(b3);
+//                 const fabstop3 = A.alt(fab3, () => A.of<StopUnfold | [A, B]>(stopUnfold));
+//                 return A.ap(/* etc. */);
+//               }
+//             }),
+//             fabstop2,
+//           );
+//         }
+//       }),
+//       fabstop1,
+//     );
+//   };
