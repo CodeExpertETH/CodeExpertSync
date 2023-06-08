@@ -5,6 +5,7 @@ import { either, flow, taskEither } from '@code-expert/prelude';
 import {
   localProject,
   openProject,
+  removeProject,
   syncProject,
 } from '@/ui/pages/projects/components/ProjectList/testData';
 import { ListItem } from './ListItem';
@@ -16,6 +17,7 @@ const meta = {
     project: localProject,
     onOpen: openProject,
     onSync: syncProject,
+    onRemove: removeProject,
   },
   render: (props) => (
     <List size="small">

@@ -4,6 +4,7 @@ import {
   localProject,
   openProject,
   remoteProject,
+  removeProject,
   syncProject,
 } from '@/ui/pages/projects/components/ProjectList/testData';
 import { List } from './List';
@@ -16,6 +17,7 @@ const meta = {
     projects: nonEmptyArray.cons(localProject, [remoteProject, localProject]),
     onOpen: openProject,
     onSync: syncProject,
+    onRemove: removeProject,
   },
 } satisfies Meta<typeof List>;
 

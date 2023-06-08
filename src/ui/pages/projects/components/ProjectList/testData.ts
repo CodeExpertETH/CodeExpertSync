@@ -30,3 +30,6 @@ export const openProject: (id: ProjectId) => taskEither.TaskEither<string, void>
 
 export const syncProject: (id: ProjectId) => taskEither.TaskEither<string, void> = () =>
   task.delay(DELAY)(taskEither.fromIO(constVoid));
+
+export const removeProject: (id: ProjectId) => task.Task<void> = () =>
+  task.delay(DELAY)(task.of(undefined));

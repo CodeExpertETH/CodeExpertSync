@@ -1,6 +1,6 @@
 import { List as AntList, Card, Typography } from 'antd';
 import React from 'react';
-import { taskEither } from '@code-expert/prelude';
+import { task, taskEither } from '@code-expert/prelude';
 import { Project, ProjectId } from '@/domain/Project';
 import { VStack } from '@/ui/foundation/Layout';
 import { styled } from '@/ui/foundation/Theme';
@@ -18,16 +18,19 @@ export interface ListProps {
   projects: Array<Project>;
   onOpen(id: ProjectId): taskEither.TaskEither<string, void>;
   onSync(id: ProjectId): taskEither.TaskEither<string, void>;
+  onRemove(id: ProjectId): task.Task<void>;
 }
 
-export const List = ({ exerciseName, projects, onOpen, onSync }: ListProps) => (
+export const List = ({ exerciseName, projects, onOpen, onSync, onRemove }: ListProps) => (
   <VStack gap={'xs'}>
     <Typography.Text strong>{exerciseName}</Typography.Text>
     <StyledCard size="small">
       <AntList
         size="small"
         dataSource={projects}
-        renderItem={(project) => <ListItem project={project} onOpen={onOpen} onSync={onSync} />}
+        renderItem={(project) => (
+          <ListItem project={project} onOpen={onOpen} onSync={onSync} onRemove={onRemove} />
+        )}
         locale={{
           emptyText: 'No projects',
         }}

@@ -1,14 +1,21 @@
 import { api } from 'api';
 import React from 'react';
-import { iots, pipe, task, taskEither, taskOption } from '@code-expert/prelude';
+import {
+  constVoid,
+  either,
+  flow,
+  iots,
+  pipe,
+  task,
+  taskEither,
+  taskOption,
+} from '@code-expert/prelude';
 import { ProjectId, projectPrism } from '@/domain/Project';
 import { ProjectRepository } from '@/domain/ProjectRepository';
 import { createSignedAPIRequest } from '@/domain/createAPIRequest';
-import { Exception } from '@/domain/exception';
+import { Exception, fromError } from '@/domain/exception';
 import { path } from '@/lib/tauri';
 import { useGlobalContext } from '@/ui/GlobalContext';
-import { messageT } from '@/ui/helper/message';
-import { notificationT } from '@/ui/helper/notifications';
 
 export const deleteLocalProject =
   (projectRepository: ProjectRepository) =>
@@ -27,12 +34,12 @@ export const deleteLocalProject =
       taskOption.fold(() => taskEither.right(undefined), api.removeDir),
     );
 
-export const useProjectRemove = (onProjectRemove: () => void) => {
+export const useProjectRemove = () => {
   const { projectRepository } = useGlobalContext();
 
   return React.useCallback(
-    (projectId: ProjectId, projectName: string) => {
-      void pipe(
+    (projectId: ProjectId) =>
+      pipe(
         createSignedAPIRequest({
           path: 'app/projectAccess/remove',
           method: 'POST',
@@ -40,13 +47,8 @@ export const useProjectRemove = (onProjectRemove: () => void) => {
           codec: iots.strict({ removed: iots.boolean }),
         }),
         taskEither.chainW(() => deleteLocalProject(projectRepository)(projectId)),
-        taskEither.map(onProjectRemove),
-        taskEither.fold(notificationT.error, () =>
-          messageT.success(`The project ${projectName} was removed successfully.`),
-        ),
-        task.run,
-      );
-    },
-    [projectRepository, onProjectRemove],
+        task.map(flow(either.getOrThrow(fromError), constVoid)),
+      ),
+    [projectRepository],
   );
 };

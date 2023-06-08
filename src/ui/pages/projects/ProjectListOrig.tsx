@@ -31,9 +31,7 @@ export const ProjectListOrig = (props: {
   };
 
   const [loading, setLoading] = React.useState(false);
-  const removeProject = useProjectRemove(() => {
-    props.updateProjects();
-  });
+  const removeProject = useProjectRemove();
   const openProject = useProjectOpen();
   const syncProjectM = useProjectSync();
 
@@ -140,7 +138,7 @@ export const ProjectListOrig = (props: {
                         key: 'remove',
                         icon: <Icon name="trash" />,
                         onClick: () => {
-                          removeProject(project.value.projectId, project.value.projectName);
+                          void removeProject(project.value.projectId)();
                         },
                       },
                     ],
