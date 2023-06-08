@@ -10,7 +10,7 @@ import { routes, useGlobalContextWithActions } from '@/ui/GlobalContext';
 import { VStack } from '@/ui/foundation/Layout';
 import { messageT } from '@/ui/helper/message';
 import { notificationT } from '@/ui/helper/notifications';
-import { deleteLocalProject } from './projects/hooks/useProjectRemove';
+import { deleteLocalProject } from '../projects/hooks/useProjectRemove';
 
 export function Developer() {
   const [{ projectRepository }, dispatchContext] = useGlobalContextWithActions();

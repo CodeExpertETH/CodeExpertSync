@@ -1,11 +1,11 @@
 import React from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { globalSetupState } from '@/domain/Setup';
-import { Setup } from '@/ui/pages/Setup';
+import { Setup } from '@/ui/pages/setup';
 import { routes, useGlobalContextWithActions } from './GlobalContext';
-import { Developer } from './pages/Developer';
-import { Logout } from './pages/Logout';
 import { MainWrapper } from './pages/Main';
+import { Developer } from './pages/developer';
+import { Logout } from './pages/logout';
 import { Settings } from './pages/settings/Settings';
 
 function Routes() {
