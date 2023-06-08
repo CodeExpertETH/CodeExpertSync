@@ -435,10 +435,9 @@ export const uploadChangedFiles = (
     localChanges,
     array.map(({ path }) => path),
     (files) => api.buildTar(fileName, projectDir, files),
-    taskEither.chain(() =>
-      taskEither.sequenceT(libFs.readBinaryFile(fileName), api.getFileHash(fileName)),
-    ),
-    taskEither.chain(([body, tarHash]) =>
+    taskEither.bindTo('tarHash'),
+    taskEither.bind('body', () => libFs.readBinaryFile(fileName)),
+    taskEither.chain(({ body, tarHash }) =>
       createSignedAPIRequest({
         method: 'POST',
         path: `project/${projectId}/files`,
