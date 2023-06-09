@@ -1,6 +1,6 @@
 import { iots } from '@code-expert/prelude';
 import { ClientId } from '@/domain/ClientId';
-import { createAPIRequest } from '@/domain/createAPIRequest';
+import { createAPIRequest, requestBody } from '@/domain/createAPIRequest';
 
 const responseCodec = iots.null;
 export const getAccess = (
@@ -9,17 +9,17 @@ export const getAccess = (
   authToken: string,
   pubKey: string,
 ) => {
-  const requestBody = {
+  const body = requestBody.json({
     clientId,
     authToken,
     code_verifier,
     pubKey,
-  };
+  });
 
   return createAPIRequest({
-    path: 'app/oauth/gainAccess',
-    payload: requestBody,
     method: 'POST',
+    path: 'app/oauth/gainAccess',
+    body,
     codec: responseCodec,
   });
 };

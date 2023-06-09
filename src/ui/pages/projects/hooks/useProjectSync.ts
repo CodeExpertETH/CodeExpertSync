@@ -3,6 +3,10 @@ import { api } from 'api';
 import React from 'react';
 import {
   array,
+  boolean,
+  constFalse,
+  constTrue,
+  either,
   eq,
   flow,
   iots,
@@ -12,14 +16,22 @@ import {
   pipe,
   string,
   tagged,
+  task,
   taskEither,
+  taskOption,
   tree,
 } from '@code-expert/prelude';
-import { FileEntryType, FileEntryTypeC, FilePermissions, FilePermissionsC } from '@/domain/File';
+import {
+  FileEntryType,
+  FileEntryTypeC,
+  File as FileInfo,
+  FilePermissions,
+  FilePermissionsC,
+} from '@/domain/File';
 import { LocalProject, Project, ProjectId, projectADT, projectPrism } from '@/domain/Project';
 import { ProjectMetadata } from '@/domain/ProjectMetadata';
 import { changesADT, syncStateADT } from '@/domain/SyncState';
-import { createSignedAPIRequest } from '@/domain/createAPIRequest';
+import { createSignedAPIRequest, requestBody } from '@/domain/createAPIRequest';
 import { Exception, invariantViolated } from '@/domain/exception';
 import { fs as libFs, path as libPath } from '@/lib/tauri';
 import { useGlobalContext } from '@/ui/GlobalContext';
@@ -48,7 +60,7 @@ function writeSingeFile({
         createSignedAPIRequest({
           path: `project/${projectId}/file`,
           method: 'GET',
-          payload: { path: projectFilePath },
+          jwtPayload: { path: projectFilePath },
           codec: iots.string,
           responseType: ResponseType.Text,
         }),
@@ -199,7 +211,7 @@ const getRemoteChanges = (
 };
 
 const getLocalChanges = (
-  previous: Array<LocalFileState>,
+  previous: Array<FileInfo>,
   latest: Array<LocalFileState>,
 ): option.Option<NonEmptyArray<LocalFileChange>> => {
   const previousFiles = pipe(
@@ -222,14 +234,19 @@ const getLocalChanges = (
   );
   const updated: Array<LocalFileChange> = pipe(
     previousFiles,
-    array.filter((ls) =>
+    array.bindTo('previous'),
+    array.bind('latest', ({ previous }) =>
       pipe(
         latestFiles,
-        array.findFirst((cs) => cs.path === ls.path),
-        option.exists((cs) => cs.hash !== ls.hash),
+        array.findFirst((latest) => eqPath.equals(previous, latest)),
+        option.fold(() => [], array.of),
       ),
     ),
-    array.map(({ path }) => ({ path, change: localFileChange.updated() })),
+    array.filter(({ latest, previous }) => latest.hash !== previous.hash),
+    array.map(({ latest: { path } }) => ({
+      path,
+      change: localFileChange.updated(),
+    })),
   );
   return pipe(
     [removed, added, updated],
@@ -238,21 +255,21 @@ const getLocalChanges = (
   );
 };
 
+const RemoteFileInfoC = iots.strict({
+  path: iots.string,
+  version: iots.number,
+  type: FileEntryTypeC,
+  permissions: FilePermissionsC,
+});
+type RemoteFileInfo = iots.TypeOf<typeof RemoteFileInfoC>;
 const getProjectInfoRemote = (projectId: ProjectId) =>
   createSignedAPIRequest({
     path: `project/${projectId}/info`,
     method: 'GET',
-    payload: {},
+    jwtPayload: {},
     codec: iots.strict({
       _id: ProjectId,
-      files: iots.array(
-        iots.strict({
-          path: iots.string,
-          version: iots.number,
-          type: FileEntryTypeC,
-          permissions: FilePermissionsC,
-        }),
-      ),
+      files: iots.array(RemoteFileInfoC),
     }),
   });
 
@@ -262,6 +279,180 @@ const getProjectDirRelative = ({ semester, courseName, exerciseName, taskName }:
     libPath.escape(courseName),
     libPath.escape(exerciseName),
     libPath.escape(taskName),
+  );
+
+const findClosest =
+  <A>(map: (path: string) => option.Option<A>) =>
+  (relPath: string): taskEither.TaskEither<Exception, A> =>
+    pipe(
+      map(relPath),
+      option.fold(
+        () =>
+          relPath === '.'
+            ? taskEither.left(invariantViolated('Root directory must exist'))
+            : pipe(libPath.dirname(relPath), taskEither.chain(findClosest(map))),
+        taskEither.of,
+      ),
+    );
+
+const checkClosestExistingAncestorIsWritable =
+  (remote: Array<RemoteFileInfo>) =>
+  (c: LocalFileChange): taskEither.TaskEither<Exception, LocalFileChange> =>
+    pipe(
+      c.path,
+      findClosest((path) =>
+        pipe(
+          remote,
+          array.findFirst((i) => i.path === path),
+          option.map((i) => i.permissions === 'rw'),
+        ),
+      ),
+      taskEither.chainW(
+        boolean.fold(
+          () => taskEither.left(invariantViolated('Parent directory is read-only')),
+          () => taskEither.of(c),
+        ),
+      ),
+    );
+
+const fileNameRegex = /^[\w\- ]{0,80}\.\w{1,5}$/;
+const dirNameRegex = /^[\w\- ]{1,80}$/;
+
+const isValidFileName = (name: string) => fileNameRegex.test(name);
+const isValidDirName = (name: string) => dirNameRegex.test(name);
+
+const checkValidFileName = (c: LocalFileChange) =>
+  pipe(
+    libPath.basename(c.path),
+    taskEither.filterOrElseW(isValidFileName, () => invariantViolated('Invalid file name')),
+  );
+
+const checkEveryNewAncestorIsValidDirName =
+  (remote: Array<RemoteFileInfo>) =>
+  (change: LocalFileChange): taskEither.TaskEither<Exception, LocalFileChange> => {
+    const ancestors = (path: string): task.Task<Array<either.Either<Exception, string>>> =>
+      array.unfoldTaskK(
+        either.of<Exception, string>(path),
+        flow(
+          // if the previous call produced an error, do not continue
+          taskOption.fromEither<string>,
+          // tauri.path.dirname is silly and returns an error if passing '.' or '/', so we need to abort before that
+          taskOption.filter((path) => path !== '.'),
+          taskOption.chain(
+            flow(
+              libPath.dirname,
+              task.map((x) => option.of([x, x])),
+            ),
+          ),
+        ),
+      );
+
+    const isExisting = (path: string) => remote.some((i) => i.path === path);
+    const isNew = (path: string) => !isExisting(path);
+    return pipe(
+      ancestors(change.path),
+      task.map(either.sequenceArray),
+      taskEither.chain(
+        flow(
+          array.filter(isNew),
+          array.traverse(taskEither.ApplicativePar)(libPath.basename),
+          taskEither.filterOrElse(
+            array.every(isValidDirName),
+            (): Exception => invariantViolated('Parent directory has invalid name'),
+          ),
+        ),
+      ),
+      taskEither.map(() => change),
+    );
+  };
+
+const isFileWritable =
+  (remote: Array<RemoteFileInfo>) =>
+  (c: LocalFileChange): boolean =>
+    pipe(
+      remote,
+      array.findFirst((i) => i.path === c.path),
+      option.fold(constFalse, (i) => i.permissions === 'rw'),
+    );
+
+// TODO: filter localChanges that are in conflict with remoteChanges
+/**
+ * Pre-conditions:
+ * - filter conflicting changes
+ *
+ * The LocalFileChange gets computed by comparing local file system state with previously synced remote state. If a file
+ * gets categorized as 'updated', but the file has been 'removed' on the remote, we would be unable to determine it's
+ * permissions.
+ */
+const getFilesToUpload = (local: Array<LocalFileChange>, remote: Array<RemoteFileInfo>) =>
+  pipe(
+    local,
+    array.filter((c) =>
+      localFileChange.fold(c.change, {
+        noChange: constFalse,
+        added: constTrue,
+        removed: constTrue,
+        updated: constTrue,
+      }),
+    ),
+    taskEither.traverseArray((x) =>
+      pipe(
+        x,
+        localFileChange.fold<
+          (c: LocalFileChange) => taskEither.TaskEither<Exception, LocalFileChange>
+        >(x.change, {
+          noChange: () => () => taskEither.left(invariantViolated('File has no changes')),
+          added: () =>
+            flow(
+              checkClosestExistingAncestorIsWritable(remote),
+              taskEither.chain(checkEveryNewAncestorIsValidDirName(remote)),
+              taskEither.chainFirst(checkValidFileName),
+            ),
+          removed: () =>
+            flow(
+              taskEither.fromPredicate(isFileWritable(remote), () =>
+                invariantViolated('File is read-only'),
+              ),
+              taskEither.chain(checkClosestExistingAncestorIsWritable(remote)),
+            ),
+          updated: () =>
+            taskEither.fromPredicate(isFileWritable(remote), () =>
+              invariantViolated('File is read-only'),
+            ),
+        }),
+      ),
+    ),
+    taskEither.map(array.unsafeFromReadonly),
+  );
+
+export const uploadChangedFiles = (
+  fileName: string,
+  projectId: ProjectId,
+  projectDir: string,
+  localChanges: Array<LocalFileChange>,
+): taskEither.TaskEither<Exception, unknown> =>
+  pipe(
+    localChanges,
+    array.map(({ path }) => path),
+    (files) => api.buildTar(fileName, projectDir, files),
+    taskEither.bindTo('tarHash'),
+    taskEither.bind('body', () => libFs.readBinaryFile(fileName)),
+    taskEither.chain(({ body, tarHash }) =>
+      createSignedAPIRequest({
+        method: 'POST',
+        path: `project/${projectId}/files`,
+        jwtPayload: { tarHash },
+        body: requestBody.binary({
+          body,
+          type: 'application/x-tar',
+          encoding: option.some('br'),
+        }),
+        codec: iots.strict({
+          _id: ProjectId,
+          files: iots.array(RemoteFileInfoC),
+        }),
+      }),
+    ),
   );
 
 export const useProjectSync = () => {
@@ -326,25 +517,58 @@ export const useProjectSync = () => {
 
         // syncing
         // -> up
-        // TODO
+        taskEither.map((x) => (console.log(x), x)), // fixme: remove
+        taskEither.bind('filesToUpload', ({ localChanges, projectInfoRemote }) =>
+          pipe(
+            localChanges,
+            option.traverse(taskEither.ApplicativePar)((changes) =>
+              getFilesToUpload(changes, projectInfoRemote.files),
+            ),
+          ),
+        ),
+        taskEither.map((x) => (console.log(x), x)), // fixme: remove
+        taskEither.chainFirst(({ projectDir, filesToUpload }) =>
+          pipe(
+            filesToUpload,
+            option.fold(
+              () => taskEither.of(undefined),
+              (filesToUpload) =>
+                uploadChangedFiles(
+                  `project_${project.value.projectId}_${time.now().getTime()}.tar.br`,
+                  project.value.projectId,
+                  projectDir,
+                  filesToUpload,
+                ),
+            ),
+          ),
+        ),
         // -> down
         taskEither.chainFirst(({ projectDir }) => api.createProjectDir(projectDir)),
-        taskEither.bind('updatedProjectInfo', ({ projectInfoRemote, projectDir }) =>
-          pipe(
-            projectInfoRemote.files,
-            array.filter((f) => f.type === 'file'),
-            taskEither.traverseSeqArray(({ path, permissions, type, version }) =>
-              writeSingeFile({
-                projectFilePath: path,
-                projectId: project.value.projectId,
-                projectDir,
-                type,
-                version,
-                permissions,
-              }),
+        taskEither.bind(
+          'updatedProjectInfo',
+          ({ projectInfoPrevious, projectInfoRemote, projectDir }) =>
+            pipe(
+              projectInfoPrevious,
+              option.fold(
+                () =>
+                  pipe(
+                    projectInfoRemote.files,
+                    array.filter((f) => f.type === 'file'),
+                    taskEither.traverseSeqArray(({ path, permissions, type, version }) =>
+                      writeSingeFile({
+                        projectFilePath: path,
+                        projectId: project.value.projectId,
+                        projectDir,
+                        type,
+                        version,
+                        permissions,
+                      }),
+                    ),
+                    taskEither.map(array.unsafeFromReadonly),
+                  ),
+                taskEither.of,
+              ),
             ),
-            taskEither.map(array.unsafeFromReadonly),
-          ),
         ),
 
         // store new state

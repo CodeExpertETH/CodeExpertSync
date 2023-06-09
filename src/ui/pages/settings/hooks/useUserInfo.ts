@@ -8,7 +8,7 @@ import { useRaceState } from '@/ui/hooks/useRaceState';
 const getUserInfo = () =>
   createSignedAPIRequest({
     path: 'user/info',
-    payload: {},
+    jwtPayload: {},
     method: 'GET',
     codec: UserInfoC,
   });

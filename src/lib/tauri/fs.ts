@@ -4,6 +4,8 @@ import { FileEntryType } from '@/domain/File';
 import { fromError } from '@/domain/exception';
 
 export const readDir = taskEither.tryCatchK(fs.readDir, fromError);
+export const readBinaryFile = taskEither.tryCatchK(fs.readBinaryFile, fromError);
+export const readTextFile = taskEither.tryCatchK(fs.readTextFile, fromError);
 export const removeFile = taskEither.tryCatchK(fs.removeFile, fromError);
 
 export const readDirTree = (dir: string) =>

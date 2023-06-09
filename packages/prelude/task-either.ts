@@ -1,3 +1,4 @@
+import { $Unexpressable } from '@code-expert/type-utils';
 import { either, io } from 'fp-ts';
 import * as Ap from 'fp-ts/Apply';
 import * as Ei from 'fp-ts/Either';
@@ -5,11 +6,11 @@ import * as RA from 'fp-ts/ReadonlyArray';
 import * as TE from 'fp-ts/TaskEither';
 import { TaskEither } from 'fp-ts/TaskEither';
 import { FunctionN, constFalse, flow, identity, pipe } from 'fp-ts/function';
-
 import * as eitherT from './eithert';
 import * as functor from './functor';
 import * as task from './task';
 
+// eslint-disable-next-line import/export
 export * from 'fp-ts/TaskEither';
 
 export const sequenceS = Ap.sequenceS(TE.ApplyPar);
@@ -84,3 +85,11 @@ export const isRight: <E, A>(fa: TE.TaskEither<E, A>) => Promise<boolean> = task
 export const toVoid: <E, A>(fa: TE.TaskEither<E, A>) => TE.TaskEither<E, void> = functor.toVoid(
   TE.Functor,
 );
+
+/**
+ * This re-export is necessary to remove the `readonly` modifier from the resulting Either<E, Array<A>>
+ */
+// eslint-disable-next-line import/export
+export const traverseArray: <A, B, E>(
+  f: (a: A) => TE.TaskEither<E, B>,
+) => (as: readonly A[]) => TE.TaskEither<E, B[]> = TE.traverseArray as $Unexpressable;

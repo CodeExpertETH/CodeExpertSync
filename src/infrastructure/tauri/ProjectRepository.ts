@@ -74,7 +74,7 @@ export const mkProjectRepositoryTauri = (): task.Task<ProjectRepository> => {
           createSignedAPIRequest({
             path: 'project/metadata',
             method: 'GET',
-            payload: {},
+            jwtPayload: {},
             codec: iots.array(ProjectMetadata),
           }),
           taskEither.chainFirstTaskK(persistMetadata),

@@ -1,3 +1,4 @@
+import { $Unexpressable } from '@code-expert/type-utils';
 import * as apply from 'fp-ts/Apply';
 import * as either from 'fp-ts/Either';
 import { NonEmptyArray, getSemigroup } from 'fp-ts/NonEmptyArray';
@@ -5,6 +6,7 @@ import * as predicate from 'fp-ts/Predicate';
 import * as refinement from 'fp-ts/Refinement';
 import { Lazy, constUndefined, flow, identity, pipe } from 'fp-ts/function';
 
+// eslint-disable-next-line import/export
 export * from 'fp-ts/Either';
 
 export const getOrThrow =
@@ -95,3 +97,19 @@ export const toUndefined: <E, A>(_: either.Either<E, A>) => A | undefined = eith
   constUndefined,
   identity,
 );
+
+/**
+ * This re-export is necessary to remove the `readonly` modifier from the resulting Either<E, Array<A>>
+ */
+// eslint-disable-next-line import/export
+export const traverseArray: <A, B, E>(
+  f: (a: A) => either.Either<E, B>,
+) => (as: readonly A[]) => either.Either<E, Array<B>> = either.traverseArray as $Unexpressable;
+
+/**
+ * This re-export is necessary to remove the `readonly` modifier from the resulting Either<E, Array<A>>
+ */
+// eslint-disable-next-line import/export
+export const sequenceArray: <E, A>(
+  as: readonly either.Either<E, A>[],
+) => either.Either<E, Array<A>> = either.sequenceArray as $Unexpressable;

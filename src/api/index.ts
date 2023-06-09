@@ -21,6 +21,11 @@ export interface Api {
   getVersion(): taskEither.TaskEither<Exception, string>;
   create_keys(): taskEither.TaskEither<Exception, string>;
   create_jwt_tokens(claims: Record<string, unknown>): taskEither.TaskEither<Exception, string>;
+  buildTar(
+    fileName: string,
+    rootDir: string,
+    files: Array<string>,
+  ): taskEither.TaskEither<Exception, void>;
   settingRead<T>(key: string, decoder: iots.Decoder<unknown, T>): taskOption.TaskOption<T>;
   settingWrite(key: string, value: unknown): taskOption.TaskOption<void>;
   writeFile(filePath: string, content: string): taskEither.TaskEither<Exception, void>;
@@ -29,6 +34,7 @@ export interface Api {
   createProjectDir(filePath: string): taskEither.TaskEither<Exception, void>;
   exists(path: string): task.Task<boolean>;
   logout(): taskOption.TaskOption<void>;
+  getSystemInfo: taskOption.TaskOption<string>;
 }
 
 export const api: Api = {
@@ -36,6 +42,8 @@ export const api: Api = {
   create_keys: () => taskEither.tryCatch(() => invoke('create_keys', {}), fromError),
   create_jwt_tokens: (claims) =>
     taskEither.tryCatch(() => invoke('create_jwt_token', { claims }), fromError),
+  buildTar: (fileName, rootDir, files) =>
+    taskEither.tryCatch(() => invoke('build_tar', { fileName, rootDir, files }), fromError),
   settingRead: (key, decoder) =>
     pipe(
       taskOption.tryCatch(() => store.get(key)),
@@ -71,4 +79,5 @@ export const api: Api = {
   createProjectDir: (path) =>
     taskEither.tryCatch(() => invoke('create_project_dir', { path }), fromError),
   logout: () => api.settingWrite('accessToken', null),
+  getSystemInfo: () => invoke('system_info'),
 };

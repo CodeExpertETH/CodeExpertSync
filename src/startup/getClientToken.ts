@@ -3,9 +3,8 @@ import { createAPIRequest } from '@/domain/createAPIRequest';
 
 export const getClientToken = pipe(
   createAPIRequest({
-    path: 'app/clientId',
     method: 'GET',
-    payload: {},
+    path: 'app/clientId',
     codec: iots.strict({ token: iots.string }),
   }),
   taskEither.map(({ token }) => token),
