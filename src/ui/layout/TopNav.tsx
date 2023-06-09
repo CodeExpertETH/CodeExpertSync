@@ -1,19 +1,22 @@
 import { Menu } from 'antd';
 import React from 'react';
 import codeExpertLogo from '@/assets/logo_invert.png';
+import { ClientId } from '@/domain/ClientId';
 import { globalSetupState } from '@/domain/Setup';
-import { routes, useGlobalContextWithActions } from '@/ui/GlobalContext';
+import { useGlobalContextWithActions } from '@/ui/GlobalContext';
 import { Icon } from '@/ui/foundation/Icons';
 import { HStack } from '@/ui/foundation/Layout';
+import { routes, useRoute } from '@/ui/routes';
 
-export const TopNav = () => {
-  const [{ setupState }, dispatch] = useGlobalContextWithActions();
+export const TopNav = ({ clientId }: { clientId: ClientId }) => {
+  const [{ setupState }] = useGlobalContextWithActions();
+  const { navigateTo } = useRoute();
 
   const onClick = ({ key }: { key: string }) => {
     if (key === 'settings') {
-      dispatch({ currentPage: routes.settings() });
+      navigateTo(routes.settings(clientId));
     } else if (key === 'logout') {
-      dispatch({ currentPage: routes.logout() });
+      navigateTo(routes.logout(clientId));
     }
   };
 
@@ -24,7 +27,7 @@ export const TopNav = () => {
         height="40"
         alt="Code Expert"
         aria-hidden="true"
-        onClick={() => dispatch({ currentPage: routes.main() })}
+        onClick={() => navigateTo(routes.main(clientId))}
       />
       <Menu
         theme="dark"

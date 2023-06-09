@@ -1,5 +1,6 @@
 import { Layout } from 'antd';
 import React from 'react';
+import { ClientId } from '@/domain/ClientId';
 import { styled } from '@/ui/foundation/Theme';
 import { TopNav } from './TopNav';
 
@@ -15,10 +16,13 @@ const StyledContent = styled(Layout.Content, () => ({
   overflow: 'auto',
 }));
 
-export const AppLayout = ({ children }: React.PropsWithChildren) => (
+export const AppLayout = ({
+  children,
+  clientId,
+}: React.PropsWithChildren<{ clientId: ClientId }>) => (
   <StyledLayout>
     <StyledLayoutHeader>
-      <TopNav />
+      <TopNav clientId={clientId} />
     </StyledLayoutHeader>
     <StyledContent>{children}</StyledContent>
   </StyledLayout>

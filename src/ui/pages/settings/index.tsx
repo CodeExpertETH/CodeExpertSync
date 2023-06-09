@@ -4,14 +4,15 @@ import { Form, message } from 'antd';
 import { api } from 'api';
 import React from 'react';
 import { iots, remoteData, task } from '@code-expert/prelude';
+import { ClientId } from '@/domain/ClientId';
 import { UserInfo } from '@/domain/UserInfo';
-import { routes, useGlobalContextWithActions } from '@/ui/GlobalContext';
 import { EditableCard } from '@/ui/components/EditableCard';
 import { GuardRemoteData } from '@/ui/components/GuardRemoteData';
 import { styled } from '@/ui/foundation/Theme';
 import { useSettingsFallback } from '@/ui/hooks/useSettings';
 import Version from '@/ui/pages/settings/Version';
 import { useUserInfo } from '@/ui/pages/settings/hooks/useUserInfo';
+import { routes, useRoute } from '@/ui/routes';
 
 const Container = styled('div', () => ({
   marginTop: '1rem',
@@ -25,8 +26,16 @@ const SettingsDiv = styled('div', ({ tokens }) => ({
   padding: tokens.padding,
 }));
 
-function SettingsInner({ projectDir, userInfo }: { projectDir: string; userInfo: UserInfo }) {
-  const [, dispatch] = useGlobalContextWithActions();
+function SettingsInner({
+  clientId,
+  projectDir,
+  userInfo,
+}: {
+  clientId: ClientId;
+  projectDir: string;
+  userInfo: UserInfo;
+}) {
+  const { navigateTo } = useRoute();
   const [form] = Form.useForm();
 
   const selectDir = async () => {
@@ -43,7 +52,7 @@ function SettingsInner({ projectDir, userInfo }: { projectDir: string; userInfo:
   };
 
   const logout = () => {
-    dispatch({ currentPage: routes.logout() });
+    navigateTo(routes.logout(clientId));
   };
 
   //TODO think about if we want to implement this
@@ -104,7 +113,7 @@ function SettingsInner({ projectDir, userInfo }: { projectDir: string; userInfo:
   );
 }
 
-export function Settings() {
+export function Settings({ clientId }: { clientId: ClientId }) {
   const projectDirRD = useSettingsFallback('projectDir', iots.string, task.of(''), []);
   const userInfoRD = useUserInfo();
 
@@ -115,7 +124,7 @@ export function Settings() {
         userInfo: userInfoRD,
       })}
       render={({ projectDir, userInfo }) => (
-        <SettingsInner userInfo={userInfo} projectDir={projectDir} />
+        <SettingsInner clientId={clientId} userInfo={userInfo} projectDir={projectDir} />
       )}
     />
   );

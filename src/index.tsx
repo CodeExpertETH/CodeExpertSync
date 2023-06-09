@@ -1,6 +1,9 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { mkProjectRepositoryTauri } from '@/infrastructure/tauri/ProjectRepository';
+import { GlobalContextProvider } from '@/ui/GlobalContext';
+import { TimeContextProvider, timeContext } from '@/ui/contexts/TimeContext';
+import { RouteContextProvider } from '@/ui/routes';
 import { App } from './App';
 import './global.css';
 import './reset.css';
@@ -14,6 +17,12 @@ if (!container) {
 const root = createRoot(container);
 root.render(
   <React.StrictMode>
-    <App projectRepository={projectRepository} />
+    <GlobalContextProvider projectRepository={projectRepository}>
+      <RouteContextProvider>
+        <TimeContextProvider value={timeContext}>
+          <App />
+        </TimeContextProvider>
+      </RouteContextProvider>
+    </GlobalContextProvider>
   </React.StrictMode>,
 );

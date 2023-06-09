@@ -1,9 +1,13 @@
 import { Meta, StoryObj } from '@storybook/react';
 import React from 'react';
+import { ClientId } from '@/domain/ClientId';
 import { TopNav } from './TopNav';
 
 const meta = {
   component: TopNav,
+  args: {
+    clientId: 'client-1' as ClientId,
+  },
 } satisfies Meta<typeof TopNav>;
 
 export default meta;

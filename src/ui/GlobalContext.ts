@@ -1,33 +1,22 @@
 import { $Unexpressable } from '@code-expert/type-utils';
 import equal from 'fast-deep-equal';
 import React, { useEffect } from 'react';
-import { pipe, tagged, task } from '@code-expert/prelude';
+import { pipe, task } from '@code-expert/prelude';
 import { ProjectRepository } from '@/domain/ProjectRepository';
 import { GlobalSetupState, getSetupState } from '@/domain/Setup';
 import Loading from './components/Loading';
 
-export type Routes =
-  | tagged.Tagged<'main'>
-  | tagged.Tagged<'settings'>
-  | tagged.Tagged<'logout'>
-  | tagged.Tagged<'developer'>;
-
-export const routes = tagged.build<Routes>();
-
 export interface GlobalContext {
   readonly setupState: GlobalSetupState;
-  readonly currentPage: Routes;
   readonly projectRepository: ProjectRepository;
 }
 
 type MandatoryFields = keyof Pick<GlobalContext, 'setupState' | 'projectRepository'>;
 
-export function initialState({
-  currentPage = routes.main(),
-  ...defaults
-}: Pick<GlobalContext, MandatoryFields> &
-  Partial<Omit<GlobalContext, MandatoryFields>>): GlobalContext {
-  return { currentPage, ...defaults };
+export function initialState(
+  defaults: Pick<GlobalContext, MandatoryFields> & Partial<Omit<GlobalContext, MandatoryFields>>,
+): GlobalContext {
+  return defaults;
 }
 
 // -------------------------------------------------------------------------------------------------

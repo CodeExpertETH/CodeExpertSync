@@ -1,5 +1,6 @@
 import { Meta, StoryObj } from '@storybook/react';
 import React from 'react';
+import { ClientId } from '@/domain/ClientId';
 import { AppLayout } from './AppLayout';
 
 const meta = {
@@ -15,6 +16,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default = {
   args: {
+    clientId: 'client-1' as ClientId,
     children: (
       <div>
         <h1>Code Expert Desktop</h1>
