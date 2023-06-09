@@ -36,9 +36,9 @@ export const ProjectList = (props: { projects: Array<Project>; updateProjects: (
 
   const syncProject = (project: Project) => {
     void pipe(
-      task.fromIO(() => setLoading(true)),
-      task.chain(() => task.fromIO(() => new Date())),
-      task.chain((now) => syncProjectM(project, now)),
+      task.of(project),
+      task.chainFirstIOK(() => () => setLoading(true)),
+      task.chain(syncProjectM),
       taskEither.fold(
         (e) => notificationT.error(e),
         () =>
@@ -46,7 +46,7 @@ export const ProjectList = (props: { projects: Array<Project>; updateProjects: (
             `The project ${project.value.projectName} was synced successfully.`,
           ),
       ),
-      task.chainIOK(() => () => setLoading(false)),
+      task.chainFirstIOK(() => () => setLoading(false)),
       task.run,
     );
   };

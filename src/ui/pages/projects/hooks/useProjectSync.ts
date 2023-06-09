@@ -517,7 +517,6 @@ export const useProjectSync = () => {
 
         // syncing
         // -> up
-        taskEither.map((x) => (console.log(x), x)), // fixme: remove
         taskEither.bind('filesToUpload', ({ localChanges, projectInfoRemote }) =>
           pipe(
             localChanges,
@@ -526,7 +525,6 @@ export const useProjectSync = () => {
             ),
           ),
         ),
-        taskEither.map((x) => (console.log(x), x)), // fixme: remove
         taskEither.chainFirst(({ projectDir, filesToUpload }) =>
           pipe(
             filesToUpload,
