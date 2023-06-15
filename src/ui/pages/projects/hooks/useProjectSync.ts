@@ -460,8 +460,8 @@ export const useProjectSync = () => {
   const { projectRepository } = useGlobalContext();
 
   return React.useCallback(
-    (project: Project): taskEither.TaskEither<Exception, unknown> =>
-      pipe(
+    (project: Project): taskEither.TaskEither<Exception, unknown> => {
+      return pipe(
         taskEither.Do,
 
         // setup
@@ -485,7 +485,6 @@ export const useProjectSync = () => {
         taskEither.bind('projectDir', ({ rootDir, projectDirRelative }) =>
           libPath.join(rootDir, projectDirRelative),
         ),
-
         // change detection
         taskEither.let('projectInfoPrevious', () =>
           pipe(
@@ -525,7 +524,7 @@ export const useProjectSync = () => {
             ),
           ),
         ),
-        taskEither.chainFirst(({ projectDir, filesToUpload }) =>
+        taskEither.bind('uploadedFiles', ({ projectDir, filesToUpload }) =>
           pipe(
             filesToUpload,
             option.fold(
@@ -540,41 +539,77 @@ export const useProjectSync = () => {
             ),
           ),
         ),
-        // -> down
-        taskEither.chainFirst(({ projectDir }) => api.createProjectDir(projectDir)),
-        taskEither.bind(
-          'updatedProjectInfo',
-          ({ projectInfoPrevious, projectInfoRemote, projectDir }) =>
-            pipe(
-              projectInfoPrevious,
-              option.fold(
-                () =>
-                  pipe(
-                    projectInfoRemote.files,
-                    array.filter((f) => f.type === 'file'),
-                    taskEither.traverseSeqArray(({ path, permissions, type, version }) =>
-                      writeSingeFile({
+        // // next step download remote changed files
+        taskEither.bind('filesToDownload', ({ remoteChanges, projectInfoRemote, projectDir }) =>
+          pipe(
+            remoteChanges,
+            option.foldW(
+              () => taskEither.of(undefined),
+              (filesToDownload) =>
+                pipe(
+                  projectInfoRemote.files,
+                  array.filter(({ path }) =>
+                    pipe(
+                      filesToDownload,
+                      array.filter((c) =>
+                        remoteFileChange.fold(c.change, {
+                          noChange: constFalse,
+                          added: constTrue,
+                          removed: constFalse,
+                          updated: constTrue,
+                        }),
+                      ),
+                      array.exists((file) => file.path === path),
+                    ),
+                  ),
+                  array.traverse(taskEither.ApplicativeSeq)(
+                    ({ path, permissions, type, version }) => {
+                      console.log('write file', path);
+                      return writeSingeFile({
                         projectFilePath: path,
                         projectId: project.value.projectId,
                         projectDir,
                         type,
                         version,
                         permissions,
-                      }),
-                    ),
-                    taskEither.map(array.unsafeFromReadonly),
+                      });
+                    },
                   ),
-                taskEither.of,
+                ),
+            ),
+          ),
+        ),
+        //todo delete remote removed files
+
+        // update all project metadata
+        taskEither.bind('updatedProjectInfo', ({ projectDir }) => {
+          const hashF = addHash(projectDir);
+          return pipe(
+            getProjectInfoRemote(project.value.projectId),
+            taskEither.chain((projectInfoRemote) =>
+              pipe(
+                projectInfoRemote.files,
+                array.filter((f) => f.type === 'file'),
+                array.traverse(taskEither.ApplicativeSeq)((file) =>
+                  pipe(
+                    hashF({ path: file.path, type: 'file' }),
+                    taskEither.map(({ hash }) => ({ ...file, hash })),
+                  ),
+                ),
+                taskEither.map((files) => ({
+                  ...projectInfoRemote,
+                  files,
+                })),
               ),
             ),
-        ),
-
+          );
+        }),
         // store new state
-        taskEither.chainFirstTaskK(({ updatedProjectInfo, projectDirRelative }) =>
-          projectRepository.upsertOne(
+        taskEither.chainFirstTaskK(({ updatedProjectInfo, projectDirRelative }) => {
+          return projectRepository.upsertOne(
             projectADT.local({
               ...project.value,
-              files: updatedProjectInfo,
+              files: updatedProjectInfo.files,
               basePath: projectDirRelative,
               syncedAt: time.now(),
               syncState: projectADT.fold(project, {
@@ -582,9 +617,14 @@ export const useProjectSync = () => {
                 local: ({ syncState }) => syncState,
               }),
             }),
-          ),
-        ),
-      ),
+          );
+        }),
+        taskEither.map((d) => {
+          console.log(d);
+          return d;
+        }),
+      );
+    },
     [projectRepository, time],
   );
 };
