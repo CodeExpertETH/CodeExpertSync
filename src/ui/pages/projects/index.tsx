@@ -5,17 +5,18 @@ import { ClientId } from '@/domain/ClientId';
 import { useGlobalContext } from '@/ui/GlobalContext';
 import { CourseHeader } from '@/ui/components/CourseHeader';
 import { PageLayout } from '@/ui/layout/PageLayout';
+import { CourseItem, courseItemEq, fromProject } from '@/ui/pages/courses/components/model';
 import { ProjectList } from '@/ui/pages/projects/components/ProjectList';
 import { useProjectOpen } from '@/ui/pages/projects/hooks/useProjectOpen';
 import { useProjectRemove } from '@/ui/pages/projects/hooks/useProjectRemove';
 import { useProjectSync } from '@/ui/pages/projects/hooks/useProjectSync';
 import { useProjectEventUpdate } from './hooks/useProjectEventUpdate';
 
-export function Projects({ clientId, courseName }: { clientId: ClientId; courseName: string }) {
+export function Projects({ clientId, course }: { clientId: ClientId; course: CourseItem }) {
   const { projectRepository } = useGlobalContext();
   const projects = pipe(
     useProperty(projectRepository.projects),
-    array.filter((x) => x.value.courseName === courseName),
+    array.filter((project) => courseItemEq.equals(fromProject(project), course)),
   );
   const openProject = useProjectOpen();
   const syncProject = useProjectSync();
@@ -25,7 +26,7 @@ export function Projects({ clientId, courseName }: { clientId: ClientId; courseN
 
   return (
     <PageLayout>
-      <CourseHeader title={courseName} />
+      <CourseHeader title={course.name} />
       <ProjectList
         exerciseName={'All exercises'}
         projects={projects}

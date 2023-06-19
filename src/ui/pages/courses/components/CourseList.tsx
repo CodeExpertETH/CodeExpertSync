@@ -3,7 +3,7 @@ import React from 'react';
 import { nonEmptyArray, option, pipe } from '@code-expert/prelude';
 import { VStack } from '@/ui/foundation/Layout';
 import { styled } from '@/ui/foundation/Theme';
-import { CourseItem, coursesBySemester } from '@/ui/pages/courses/components/model';
+import { CourseItem, courseItemKey, coursesBySemester } from '@/ui/pages/courses/components/model';
 
 const StyledAntList = styled(AntList as typeof AntList<CourseItem>, ({ tokens }) => ({
   borderBlock: `1px solid ${tokens.colorSplit}`,
@@ -11,7 +11,7 @@ const StyledAntList = styled(AntList as typeof AntList<CourseItem>, ({ tokens })
 
 export interface CourseListProps {
   courses: Array<CourseItem>;
-  onOpen(courseName: string): void;
+  onOpen(course: CourseItem): void;
 }
 
 export const CourseList = ({ courses, onOpen }: CourseListProps) =>
@@ -21,11 +21,12 @@ export const CourseList = ({ courses, onOpen }: CourseListProps) =>
     option.map((groupedCourses) => (
       <VStack gap="lg">
         {groupedCourses.map(({ semester, courses: dataSource }) => (
-          <VStack gap="xs">
+          <VStack key={semester} gap="xs">
             <Typography.Text type="secondary">{semester}</Typography.Text>
             <StyledAntList
               size="small"
               dataSource={dataSource}
+              rowKey={courseItemKey}
               renderItem={(course) => <ListItem course={course} onOpen={onOpen} />}
             />
           </VStack>
@@ -64,12 +65,12 @@ const StyledButton = styled(Button, ({ tokens }) => ({
 
 interface ListItemProps {
   course: CourseItem;
-  onOpen(courseName: string): void;
+  onOpen(course: CourseItem): void;
 }
 
 const ListItem = ({ course, onOpen }: ListItemProps) => (
   <StyledAntListItem>
-    <StyledButton type={'link'} block onClick={() => onOpen(course.name)}>
+    <StyledButton type={'link'} block onClick={() => onOpen(course)}>
       {course.name}
     </StyledButton>
   </StyledAntListItem>

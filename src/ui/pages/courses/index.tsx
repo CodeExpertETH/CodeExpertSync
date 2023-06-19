@@ -6,7 +6,7 @@ import { useGlobalContext } from '@/ui/GlobalContext';
 import { styled } from '@/ui/foundation/Theme';
 import { PageLayout } from '@/ui/layout/PageLayout';
 import { CourseList } from '@/ui/pages/courses/components/CourseList';
-import { coursesFromProjects } from '@/ui/pages/courses/components/model';
+import { CourseItem, coursesFromProjects } from '@/ui/pages/courses/components/model';
 import { routes, useRoute } from '@/ui/routes';
 
 const StyledTitle = styled(Typography.Title, () => ({
@@ -21,8 +21,8 @@ export const Courses = ({ clientId }: { clientId: ClientId }) => {
   const courses = coursesFromProjects(projects);
 
   const onOpen = React.useCallback(
-    (courseName: string) => {
-      navigateTo(routes.projects({ clientId, courseName }));
+    (course: CourseItem) => {
+      navigateTo(routes.projects({ clientId, course }));
     },
     [clientId, navigateTo],
   );

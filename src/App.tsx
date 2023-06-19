@@ -73,9 +73,9 @@ export function App() {
                   <Courses clientId={clientId} />
                 </AppLayout>
               ),
-              projects: ({ clientId, courseName }) => (
+              projects: ({ clientId, course }) => (
                 <AppLayout clientId={clientId}>
-                  <Projects clientId={clientId} courseName={courseName} />
+                  <Projects clientId={clientId} course={course} />
                 </AppLayout>
               ),
               developer: (clientId) => (

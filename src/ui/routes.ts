@@ -2,11 +2,12 @@ import { $Unexpressable } from '@code-expert/type-utils';
 import React from 'react';
 import { tagged } from '@code-expert/prelude';
 import { ClientId } from '@/domain/ClientId';
+import { CourseItem } from '@/ui/pages/courses/components/model';
 
 export type Route =
   | tagged.Tagged<'startup'>
   | tagged.Tagged<'courses', ClientId>
-  | tagged.Tagged<'projects', { clientId: ClientId; courseName: string }>
+  | tagged.Tagged<'projects', { clientId: ClientId; course: CourseItem }>
   | tagged.Tagged<'settings', ClientId>
   | tagged.Tagged<'logout', ClientId>
   | tagged.Tagged<'developer', ClientId>;

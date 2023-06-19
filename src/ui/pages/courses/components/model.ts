@@ -1,4 +1,4 @@
-import { nonEmptyArray, option, ord, pipe, string } from '@code-expert/prelude';
+import { eq, fn, nonEmptyArray, option, ord, pipe, string } from '@code-expert/prelude';
 import { Project } from '@/domain/Project';
 import { ordSemesterIdAsc } from '@/domain/Semester';
 
@@ -12,6 +12,15 @@ interface CourseRow {
   courses: NonEmptyArray<CourseItem>;
 }
 
+export const courseItemEq = eq.struct<CourseItem>({ semester: string.Eq, name: string.Eq });
+
+export const fromProject = ({ value }: Project): CourseItem => ({
+  semester: value.semester,
+  name: value.courseName,
+});
+
+export const courseItemKey = (course: CourseItem) => `${course.semester}-${course.name}`;
+
 const courseItemSemesterOrd = ord.contramap(({ semester }: CourseItem) => semester)(
   ordSemesterIdAsc,
 );
@@ -21,16 +30,18 @@ const courseItemNameOrd = ord.contramap(({ name }: CourseItem) => name)(string.O
 export const coursesBySemester = (courses: NonEmptyArray<CourseItem>): NonEmptyArray<CourseRow> =>
   pipe(
     courses,
-    nonEmptyArray.sort(courseItemSemesterOrd),
-    (xs) => xs, // TypeScript selects the Array (instead of NEA) branch here without this circuit breaker ...
-    nonEmptyArray.group(courseItemSemesterOrd),
+    nonEmptyArray.groupSort(courseItemSemesterOrd),
     nonEmptyArray.map((xs) => ({
       semester: xs[0].semester,
       courses: pipe(xs, nonEmptyArray.sort(courseItemNameOrd)),
     })),
   );
 
-const projectCourseNameOrd = ord.contramap(({ value }: Project) => value.courseName)(string.Ord);
+const projectCourseNameOrd = ord.reverse(
+  ord.contramap(({ value }: Project) => fn.tuple(value.semester, value.courseName))(
+    ord.tuple(ordSemesterIdAsc, string.Ord),
+  ),
+);
 
 export const coursesFromProjects = (projects: Array<Project>): Array<CourseItem> =>
   pipe(
@@ -38,11 +49,8 @@ export const coursesFromProjects = (projects: Array<Project>): Array<CourseItem>
     option.map((nonEmptyProjects) =>
       pipe(
         nonEmptyProjects,
-        nonEmptyArray.group(projectCourseNameOrd),
-        nonEmptyArray.map((xs) => ({
-          semester: xs[0].value.semester,
-          name: xs[0].value.courseName,
-        })),
+        nonEmptyArray.groupSort(projectCourseNameOrd),
+        nonEmptyArray.map((xs) => fromProject(xs[0])),
       ),
     ),
     option.getOrElse<Array<CourseItem>>(() => []),

@@ -4,6 +4,10 @@
 export const testCourses = [
   {
     semester: 'SS21',
+    name: 'Anwendungsnahes Programmieren mit Python',
+  },
+  {
+    semester: 'SS21',
     name: 'GYM KKS',
   },
   {
