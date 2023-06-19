@@ -27,7 +27,7 @@ export const TopNav = ({ clientId }: { clientId: ClientId }) => {
         height="40"
         alt="Code Expert"
         aria-hidden="true"
-        onClick={() => navigateTo(routes.main(clientId))}
+        onClick={() => navigateTo(routes.projects(clientId))}
       />
       <Menu
         theme="dark"

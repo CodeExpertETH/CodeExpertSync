@@ -8,9 +8,9 @@ import { useGlobalContextWithActions } from '@/ui/GlobalContext';
 import useNetworkState from '@/ui/hooks/useNetwork';
 import { useRemoteData2 } from '@/ui/hooks/useRemoteData';
 import { AppLayout } from '@/ui/layout';
-import { Main } from '@/ui/pages/Main';
 import { Developer } from '@/ui/pages/developer';
 import { Logout } from '@/ui/pages/logout';
+import { Projects } from '@/ui/pages/projects';
 import { Settings } from '@/ui/pages/settings';
 import { Setup } from '@/ui/pages/setup';
 import { routes, useRoute } from '@/ui/routes';
@@ -32,7 +32,7 @@ export function App() {
     pipe(
       clientIdRD,
       remoteData.fold3(constVoid, constVoid, (clientId) => {
-        if (routes.is.startup(currentRoute)) navigateTo(routes.main(clientId));
+        if (routes.is.startup(currentRoute)) navigateTo(routes.projects(clientId));
       }),
     );
   }, [clientIdRD, currentRoute, navigateTo]);
@@ -67,9 +67,9 @@ export function App() {
                   <Logout clientId={clientId} />
                 </AppLayout>
               ),
-              main: (clientId) => (
+              projects: (clientId) => (
                 <AppLayout clientId={clientId}>
-                  <Main clientId={clientId} />
+                  <Projects clientId={clientId} />
                 </AppLayout>
               ),
               developer: (clientId) => (

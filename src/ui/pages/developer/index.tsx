@@ -67,7 +67,7 @@ export function Developer({ clientId }: { clientId: ClientId }) {
         dispatchContext({
           setupState: globalSetupState.setup({ state: setupState.notAuthorized() }),
         });
-        navigateTo(routes.main(clientId));
+        navigateTo(routes.projects(clientId));
         return undefined;
       }),
       task.run,
@@ -82,7 +82,7 @@ export function Developer({ clientId }: { clientId: ClientId }) {
       />
       <Button
         onClick={() => {
-          navigateTo(routes.main(clientId));
+          navigateTo(routes.projects(clientId));
         }}
         block
       >
