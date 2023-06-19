@@ -605,8 +605,7 @@ export const useProjectSync = () => {
             option.chain(({ local, previous }) => getLocalChanges(previous, local)),
           ),
         ),
-        // syncing
-        // -> up
+        // TODO handle conflicts
         taskEither.bind('filesToUpload', ({ localChanges, projectInfoRemote }) =>
           pipe(
             localChanges,
@@ -629,11 +628,8 @@ export const useProjectSync = () => {
             option.traverse(taskEither.ApplicativePar)((changes) => getFilesToDelete(changes)),
           ),
         ),
-        taskEither.map((e) => {
-          console.log(e);
-          return e;
-        }),
-        taskEither.bind('uploadedFiles', ({ projectDir, filesToUpload }) =>
+        // upload local changed files
+        taskEither.chainFirst(({ projectDir, filesToUpload }) =>
           pipe(
             filesToUpload,
             option.fold(
