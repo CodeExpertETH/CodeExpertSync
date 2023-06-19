@@ -8,7 +8,7 @@ export const api: Api = {
   getVersion: () => () => Promise.resolve(either.right('Version: Storybook')),
   create_keys: () => taskEither.of('FIXME secret-key'),
   create_jwt_tokens: () => taskEither.of('FIXME jwt-token'),
-  buildTar: () => taskEither.of(undefined),
+  buildTar: () => taskEither.of('FIXME hash'),
   settingRead: (key) => taskOption.fromIO(() => settingsStore.get(key)),
   settingWrite: (key, value) => () => {
     settingsStore.set(key, value);
