@@ -5,7 +5,8 @@ import { ClientId } from '@/domain/ClientId';
 
 export type Route =
   | tagged.Tagged<'startup'>
-  | tagged.Tagged<'projects', ClientId>
+  | tagged.Tagged<'courses', ClientId>
+  | tagged.Tagged<'projects', { clientId: ClientId; courseName: string }>
   | tagged.Tagged<'settings', ClientId>
   | tagged.Tagged<'logout', ClientId>
   | tagged.Tagged<'developer', ClientId>;

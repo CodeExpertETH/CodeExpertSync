@@ -35,7 +35,7 @@ interface Menu {
 
 export interface CourseHeaderProps {
   title: string;
-  url: string;
+  url?: string;
   menu?: Menu;
 }
 
@@ -43,9 +43,11 @@ export const CourseHeader = ({ title, url, menu }: CourseHeaderProps) => (
   <VStack>
     <HStack align={'baseline'} justify={'space-between'}>
       <StyledTitle level={4}>{title}</StyledTitle>
-      <StyledExternalLink href={url} title="Open in browser" target={'_blank'}>
-        <Icon name={'external-link-alt'} />
-      </StyledExternalLink>
+      {url != null && (
+        <StyledExternalLink href={url} title="Open in browser" target={'_blank'}>
+          <Icon name={'external-link-alt'} />
+        </StyledExternalLink>
+      )}
     </HStack>
     {menu != null && (
       <Dropdown menu={buildMenu(menu)} trigger={['click']}>

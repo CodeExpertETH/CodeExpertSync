@@ -8,6 +8,7 @@ import { useGlobalContextWithActions } from '@/ui/GlobalContext';
 import useNetworkState from '@/ui/hooks/useNetwork';
 import { useRemoteData2 } from '@/ui/hooks/useRemoteData';
 import { AppLayout } from '@/ui/layout';
+import { Courses } from '@/ui/pages/courses';
 import { Developer } from '@/ui/pages/developer';
 import { Logout } from '@/ui/pages/logout';
 import { Projects } from '@/ui/pages/projects';
@@ -32,7 +33,7 @@ export function App() {
     pipe(
       clientIdRD,
       remoteData.fold3(constVoid, constVoid, (clientId) => {
-        if (routes.is.startup(currentRoute)) navigateTo(routes.projects(clientId));
+        if (routes.is.startup(currentRoute)) navigateTo(routes.courses(clientId));
       }),
     );
   }, [clientIdRD, currentRoute, navigateTo]);
@@ -67,9 +68,14 @@ export function App() {
                   <Logout clientId={clientId} />
                 </AppLayout>
               ),
-              projects: (clientId) => (
+              courses: (clientId) => (
                 <AppLayout clientId={clientId}>
-                  <Projects clientId={clientId} />
+                  <Courses clientId={clientId} />
+                </AppLayout>
+              ),
+              projects: ({ clientId, courseName }) => (
+                <AppLayout clientId={clientId}>
+                  <Projects clientId={clientId} courseName={courseName} />
                 </AppLayout>
               ),
               developer: (clientId) => (

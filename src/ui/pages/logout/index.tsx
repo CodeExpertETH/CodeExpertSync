@@ -19,7 +19,7 @@ export function Logout({ clientId }: { clientId: ClientId }) {
         dispatch({
           setupState: globalSetupState.setup({ state: setupState.notAuthorized() }),
         });
-        navigateTo(routes.projects(clientId));
+        navigateTo(routes.courses(clientId));
       }),
       task.run,
     );
