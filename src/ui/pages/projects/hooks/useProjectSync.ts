@@ -522,7 +522,7 @@ export const uploadChangedFiles = (
     ),
     taskEither.bind('body', ({ uploadFiles, archivePath }) =>
       array.isEmpty(uploadFiles)
-        ? taskEither.of(Buffer.from(''))
+        ? taskEither.of(new Uint8Array())
         : libFs.readBinaryFile(archivePath),
     ),
     taskEither.chain(({ body, tarHash, removeFiles, uploadFiles }) =>
