@@ -25,7 +25,7 @@ export interface Api {
     fileName: string,
     rootDir: string,
     files: Array<string>,
-  ): taskEither.TaskEither<Exception, void>;
+  ): taskEither.TaskEither<Exception, string>;
   settingRead<T>(key: string, decoder: iots.Decoder<unknown, T>): taskOption.TaskOption<T>;
   settingWrite(key: string, value: unknown): taskOption.TaskOption<void>;
   writeFile(filePath: string, content: string): taskEither.TaskEither<Exception, void>;
