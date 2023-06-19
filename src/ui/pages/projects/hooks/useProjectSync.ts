@@ -439,7 +439,7 @@ const getFilesToUpload = (local: Array<LocalFileChange>, remote: Array<RemoteFil
 const getFilesToDownload = (
   remoteChanges: Array<RemoteFileChange>,
   projectInfoRemote: Array<RemoteFileInfo>,
-) =>
+): taskEither.TaskEither<Exception, Array<RemoteFileInfo>> =>
   pipe(
     projectInfoRemote,
     array.filter(({ path }) =>
@@ -459,7 +459,9 @@ const getFilesToDownload = (
     taskEither.of,
   );
 
-const getFilesToDelete = (remoteChanges: Array<RemoteFileChange>) =>
+const getFilesToDelete = (
+  remoteChanges: Array<RemoteFileChange>,
+): taskEither.TaskEither<Exception, Array<RemoteFileChange>> =>
   pipe(
     remoteChanges,
     array.filter((c) =>
