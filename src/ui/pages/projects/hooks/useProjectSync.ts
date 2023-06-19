@@ -34,6 +34,7 @@ import { changesADT, syncStateADT } from '@/domain/SyncState';
 import { createSignedAPIRequest, requestBody } from '@/domain/createAPIRequest';
 import { Exception, invariantViolated } from '@/domain/exception';
 import { fs as libFs, path as libPath } from '@/lib/tauri';
+import { removeFile } from '@/lib/tauri/fs';
 import { useGlobalContext } from '@/ui/GlobalContext';
 import { useTimeContext } from '@/ui/contexts/TimeContext';
 
@@ -76,6 +77,16 @@ function writeSingeFile({
       permissions,
     })),
   );
+}
+
+function deleteSingeFile({
+  projectFilePath,
+  projectDir,
+}: {
+  projectFilePath: string;
+  projectDir: string;
+}) {
+  return pipe(libPath.join(projectDir, projectFilePath), taskEither.chainFirst(removeFile));
 }
 
 const addHash =
@@ -187,6 +198,10 @@ const getRemoteChanges = (
     array.difference<RemoteFileState>(eqPath)(latestFiles),
     array.map(({ path }) => ({ path, change: remoteFileChange.removed() })),
   );
+
+  console.log('pFile', previousFiles);
+  console.log('lFile', latestFiles);
+
   const added: Array<RemoteFileChange> = pipe(
     latestFiles,
     array.difference<RemoteFileState>(eqPath)(previousFiles),
@@ -504,7 +519,11 @@ export const useProjectSync = () => {
         taskEither.let('remoteChanges', ({ projectInfoRemote, projectInfoPrevious }) =>
           pipe(
             projectInfoPrevious,
-            option.chain((previous) => getRemoteChanges(previous, projectInfoRemote.files)),
+            option.fold(
+              // the project has never been synced before
+              () => getRemoteChanges([], projectInfoRemote.files),
+              (previous) => getRemoteChanges(previous, projectInfoRemote.files),
+            ),
           ),
         ),
         taskEither.let('localChanges', ({ projectInfoLocal, projectInfoPrevious }) =>
@@ -513,7 +532,6 @@ export const useProjectSync = () => {
             option.chain(({ local, previous }) => getLocalChanges(previous, local)),
           ),
         ),
-
         // syncing
         // -> up
         taskEither.bind('filesToUpload', ({ localChanges, projectInfoRemote }) =>
@@ -539,8 +557,8 @@ export const useProjectSync = () => {
             ),
           ),
         ),
-        // // next step download remote changed files
-        taskEither.bind('filesToDownload', ({ remoteChanges, projectInfoRemote, projectDir }) =>
+        // download and write added and updated files
+        taskEither.chainFirst(({ remoteChanges, projectInfoRemote, projectDir }) =>
           pipe(
             remoteChanges,
             option.foldW(
@@ -563,24 +581,47 @@ export const useProjectSync = () => {
                     ),
                   ),
                   array.traverse(taskEither.ApplicativeSeq)(
-                    ({ path, permissions, type, version }) => {
-                      console.log('write file', path);
-                      return writeSingeFile({
+                    ({ path, permissions, type, version }) =>
+                      writeSingeFile({
                         projectFilePath: path,
                         projectId: project.value.projectId,
                         projectDir,
                         type,
                         version,
                         permissions,
-                      });
-                    },
+                      }),
                   ),
                 ),
             ),
           ),
         ),
-        //todo delete remote removed files
-
+        //delete remote removed files
+        taskEither.chainFirst(({ remoteChanges, projectDir }) =>
+          pipe(
+            remoteChanges,
+            option.foldW(
+              () => taskEither.of(undefined),
+              (filesToDownload) =>
+                pipe(
+                  filesToDownload,
+                  array.filter((c) =>
+                    remoteFileChange.fold(c.change, {
+                      noChange: constFalse,
+                      added: constFalse,
+                      removed: constTrue,
+                      updated: constFalse,
+                    }),
+                  ),
+                  array.traverse(taskEither.ApplicativeSeq)(({ path }) =>
+                    deleteSingeFile({
+                      projectFilePath: path,
+                      projectDir,
+                    }),
+                  ),
+                ),
+            ),
+          ),
+        ),
         // update all project metadata
         taskEither.bind('updatedProjectInfo', ({ projectDir }) => {
           const hashF = addHash(projectDir);
@@ -622,6 +663,11 @@ export const useProjectSync = () => {
         taskEither.map((d) => {
           console.log(d);
           return d;
+        }),
+        taskEither.mapLeft((e) => {
+          console.log('end error');
+          console.error(e);
+          return e;
         }),
       ),
     [projectRepository, time],
