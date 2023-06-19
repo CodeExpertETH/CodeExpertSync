@@ -14,7 +14,10 @@ import { useProjectOpen } from './hooks/useProjectOpen';
 import { useProjectRemove } from './hooks/useProjectRemove';
 import { useProjectSync } from './hooks/useProjectSync';
 
-export const ProjectList = (props: { projects: Array<Project>; updateProjects: () => void }) => {
+export const ProjectListOrig = (props: {
+  projects: Array<Project>;
+  updateProjects: () => void;
+}) => {
   const [{ projectRepository }, dispatch] = useGlobalContextWithActions();
 
   const updateState = () => {
@@ -28,9 +31,7 @@ export const ProjectList = (props: { projects: Array<Project>; updateProjects: (
   };
 
   const [loading, setLoading] = React.useState(false);
-  const removeProject = useProjectRemove(() => {
-    props.updateProjects();
-  });
+  const removeProject = useProjectRemove();
   const openProject = useProjectOpen();
   const syncProjectM = useProjectSync();
 
@@ -137,7 +138,7 @@ export const ProjectList = (props: { projects: Array<Project>; updateProjects: (
                         key: 'remove',
                         icon: <Icon name="trash" />,
                         onClick: () => {
-                          removeProject(project.value.projectId, project.value.projectName);
+                          void removeProject(project.value.projectId)();
                         },
                       },
                     ],
