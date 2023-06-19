@@ -33,7 +33,7 @@ import { ProjectMetadata } from '@/domain/ProjectMetadata';
 import { changesADT, syncStateADT } from '@/domain/SyncState';
 import { createSignedAPIRequest, requestBody } from '@/domain/createAPIRequest';
 import { Exception, invariantViolated } from '@/domain/exception';
-import { fs as libFs, path as libPath } from '@/lib/tauri';
+import { fs as libFs, os as libOs, path as libPath } from '@/lib/tauri';
 import { removeFile } from '@/lib/tauri/fs';
 import { useGlobalContext } from '@/ui/GlobalContext';
 import { useTimeContext } from '@/ui/contexts/TimeContext';
@@ -454,8 +454,18 @@ export const uploadChangedFiles = (
     ),
     array.traverse(taskEither.ApplicativePar)(({ path }) => taskEither.of(path)),
     taskEither.bindTo('uploadFiles'),
-    taskEither.bind('tarHash', ({ uploadFiles }) =>
-      api.buildTar(fileName, projectDir, uploadFiles),
+    taskEither.bind('archivePath', () =>
+      pipe(
+        libOs.tempDir(),
+        taskEither.chain((tempDir) => libPath.join(tempDir, fileName)),
+        taskEither.map((e) => {
+          console.log(e);
+          return e;
+        }),
+      ),
+    ),
+    taskEither.bind('tarHash', ({ uploadFiles, archivePath }) =>
+      api.buildTar(archivePath, projectDir, uploadFiles),
     ),
     taskEither.bindW('removeFiles', () =>
       pipe(
@@ -471,8 +481,10 @@ export const uploadChangedFiles = (
         array.traverse(taskEither.ApplicativePar)(({ path }) => taskEither.of(path)),
       ),
     ),
-    taskEither.bind('body', ({ uploadFiles }) =>
-      array.isEmpty(uploadFiles) ? taskEither.of(Buffer.from('')) : libFs.readBinaryFile(fileName),
+    taskEither.bind('body', ({ uploadFiles, archivePath }) =>
+      array.isEmpty(uploadFiles)
+        ? taskEither.of(Buffer.from(''))
+        : libFs.readBinaryFile(archivePath),
     ),
     taskEither.chain(({ body, tarHash, removeFiles, uploadFiles }) =>
       createSignedAPIRequest({
