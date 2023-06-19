@@ -460,8 +460,8 @@ export const useProjectSync = () => {
   const { projectRepository } = useGlobalContext();
 
   return React.useCallback(
-    (project: Project): taskEither.TaskEither<Exception, unknown> => {
-      return pipe(
+    (project: Project): taskEither.TaskEither<Exception, unknown> =>
+      pipe(
         taskEither.Do,
 
         // setup
@@ -605,8 +605,8 @@ export const useProjectSync = () => {
           );
         }),
         // store new state
-        taskEither.chainFirstTaskK(({ updatedProjectInfo, projectDirRelative }) => {
-          return projectRepository.upsertOne(
+        taskEither.chainFirstTaskK(({ updatedProjectInfo, projectDirRelative }) =>
+          projectRepository.upsertOne(
             projectADT.local({
               ...project.value,
               files: updatedProjectInfo.files,
@@ -617,14 +617,13 @@ export const useProjectSync = () => {
                 local: ({ syncState }) => syncState,
               }),
             }),
-          );
-        }),
+          ),
+        ),
         taskEither.map((d) => {
           console.log(d);
           return d;
         }),
-      );
-    },
+      ),
     [projectRepository, time],
   );
 };
