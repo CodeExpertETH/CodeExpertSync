@@ -5,6 +5,7 @@ import { changesADT, syncStateADT } from '../src/domain/SyncState';
 import { mkProjectRepositoryTesting } from '../src/infrastructure/testing/ProjectRepository';
 import { GlobalContextProvider } from '../src/ui/GlobalContext';
 import { TimeContextProvider } from '../src/ui/contexts/TimeContext';
+import { RouteContextProvider } from '../src/ui/routes';
 
 const projectRepository = await mkProjectRepositoryTesting([
   projectADT.local({
@@ -40,6 +41,7 @@ const preview: Preview = {
   decorators: [
     (Story) =>
       React.createElement(GlobalContextProvider, { projectRepository }, React.createElement(Story)),
+    (Story) => React.createElement(RouteContextProvider, {}, React.createElement(Story)),
     (Story) =>
       React.createElement(
         TimeContextProvider,
