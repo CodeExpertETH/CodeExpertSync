@@ -198,10 +198,6 @@ const getRemoteChanges = (
     array.difference<RemoteFileState>(eqPath)(latestFiles),
     array.map(({ path }) => ({ path, change: remoteFileChange.removed() })),
   );
-
-  console.log('pFile', previousFiles);
-  console.log('lFile', latestFiles);
-
   const added: Array<RemoteFileChange> = pipe(
     latestFiles,
     array.difference<RemoteFileState>(eqPath)(previousFiles),
@@ -448,15 +444,41 @@ export const uploadChangedFiles = (
 ): taskEither.TaskEither<Exception, unknown> =>
   pipe(
     localChanges,
-    array.map(({ path }) => path),
-    (files) => api.buildTar(fileName, projectDir, files),
-    taskEither.bindTo('tarHash'),
-    taskEither.bind('body', () => libFs.readBinaryFile(fileName)),
-    taskEither.chain(({ body, tarHash }) =>
+    array.filter((c) =>
+      localFileChange.fold(c.change, {
+        noChange: constFalse,
+        added: constTrue,
+        removed: constFalse,
+        updated: constTrue,
+      }),
+    ),
+    array.traverse(taskEither.ApplicativePar)(({ path }) => taskEither.of(path)),
+    taskEither.bindTo('uploadFiles'),
+    taskEither.bind('tarHash', ({ uploadFiles }) =>
+      api.buildTar(fileName, projectDir, uploadFiles),
+    ),
+    taskEither.bindW('removeFiles', () =>
+      pipe(
+        localChanges,
+        array.filter((c) =>
+          localFileChange.fold(c.change, {
+            noChange: constFalse,
+            added: constFalse,
+            removed: constTrue,
+            updated: constFalse,
+          }),
+        ),
+        array.traverse(taskEither.ApplicativePar)(({ path }) => taskEither.of(path)),
+      ),
+    ),
+    taskEither.bind('body', ({ uploadFiles }) =>
+      array.isEmpty(uploadFiles) ? taskEither.of(Buffer.from('')) : libFs.readBinaryFile(fileName),
+    ),
+    taskEither.chain(({ body, tarHash, removeFiles, uploadFiles }) =>
       createSignedAPIRequest({
         method: 'POST',
         path: `project/${projectId}/files`,
-        jwtPayload: { tarHash },
+        jwtPayload: array.isEmpty(uploadFiles) ? { removeFiles } : { tarHash, removeFiles },
         body: requestBody.binary({
           body,
           type: 'application/x-tar',
@@ -542,6 +564,10 @@ export const useProjectSync = () => {
             ),
           ),
         ),
+        taskEither.map((e) => {
+          console.log(e);
+          return e;
+        }),
         taskEither.bind('uploadedFiles', ({ projectDir, filesToUpload }) =>
           pipe(
             filesToUpload,
