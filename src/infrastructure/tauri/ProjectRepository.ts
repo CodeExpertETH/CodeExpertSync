@@ -1,4 +1,5 @@
 import { atom, property } from '@frp-ts/core';
+import { api } from 'api';
 import {
   array,
   constVoid,
@@ -21,6 +22,7 @@ import { ProjectRepository } from '@/domain/ProjectRepository';
 import { changesADT, syncStateADT } from '@/domain/SyncState';
 import { createSignedAPIRequest } from '@/domain/createAPIRequest';
 import { fromError } from '@/domain/exception';
+import { path } from '@/lib/tauri';
 import { projectConfigStore } from './internal/ProjectConfigStore';
 import { projectMetadataStore } from './internal/ProjectMetadataStore';
 
@@ -63,6 +65,22 @@ export const mkProjectRepositoryTauri = (): task.Task<ProjectRepository> => {
     task.chain(projectsFromMetadata),
   );
 
+  const getProject = (projectId: ProjectId): taskOption.TaskOption<Project> =>
+    task.fromIO(() =>
+      pipe(
+        projectsDb.get(),
+        array.findFirst((x) => x.value.projectId === projectId),
+      ),
+    );
+
+  const removeProjectAccess = (projectId: ProjectId) =>
+    createSignedAPIRequest({
+      path: 'app/projectAccess/remove',
+      method: 'POST',
+      jwtPayload: { projectId },
+      codec: iots.strict({ removed: iots.boolean }),
+    });
+
   return pipe(
     readProjects,
     task.chainFirstIOK(setProjects),
@@ -85,12 +103,25 @@ export const mkProjectRepositoryTauri = (): task.Task<ProjectRepository> => {
         );
       },
 
-      getProject: (projectId) =>
-        task.fromIO(() =>
-          pipe(
-            projectsDb.get(),
-            array.findFirst((x) => x.value.projectId === projectId),
+      getProject,
+
+      removeProject: (projectId) =>
+        pipe(
+          taskOption.sequenceS({
+            rootDir: api.settingRead('projectDir', iots.string),
+            project: pipe(
+              getProject(projectId),
+              taskOption.chainOptionK(projectPrism.local.getOption),
+            ),
+          }),
+          taskOption.chain(({ rootDir, project }) =>
+            taskOption.fromTaskEither(path.join(rootDir, project.value.basePath)),
           ),
+          taskOption.fold(() => taskEither.right(undefined), api.removeDir),
+
+          // delete in remote
+          taskEither.chainFirstTaskK(() => removeProjectAccess(projectId)),
+          // todo delete in repo
         ),
 
       upsertOne: (nextProject) => {
