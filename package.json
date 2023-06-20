@@ -1,6 +1,6 @@
 {
   "name": "code_expert_desktop",
-  "version": "0.0.18",
+  "version": "0.0.19",
   "description": "",
   "scripts": {
     "setup": "scripts/setup",
