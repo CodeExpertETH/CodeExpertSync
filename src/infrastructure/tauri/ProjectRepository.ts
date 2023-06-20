@@ -1,4 +1,5 @@
 import { atom, property } from '@frp-ts/core';
+import { BaseDirectory } from '@tauri-apps/api/fs';
 import { api } from 'api';
 import {
   array,
@@ -21,8 +22,8 @@ import { ProjectMetadata } from '@/domain/ProjectMetadata';
 import { ProjectRepository } from '@/domain/ProjectRepository';
 import { changesADT, syncStateADT } from '@/domain/SyncState';
 import { createSignedAPIRequest } from '@/domain/createAPIRequest';
-import { fromError } from '@/domain/exception';
-import { path } from '@/lib/tauri';
+import { fromError, invariantViolated } from '@/domain/exception';
+import { fs, path } from '@/lib/tauri';
 import { projectConfigStore } from './internal/ProjectConfigStore';
 import { projectMetadataStore } from './internal/ProjectMetadataStore';
 
@@ -121,7 +122,16 @@ export const mkProjectRepositoryTauri = (): task.Task<ProjectRepository> => {
 
           // delete in remote
           taskEither.chainFirstTaskK(() => removeProjectAccess(projectId)),
-          // todo delete in repo
+          // delete in repo
+          taskEither.chainTaskOptionKW(() => invariantViolated('remove of metadata failed'))(() =>
+            projectMetadataStore.remove(projectId),
+          ),
+          // todo is this necessary?
+          taskEither.chain(() =>
+            fs.removeFile(`project_${projectId}.json`, {
+              dir: BaseDirectory.AppLocalData,
+            }),
+          ),
         ),
 
       upsertOne: (nextProject) => {
