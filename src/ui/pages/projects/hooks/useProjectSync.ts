@@ -175,6 +175,12 @@ interface LocalFileChange {
     | tagged.Tagged<'added'>;
 }
 
+interface Conflict {
+  path: string;
+  changeRemote: RemoteFileChange['change'];
+  changeLocal: LocalFileChange['change'];
+}
+
 const localFileChange = tagged.build<LocalFileChange['change']>();
 
 const eqPath = eq.struct({
@@ -264,6 +270,27 @@ const getLocalChanges = (
     monoid.concatAll(array.getMonoid()),
     nonEmptyArray.fromArray,
   );
+};
+
+const getConflicts = (
+  local: NonEmptyArray<LocalFileChange>,
+  remote: NonEmptyArray<RemoteFileChange>,
+): option.Option<NonEmptyArray<Conflict>> => {
+  const conflicts: Array<Conflict> = pipe(
+    local,
+    array.intersection<LocalFileChange>(eqPath)(remote),
+    array.map((changeLocal) => ({
+      path: changeLocal.path,
+      changeLocal: changeLocal.change,
+      changeRemote: pipe(
+        remote,
+        array.findFirst((changeRemote) => eqPath.equals(changeLocal, changeRemote)),
+        option.map(({ change }) => change),
+        option.getOrElseW(() => remoteFileChange.noChange()),
+      ),
+    })),
+  );
+  return pipe(conflicts, nonEmptyArray.fromArray);
 };
 
 const RemoteFileInfoC = iots.strict({
@@ -605,6 +632,25 @@ export const useProjectSync = () => {
             option.chain(({ local, previous }) => getLocalChanges(previous, local)),
           ),
         ),
+
+        taskEither.let('conflicts', ({ localChanges, remoteChanges }) =>
+          pipe(
+            option.sequenceS({ local: localChanges, remote: remoteChanges }),
+            option.map(({ local, remote }) => getConflicts(local, remote)),
+          ),
+        ),
+        taskEither.chainFirstW(({ conflicts }) =>
+          pipe(
+            conflicts,
+            option.fold(
+              () => taskEither.of(undefined),
+              (conflicts) => {
+                console.log(conflicts);
+                return taskEither.left(invariantViolated('Conflicts are not yet handled'));
+              },
+            ),
+          ),
+        ),
         // TODO handle conflicts
         taskEither.bind('filesToUpload', ({ localChanges, projectInfoRemote }) =>
           pipe(
@@ -729,11 +775,11 @@ export const useProjectSync = () => {
           console.log(d);
           return d;
         }),
-        taskEither.mapLeft((e) => {
-          console.log('end error');
-          console.error(e);
-          return e;
-        }),
+        // taskEither.mapLeft((e) => {
+        //   console.log('end error');
+        //   console.error(e);
+        //   return e;
+        // }),
       ),
     [projectRepository, time],
   );
