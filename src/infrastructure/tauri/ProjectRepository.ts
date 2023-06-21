@@ -126,7 +126,6 @@ export const mkProjectRepositoryTauri = (): task.Task<ProjectRepository> => {
           taskEither.chainTaskOptionKW(() => invariantViolated('remove of metadata failed'))(() =>
             projectMetadataStore.remove(projectId),
           ),
-          // todo is this necessary?
           taskEither.chain(() =>
             fs.removeFile(`project_${projectId}.json`, {
               dir: BaseDirectory.AppLocalData,
