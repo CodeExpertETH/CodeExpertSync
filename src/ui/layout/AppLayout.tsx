@@ -16,10 +16,12 @@ const StyledContent = styled(Layout.Content, () => ({
   overflow: 'auto',
 }));
 
-export const AppLayout = ({
-  children,
-  clientId,
-}: React.PropsWithChildren<{ clientId: ClientId }>) => (
+export interface AppLayoutProps {
+  clientId: ClientId;
+  children: React.ReactNode;
+}
+
+export const AppLayout = ({ children, clientId }: AppLayoutProps) => (
   <StyledLayout>
     <StyledLayoutHeader>
       <TopNav clientId={clientId} />

@@ -44,9 +44,7 @@ export function Projects({ clientId, course }: { clientId: ClientId; course: Cou
         option.map(
           nonEmptyArray.map(({ name, projects }) => (
             <ProjectList
-              key={
-                name /* FIXME This could conflict, exercise names are not guaranteed to be unique */
-              }
+              key={name}
               exerciseName={name}
               projects={projects}
               onOpen={flow(
