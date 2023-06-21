@@ -7,6 +7,7 @@ import {
   iots,
   option,
   pipe,
+  task,
   taskOption,
 } from '@code-expert/prelude';
 import { ProjectId } from '@/domain/Project';
@@ -28,8 +29,11 @@ export const projectMetadataStore = {
     ),
   write: (value: ProjectMetadata): taskOption.TaskOption<void> =>
     taskOption.tryCatch(() => store.set(value.projectId, value).then(() => store.save())),
-  remove: (projectId: ProjectId): taskOption.TaskOption<void> =>
-    taskOption.tryCatch(() => store.delete(projectId).then(() => store.save())),
+  remove: (projectId: ProjectId): task.Task<void> =>
+    pipe(
+      taskOption.tryCatch(() => store.delete(projectId).then(() => store.save())),
+      task.map(constVoid),
+    ),
   writeAll: (projects: Array<ProjectMetadata>): taskOption.TaskOption<void> =>
     pipe(
       taskOption.tryCatch(() =>

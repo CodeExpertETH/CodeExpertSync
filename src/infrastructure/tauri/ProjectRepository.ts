@@ -129,7 +129,7 @@ export const mkProjectRepositoryTauri = (): task.Task<ProjectRepository> => {
 
         const removeMetadata: taskEither.TaskEither<Array<string>, void> = pipe(
           projectMetadataStore.remove(projectId),
-          taskEither.fromTaskOption(() => ['Could not remove metadata']),
+          taskEither.fromTask,
         );
 
         const removeConfig: taskEither.TaskEither<Array<string>, void> = pipe(
