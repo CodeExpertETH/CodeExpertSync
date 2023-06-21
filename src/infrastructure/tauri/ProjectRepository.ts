@@ -137,6 +137,11 @@ export const mkProjectRepositoryTauri = (): task.Task<ProjectRepository> => {
           taskEither.fromTask,
         );
 
+        const removeFromDb: taskEither.TaskEither<Array<string>, void> = pipe(
+          () => projectsDb.modify(flow(array.filter(({ value }) => value.projectId !== projectId))),
+          taskEither.fromIO,
+        );
+
         const logDebugErrors = (errors: ReadonlyArray<string>): void => {
           console.debug(
             `[removeProject] Not everything could be removed from project ${projectId}. Errors:`,
@@ -150,6 +155,7 @@ export const mkProjectRepositoryTauri = (): task.Task<ProjectRepository> => {
             removeProjectAccess,
             removeMetadata,
             removeConfig,
+            removeFromDb,
           ]),
           taskEither.match(logDebugErrors, constVoid),
         );
