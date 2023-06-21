@@ -57,7 +57,7 @@ export function Projects({ clientId, course }: { clientId: ClientId; course: Cou
                 taskEither.chain(
                   flow(
                     syncProject,
-                    taskEither.mapLeft(() => 'Sync error'),
+                    taskEither.mapLeft((e) => `Sync error: ${e.message}`),
                   ),
                 ),
                 taskEither.map(constVoid),
