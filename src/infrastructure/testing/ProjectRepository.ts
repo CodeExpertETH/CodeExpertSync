@@ -1,15 +1,5 @@
 import { atom, property } from '@frp-ts/core';
-import {
-  array,
-  constVoid,
-  constant,
-  io,
-  ioOption,
-  option,
-  pipe,
-  task,
-  taskEither,
-} from '@code-expert/prelude';
+import { array, constVoid, constant, io, ioOption, option, pipe, task } from '@code-expert/prelude';
 import { Project } from '@/domain/Project';
 import { ProjectRepository } from '@/domain/ProjectRepository';
 
@@ -35,8 +25,7 @@ export const mkProjectRepositoryTesting = (initial: Array<Project>): ProjectRepo
             projectsDb.set,
           ),
         ),
-        taskEither.fromIO,
-        taskEither.map(constVoid),
+        task.fromIO,
       ),
     upsertOne: (nextProject) => {
       const updateDb: ioOption.IOOption<void> = pipe(
