@@ -11,7 +11,6 @@ import { Icon } from '@/ui/foundation/Icons';
 import { Box, HStack } from '@/ui/foundation/Layout';
 import { notificationT } from '@/ui/helper/notifications';
 import { useProjectOpen } from './hooks/useProjectOpen';
-import { useProjectRemove } from './hooks/useProjectRemove';
 import { useProjectSync } from './hooks/useProjectSync';
 
 export const ProjectListOrig = (props: {
@@ -31,7 +30,6 @@ export const ProjectListOrig = (props: {
   };
 
   const [loading, setLoading] = React.useState(false);
-  const removeProject = useProjectRemove();
   const openProject = useProjectOpen();
   const syncProjectM = useProjectSync();
 
@@ -138,7 +136,7 @@ export const ProjectListOrig = (props: {
                         key: 'remove',
                         icon: <Icon name="trash" />,
                         onClick: () => {
-                          void removeProject(project.value.projectId)();
+                          void projectRepository.removeProject(project.value.projectId)();
                         },
                       },
                     ],

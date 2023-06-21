@@ -19,7 +19,6 @@ import { CourseItem, courseItemEq, fromProject } from '@/ui/pages/courses/compon
 import { ProjectList } from '@/ui/pages/projects/components/ProjectList';
 import { projectsByExercise } from '@/ui/pages/projects/components/ProjectList/model/Exercise';
 import { useProjectOpen } from '@/ui/pages/projects/hooks/useProjectOpen';
-import { useProjectRemove } from '@/ui/pages/projects/hooks/useProjectRemove';
 import { useProjectSync } from '@/ui/pages/projects/hooks/useProjectSync';
 import { useProjectEventUpdate } from './hooks/useProjectEventUpdate';
 
@@ -31,7 +30,6 @@ export function Projects({ clientId, course }: { clientId: ClientId; course: Cou
   );
   const openProject = useProjectOpen();
   const syncProject = useProjectSync();
-  const removeProject = useProjectRemove();
 
   useProjectEventUpdate(projectRepository.fetchChanges, clientId);
 
@@ -64,7 +62,7 @@ export function Projects({ clientId, course }: { clientId: ClientId; course: Cou
                 ),
                 taskEither.map(constVoid),
               )}
-              onRemove={removeProject}
+              onRemove={projectRepository.removeProject}
             />
           )),
         ),

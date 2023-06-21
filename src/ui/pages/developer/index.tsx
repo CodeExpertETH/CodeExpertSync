@@ -40,7 +40,7 @@ export function Developer({ clientId }: { clientId: ClientId }) {
       taskOption.fold(
         () => taskEither.right<Exception, unknown>(undefined),
         taskEither.traverseSeqArray((project) =>
-          projectRepository.removeProject(project.value.projectId),
+          pipe(projectRepository.removeProject(project.value.projectId), taskEither.fromTask),
         ),
       ),
       taskEither.alt(() => taskEither.right<Exception, unknown>(undefined)),
