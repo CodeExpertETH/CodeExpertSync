@@ -636,7 +636,7 @@ export const useProjectSync = () => {
         taskEither.let('conflicts', ({ localChanges, remoteChanges }) =>
           pipe(
             option.sequenceS({ local: localChanges, remote: remoteChanges }),
-            option.map(({ local, remote }) => getConflicts(local, remote)),
+            option.chain(({ local, remote }) => getConflicts(local, remote)),
           ),
         ),
         taskEither.chainFirstW(({ conflicts }) =>
