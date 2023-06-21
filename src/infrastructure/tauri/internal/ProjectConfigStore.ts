@@ -1,4 +1,4 @@
-import { BaseDirectory, readTextFile, writeTextFile } from '@tauri-apps/api/fs';
+import { BaseDirectory, readTextFile, removeFile, writeTextFile } from '@tauri-apps/api/fs';
 import { flow, iots, option, pipe, task, taskOption } from '@code-expert/prelude';
 import { FileC } from '@/domain/File';
 import { LocalProject, ProjectId } from '@/domain/Project';
@@ -16,20 +16,28 @@ export const projectConfigStore = {
     pipe(
       taskOption.tryCatch(
         pipe(
-          () => readTextFile(`project_${projectId}.json`, { dir: BaseDirectory.AppLocalData }),
+          () => readTextFile(getFileName(projectId), { dir: BaseDirectory.AppLocalData }),
           task.map(JSON.parse),
         ),
       ),
       taskOption.chainOptionK(flow(ProjectConfigC.decode, option.fromEither)),
     ),
+
   write:
     ({ value }: LocalProject): task.Task<void> =>
     () =>
-      writeTextFile(
-        `project_${value.projectId}.json`,
-        JSON.stringify(ProjectConfigC.encode(value)),
-        {
-          dir: BaseDirectory.AppLocalData,
-        },
-      ),
+      writeTextFile(getFileName(value.projectId), JSON.stringify(ProjectConfigC.encode(value)), {
+        dir: BaseDirectory.AppLocalData,
+      }),
+
+  remove:
+    (projectId: ProjectId): task.Task<void> =>
+    () =>
+      removeFile(getFileName(projectId), {
+        dir: BaseDirectory.AppLocalData,
+      }),
 };
+
+// -------------------------------------------------------------------------------------------------
+
+const getFileName = (projectId: ProjectId): string => `project_${projectId}.json`;
