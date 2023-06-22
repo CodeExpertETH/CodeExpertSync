@@ -5,6 +5,7 @@ import { dirname } from '@tauri-apps/api/path';
 import { Store as TauriStore } from 'tauri-plugin-store-api';
 import {
   constFalse,
+  constVoid,
   flow,
   iots,
   option,
@@ -14,6 +15,8 @@ import {
   taskOption,
 } from '@code-expert/prelude';
 import { Exception, fromError } from '@/domain/exception';
+import { os, path } from '@/lib/tauri';
+import { removeFile } from '@/lib/tauri/fs';
 
 const store = new TauriStore('settings.json');
 
@@ -33,7 +36,7 @@ export interface Api {
   getFileHash(filePath: string): taskEither.TaskEither<Exception, string>;
   createProjectDir(filePath: string): taskEither.TaskEither<Exception, void>;
   exists(path: string): task.Task<boolean>;
-  logout(): taskOption.TaskOption<void>;
+  logout(): task.Task<void>;
   getSystemInfo: taskOption.TaskOption<string>;
 }
 
@@ -78,6 +81,17 @@ export const api: Api = {
   getFileHash: (path) => taskEither.tryCatch(() => invoke('get_file_hash', { path }), fromError),
   createProjectDir: (path) =>
     taskEither.tryCatch(() => invoke('create_project_dir', { path }), fromError),
-  logout: () => api.settingWrite('accessToken', null),
+  logout: () =>
+    pipe(
+      os.appLocalDataDir(),
+      taskEither.chain((dir) => path.join(dir, 'privateKey.pem')),
+      taskEither.chain(removeFile),
+      taskEither.match((error: Exception): void => {
+        console.debug(
+          `[logout] There were some errors while removing the private key:`,
+          error.message,
+        );
+      }, constVoid),
+    ),
   getSystemInfo: taskOption.tryCatch(() => invoke('system_info')),
 };
