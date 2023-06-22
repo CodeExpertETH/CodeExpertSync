@@ -197,14 +197,8 @@ const getRemoteChanges = (
   previous: Array<RemoteFileState>,
   latest: Array<RemoteFileState>,
 ): option.Option<NonEmptyArray<RemoteFileChange>> => {
-  const previousFiles = pipe(
-    previous,
-    array.filter((e) => e.type === 'file'),
-  );
-  const latestFiles = pipe(
-    latest,
-    array.filter((e) => e.type === 'file'),
-  );
+  const previousFiles = pipe(previous, array.filter(isFile));
+  const latestFiles = pipe(latest, array.filter(isFile));
   const removed: Array<RemoteFileChange> = pipe(
     previousFiles,
     array.difference<RemoteFileState>(eqPath)(latestFiles),
@@ -237,14 +231,8 @@ const getLocalChanges = (
   previous: Array<FileInfo>,
   latest: Array<LocalFileState>,
 ): option.Option<NonEmptyArray<LocalFileChange>> => {
-  const previousFiles = pipe(
-    previous,
-    array.filter((e) => e.type === 'file'),
-  );
-  const latestFiles = pipe(
-    latest,
-    array.filter((e) => e.type === 'file'),
-  );
+  const previousFiles = pipe(previous, array.filter(isFile));
+  const latestFiles = pipe(latest, array.filter(isFile));
   const removed: Array<LocalFileChange> = pipe(
     previousFiles,
     array.difference<LocalFileState>(eqPath)(latestFiles),
@@ -741,7 +729,7 @@ export const useProjectSync = () => {
             taskEither.chain((projectInfoRemote) =>
               pipe(
                 projectInfoRemote.files,
-                array.filter((f) => f.type === 'file'),
+                array.filter(isFile),
                 array.traverse(taskEither.ApplicativeSeq)((file) =>
                   pipe(
                     hashF({ path: file.path, type: 'file' }),
@@ -771,15 +759,6 @@ export const useProjectSync = () => {
             }),
           ),
         ),
-        taskEither.map((d) => {
-          console.log(d);
-          return d;
-        }),
-        // taskEither.mapLeft((e) => {
-        //   console.log('end error');
-        //   console.error(e);
-        //   return e;
-        // }),
       ),
     [projectRepository, time],
   );
