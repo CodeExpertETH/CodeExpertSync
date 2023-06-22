@@ -45,6 +45,7 @@ fn main() {
             commands::get_file_hash::get_file_hash,
             commands::fs_extra::make_readonly,
             commands::fs_extra::create_project_dir,
+            commands::fs_extra::write_file,
             commands::path::path_remove_ancestor,
             commands::build_tar::build_tar
         ])

@@ -32,9 +32,14 @@ export interface Api {
   settingRead<T>(key: string, decoder: iots.Decoder<unknown, T>): taskOption.TaskOption<T>;
   settingWrite(key: string, value: unknown): taskOption.TaskOption<void>;
   writeFile(filePath: string, content: string): taskEither.TaskEither<Exception, void>;
+  writeProjectFile(
+    filePath: string,
+    content: string,
+    readOnly: boolean,
+  ): taskEither.TaskEither<Exception, void>;
   removeDir(filePath: string): taskEither.TaskEither<Exception, void>;
   getFileHash(filePath: string): taskEither.TaskEither<Exception, string>;
-  createProjectDir(filePath: string): taskEither.TaskEither<Exception, void>;
+  createProjectDir(filePath: string): taskOption.TaskOption<void>;
   exists(path: string): task.Task<boolean>;
   logout(): task.Task<void>;
   getSystemInfo: taskOption.TaskOption<string>;
@@ -80,7 +85,23 @@ export const api: Api = {
     taskEither.tryCatch(() => removeDir(filePath, { recursive: true }), fromError),
   getFileHash: (path) => taskEither.tryCatch(() => invoke('get_file_hash', { path }), fromError),
   createProjectDir: (path) =>
-    taskEither.tryCatch(() => invoke('create_project_dir', { path }), fromError),
+    pipe(
+      api.settingRead('projectDir', iots.string),
+      taskOption.chain((root) =>
+        taskOption.tryCatch(() => invoke('create_project_dir', { path, root })),
+      ),
+    ),
+  writeProjectFile: (filePath, content, readOnly) => {
+    return taskEither.tryCatch(
+      () =>
+        invoke('write_file', {
+          path: filePath,
+          contents: Array.from(new TextEncoder().encode(content)),
+          readOnly,
+        }),
+      fromError,
+    );
+  },
   logout: () =>
     pipe(
       os.appLocalDataDir(),

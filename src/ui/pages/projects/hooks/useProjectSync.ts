@@ -61,14 +61,20 @@ function writeSingeFile({
     taskEither.bind('systemFilePath', () => libPath.join(projectDir, projectFilePath)),
     taskEither.chainFirst(({ systemFilePath }) =>
       pipe(
-        createSignedAPIRequest({
-          path: `project/${projectId}/file`,
-          method: 'GET',
-          jwtPayload: { path: projectFilePath },
-          codec: iots.string,
-          responseType: ResponseType.Text,
-        }),
-        taskEither.chainW((fileContent) => api.writeFile(systemFilePath, fileContent)),
+        api.createProjectDir(projectDir),
+        taskEither.fromTaskOption(() => invariantViolated('Project dir could not be created')),
+        taskEither.chain(() =>
+          createSignedAPIRequest({
+            path: `project/${projectId}/file`,
+            method: 'GET',
+            jwtPayload: { path: projectFilePath },
+            codec: iots.string,
+            responseType: ResponseType.Text,
+          }),
+        ),
+        taskEither.chainW((fileContent) =>
+          api.writeProjectFile(systemFilePath, fileContent, permissions === 'r'),
+        ),
       ),
     ),
     taskEither.bindW('hash', ({ systemFilePath }) => api.getFileHash(systemFilePath)),
