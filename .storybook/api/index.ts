@@ -19,6 +19,9 @@ export const api: Api = {
     taskEither.fromIO(() => {
       fileStore.set(filePath, content);
     }),
+  writeProjectFile: () => {
+    throw new Error('[Storybook] Not implemented');
+  },
   removeDir: () => {
     throw new Error('[Storybook] Not implemented');
   },
@@ -28,6 +31,6 @@ export const api: Api = {
   createProjectDir: () => {
     throw new Error('[Storybook] Not implemented');
   },
-  logout: () => taskOption.of(undefined),
+  logout: () => task.of(undefined),
   getSystemInfo: taskOption.of('Storybook'),
 };

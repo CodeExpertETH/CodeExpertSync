@@ -53,7 +53,6 @@ function writeSingeFile({
   permissions: FilePermissions;
   type: FileEntryType;
 }) {
-  console.log(projectDir);
   return pipe(
     taskEither.Do,
     taskEither.bind('systemFilePath', () => libPath.join(projectDir, projectFilePath)),

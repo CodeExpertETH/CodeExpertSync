@@ -92,7 +92,6 @@ export const api: Api = {
       ),
     ),
   writeProjectFile: (filePath, content, readOnly) => {
-    console.log('writeProjectFile');
     return taskEither.tryCatch(
       () =>
         invoke('write_file', {
