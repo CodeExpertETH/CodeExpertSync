@@ -1,4 +1,5 @@
 import { atom, property } from '@frp-ts/core';
+import { api } from 'api';
 import {
   array,
   constVoid,
@@ -21,6 +22,7 @@ import { ProjectRepository } from '@/domain/ProjectRepository';
 import { changesADT, syncStateADT } from '@/domain/SyncState';
 import { createSignedAPIRequest } from '@/domain/createAPIRequest';
 import { fromError } from '@/domain/exception';
+import { path } from '@/lib/tauri';
 import { projectConfigStore } from './internal/ProjectConfigStore';
 import { projectMetadataStore } from './internal/ProjectMetadataStore';
 
@@ -63,6 +65,14 @@ export const mkProjectRepositoryTauri = (): task.Task<ProjectRepository> => {
     task.chain(projectsFromMetadata),
   );
 
+  const getProject = (projectId: ProjectId): taskOption.TaskOption<Project> =>
+    task.fromIO(() =>
+      pipe(
+        projectsDb.get(),
+        array.findFirst((x) => x.value.projectId === projectId),
+      ),
+    );
+
   return pipe(
     readProjects,
     task.chainFirstIOK(setProjects),
@@ -85,13 +95,71 @@ export const mkProjectRepositoryTauri = (): task.Task<ProjectRepository> => {
         );
       },
 
-      getProject: (projectId) =>
-        task.fromIO(() =>
-          pipe(
-            projectsDb.get(),
-            array.findFirst((x) => x.value.projectId === projectId),
+      getProject,
+
+      removeProject: (projectId) => {
+        const getProjectDir: taskOption.TaskOption<string> = pipe(
+          taskOption.sequenceS({
+            rootDir: api.settingRead('projectDir', iots.string),
+            project: pipe(
+              getProject(projectId),
+              taskOption.chainOptionK(projectPrism.local.getOption),
+            ),
+          }),
+          taskOption.chainTaskEitherK(({ rootDir, project }) =>
+            path.join(rootDir, project.value.basePath),
           ),
-        ),
+        );
+
+        const removeProjectDir: taskEither.TaskEither<Array<string>, void> = pipe(
+          getProjectDir,
+          taskOption.chainTaskEitherK(api.removeDir),
+          taskEither.fromTaskOption(() => ['Could not remove project dir']),
+        );
+
+        const removeProjectAccess: taskEither.TaskEither<Array<string>, void> = pipe(
+          createSignedAPIRequest({
+            path: 'app/projectAccess/remove',
+            method: 'POST',
+            jwtPayload: { projectId },
+            codec: iots.strict({ removed: iots.boolean }),
+          }),
+          taskEither.bimap(() => ['Could not remove project access'], constVoid),
+        );
+
+        const removeMetadata: taskEither.TaskEither<Array<string>, void> = pipe(
+          projectMetadataStore.remove(projectId),
+          taskEither.fromTask,
+        );
+
+        const removeConfig: taskEither.TaskEither<Array<string>, void> = pipe(
+          projectConfigStore.remove(projectId),
+          taskEither.fromTask,
+        );
+
+        const removeFromDb: taskEither.TaskEither<Array<string>, void> = pipe(
+          () => projectsDb.modify(flow(array.filter(({ value }) => value.projectId !== projectId))),
+          taskEither.fromIO,
+        );
+
+        const logDebugErrors = (errors: ReadonlyArray<string>): void => {
+          console.debug(
+            `[removeProject] Not everything could be removed from project ${projectId}. Errors:`,
+            errors,
+          );
+        };
+
+        return pipe(
+          taskEither.sequenceArrayValidation([
+            removeProjectDir,
+            removeProjectAccess,
+            removeMetadata,
+            removeConfig,
+            removeFromDb,
+          ]),
+          taskEither.match(logDebugErrors, constVoid),
+        );
+      },
 
       upsertOne: (nextProject) => {
         const updateDb: ioOption.IOOption<void> = pipe(

@@ -12,7 +12,6 @@ import { VStack } from '@/ui/foundation/Layout';
 import { messageT } from '@/ui/helper/message';
 import { notificationT } from '@/ui/helper/notifications';
 import { routes, useRoute } from '@/ui/routes';
-import { deleteLocalProject } from '../projects/hooks/useProjectRemove';
 
 export function Developer({ clientId }: { clientId: ClientId }) {
   const [{ projectRepository }, dispatchContext] = useGlobalContextWithActions();
@@ -41,14 +40,7 @@ export function Developer({ clientId }: { clientId: ClientId }) {
       taskOption.fold(
         () => taskEither.right<Exception, unknown>(undefined),
         taskEither.traverseSeqArray((project) =>
-          pipe(
-            deleteLocalProject(projectRepository)(project.value.projectId),
-            taskEither.chain(() =>
-              fs.removeFile(`project_${project.value.projectId}.json`, {
-                dir: BaseDirectory.AppLocalData,
-              }),
-            ),
-          ),
+          pipe(projectRepository.removeProject(project.value.projectId), taskEither.fromTask),
         ),
       ),
       taskEither.alt(() => taskEither.right<Exception, unknown>(undefined)),

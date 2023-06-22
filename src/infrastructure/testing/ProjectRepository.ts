@@ -15,6 +15,18 @@ export const mkProjectRepositoryTesting = (initial: Array<Project>): ProjectRepo
           array.findFirst((x) => x.value.projectId === projectId),
         ),
       ),
+    removeProject: (projectId) =>
+      pipe(
+        projectsDb.get,
+        io.map((projects) =>
+          pipe(
+            projects,
+            array.filter((x) => x.value.projectId === projectId),
+            projectsDb.set,
+          ),
+        ),
+        task.fromIO,
+      ),
     upsertOne: (nextProject) => {
       const updateDb: ioOption.IOOption<void> = pipe(
         projectsDb.get,
