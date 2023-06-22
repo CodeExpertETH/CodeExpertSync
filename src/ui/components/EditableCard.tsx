@@ -78,7 +78,7 @@ export const EditableCard = (props: EditableCardProps) => (
           <GrayIcon name={props.iconName} size="4x" />
           <CardMainContent>
             <Typography.Paragraph type="secondary">{props.description}</Typography.Paragraph>
-            {props.value == null && <Typography.Paragraph>{props.value}</Typography.Paragraph>}
+            {props.value != null && <Typography.Paragraph>{props.value}</Typography.Paragraph>}
           </CardMainContent>
         </CardMain>
         <CardAction>
