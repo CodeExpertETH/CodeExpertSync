@@ -41,6 +41,25 @@ import { removeFile } from '@/lib/tauri/fs';
 import { useGlobalContext } from '@/ui/GlobalContext';
 import { useTimeContext } from '@/ui/contexts/TimeContext';
 
+function createProjectDir({
+  projectDirPath,
+  projectDir,
+  permissions,
+  type,
+}: {
+  projectDirPath: string;
+  projectDir: string;
+  permissions: FilePermissions;
+  type: 'dir';
+}) {
+  return pipe(
+    taskEither.Do,
+    taskEither.bind('systemFilePath', () => libPath.join(projectDir, projectDirPath)),
+    taskEither.chainFirst(({ systemFilePath }) =>
+      api.createProjectDir(systemFilePath, permissions === 'r'),
+    ),
+  );
+}
 function writeSingeFile({
   projectFilePath,
   projectId,
@@ -691,14 +710,23 @@ export const useProjectSync = () => {
           ),
         ),
         // download and write added and updated files
-        taskEither.chainFirst(({ filesToDownload, projectDir }) =>
+        taskEither.chainFirst(({ filesToDownload, projectDir, projectInfoRemote }) =>
           pipe(
             filesToDownload,
             option.foldW(
               () => taskEither.of(undefined),
               (filesToDownload) =>
                 pipe(
-                  filesToDownload,
+                  projectInfoRemote.files,
+                  array.filter((file) => !isFile(file)),
+                  (x) => x,
+                  array.traverse(taskEither.ApplicativeSeq)(
+                    ({ path, permissions, type, version }) => {
+                      console.log(path);
+                      return taskEither.of<Exception, undefined>(undefined);
+                    },
+                  ),
+                  array.chain(() => filesToDownload),
                   array.traverse(taskEither.ApplicativeSeq)(
                     ({ path, permissions, type, version }) =>
                       writeSingeFile({
