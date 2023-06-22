@@ -15,3 +15,16 @@ export const FileC = iots.strict({
 });
 
 export type File = iots.TypeOf<typeof FileC>;
+
+// -------------------------------------------------------------------------------------------------
+
+export const isFile = <A extends { type: FileEntryType }>(a: A): a is A & { type: 'file' } =>
+  a.type === 'file';
+
+export const fileNameRegex = /^[\w\- ]{0,80}\.\w{1,5}$/;
+
+export const isValidFileName = (name: string) => fileNameRegex.test(name);
+
+export const dirNameRegex = /^[\w\- ]{1,80}$/;
+
+export const isValidDirName = (name: string) => dirNameRegex.test(name);

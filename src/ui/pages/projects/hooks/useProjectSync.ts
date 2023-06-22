@@ -27,6 +27,9 @@ import {
   File as FileInfo,
   FilePermissions,
   FilePermissionsC,
+  isFile,
+  isValidDirName,
+  isValidFileName,
 } from '@/domain/File';
 import { LocalProject, Project, ProjectId, projectADT, projectPrism } from '@/domain/Project';
 import { ProjectMetadata } from '@/domain/ProjectMetadata';
@@ -97,9 +100,6 @@ const addHash =
       taskEither.chain(api.getFileHash),
       taskEither.map((hash) => ({ path, type, hash })),
     );
-
-const isFile = <E extends { type: FileEntryType }>(e: E): e is E & { type: 'file' } =>
-  e.type === 'file';
 
 const getProjectFilesLocal = (
   projectDir: string,
@@ -352,12 +352,6 @@ const checkClosestExistingAncestorIsWritable =
         ),
       ),
     );
-
-const fileNameRegex = /^[\w\- ]{0,80}\.\w{1,5}$/;
-const dirNameRegex = /^[\w\- ]{1,80}$/;
-
-const isValidFileName = (name: string) => fileNameRegex.test(name);
-const isValidDirName = (name: string) => dirNameRegex.test(name);
 
 const checkValidFileName = (c: LocalFileChange) =>
   pipe(
