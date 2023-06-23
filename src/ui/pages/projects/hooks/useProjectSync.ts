@@ -558,6 +558,25 @@ export const uploadChangedFiles = (
     ),
   );
 
+const checkConflicts = <R>({
+  localChanges,
+  remoteChanges,
+}: {
+  localChanges: option.Option<NonEmptyArray<LocalFileChange>>;
+  remoteChanges: option.Option<NonEmptyArray<RemoteFileChange>>;
+} & R): taskEither.TaskEither<Exception, void> =>
+  pipe(
+    option.sequenceS({ local: localChanges, remote: remoteChanges }),
+    option.chain(({ local, remote }) => getConflicts(local, remote)),
+    option.fold(
+      () => taskEither.of(undefined),
+      (conflicts) => {
+        console.log(conflicts);
+        return taskEither.left(invariantViolated('Conflicts are not yet handled'));
+      },
+    ),
+  );
+
 export const useProjectSync = () => {
   const time = useTimeContext();
   const { projectRepository } = useGlobalContext();
@@ -620,26 +639,7 @@ export const useProjectSync = () => {
             option.chain(({ local, previous }) => getLocalChanges(previous, local)),
           ),
         ),
-
-        taskEither.let('conflicts', ({ localChanges, remoteChanges }) =>
-          pipe(
-            option.sequenceS({ local: localChanges, remote: remoteChanges }),
-            option.chain(({ local, remote }) => getConflicts(local, remote)),
-          ),
-        ),
-        taskEither.chainFirstW(({ conflicts }) =>
-          pipe(
-            conflicts,
-            option.fold(
-              () => taskEither.of(undefined),
-              (conflicts) => {
-                console.log(conflicts);
-                return taskEither.left(invariantViolated('Conflicts are not yet handled'));
-              },
-            ),
-          ),
-        ),
-        // TODO handle conflicts
+        taskEither.chainFirstW(checkConflicts),
         taskEither.bind('filesToUpload', ({ localChanges, projectInfoRemote }) =>
           pipe(
             localChanges,
