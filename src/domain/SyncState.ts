@@ -1,11 +1,12 @@
 import { tagged } from '@code-expert/prelude';
 
 export type SyncException =
-  // | tagged.Tagged<'conflictingChanges'>
-  // | tagged.Tagged<'readOnlyFilesChanged'>
-  // | tagged.Tagged<'invalidFilename'>
+  | tagged.Tagged<'conflictingChanges'>
+  | tagged.Tagged<'readOnlyFilesChanged', { path: string; reason: string }>
+  | tagged.Tagged<'invalidFilename', string>
   // | tagged.Tagged<'fileSizeExceeded'>
-  tagged.Tagged<'fileSystemCorrupted', { path: string; reason: string }>;
+  | tagged.Tagged<'fileSystemCorrupted', { path: string; reason: string }>
+  | tagged.Tagged<'projectDirMissing'>;
 
 export const syncExceptionADT = tagged.build<SyncException>();
 

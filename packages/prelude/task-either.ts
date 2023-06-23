@@ -30,13 +30,13 @@ export const run = <E, A>(t: TE.TaskEither<E, A>): Promise<Ei.Either<E, A>> => t
 
 export const getOrThrow =
   <E>(toThrowable: (e: E) => Error) =>
-  <A>(t: TE.TaskEither<E, A>): Promise<A> =>
-    t().then(
-      Ei.fold(
-        (err) => {
+  <A>(t: TE.TaskEither<E, A>): task.Task<A> =>
+    pipe(
+      t,
+      task.map(
+        either.fold((err) => {
           throw toThrowable(err);
-        },
-        (a) => a,
+        }, identity),
       ),
     );
 
