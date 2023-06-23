@@ -5,6 +5,7 @@ import { Project, ProjectId } from '@/domain/Project';
 import { SyncException } from '@/domain/SyncState';
 import { VStack } from '@/ui/foundation/Layout';
 import { styled } from '@/ui/foundation/Theme';
+import { ForceSyncDirection } from '@/ui/pages/projects/hooks/useProjectSync';
 import { ListItem } from './ListItem';
 
 const StyledCard = styled(Card, ({ tokens }) => ({
@@ -18,7 +19,7 @@ export interface ListProps {
   exerciseName: string;
   projects: Array<Project>;
   onOpen(id: ProjectId): taskEither.TaskEither<string, void>;
-  onSync(id: ProjectId): taskEither.TaskEither<SyncException, void>;
+  onSync(id: ProjectId, force?: ForceSyncDirection): taskEither.TaskEither<SyncException, void>;
   onRemove(id: ProjectId): task.Task<void>;
 }
 

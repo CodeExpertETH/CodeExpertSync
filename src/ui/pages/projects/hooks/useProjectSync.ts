@@ -654,12 +654,19 @@ const checkConflicts = <R>({
     ),
   );
 
+export type ForceSyncDirection = 'push' | 'pull';
+
+export type RunProjectSync = (
+  project: Project,
+  options?: { force?: ForceSyncDirection },
+) => taskEither.TaskEither<SyncException, void>;
+
 export const useProjectSync = () => {
   const time = useTimeContext();
   const { projectRepository } = useGlobalContext();
 
-  return React.useCallback(
-    (project: Project): taskEither.TaskEither<SyncException, unknown> =>
+  return React.useCallback<RunProjectSync>(
+    (project, { force } = {}) =>
       pipe(
         taskEither.Do,
 
@@ -709,12 +716,14 @@ export const useProjectSync = () => {
               () => getRemoteChanges([], projectInfoRemote.files),
               (previous) => getRemoteChanges(previous, projectInfoRemote.files),
             ),
+            option.filter(() => force == null || force === 'pull'),
           ),
         ),
         taskEither.let('localChanges', ({ projectInfoLocal, projectInfoPrevious }) =>
           pipe(
             option.sequenceS({ local: projectInfoLocal, previous: projectInfoPrevious }),
             option.chain(({ local, previous }) => getLocalChanges(previous, local)),
+            option.filter(() => force == null || force === 'push'),
           ),
         ),
         taskEither.chainFirstEitherKW(checkConflicts),
@@ -831,6 +840,7 @@ export const useProjectSync = () => {
             }),
           ),
         ),
+        taskEither.map(constVoid),
       ),
     [projectRepository, time],
   );

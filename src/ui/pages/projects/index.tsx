@@ -50,14 +50,16 @@ export function Projects({ clientId, course }: { clientId: ClientId; course: Cou
                 openProject,
                 taskEither.fromTaskOption(() => 'Could not open project'),
               )}
-              onSync={flow(
-                projectRepository.getProject,
-                taskEither.fromTaskOption(() => {
-                  throw invariantViolated('Project to sync not found');
-                }),
-                taskEither.chainFirst(syncProject),
-                taskEither.map(constVoid),
-              )}
+              onSync={(projectId, force) =>
+                pipe(
+                  projectRepository.getProject(projectId),
+                  taskEither.fromTaskOption(() => {
+                    throw invariantViolated('Project to sync not found');
+                  }),
+                  taskEither.chainFirst((project) => syncProject(project, { force })),
+                  taskEither.map(constVoid),
+                )
+              }
               onRemove={projectRepository.removeProject}
             />
           )),
