@@ -157,7 +157,7 @@ const viewFromSyncException: (env: {
           Read-only files changed: {reason} ({path})
         </>
       ),
-      invalidFilename: (filename) => <>Filename invalid: "{filename}"</>,
+      invalidFilename: (filename) => <>Filename invalid: &quot;{filename}&quot;</>,
       fileSystemCorrupted: ({ path, reason }) => (
         <>
           Problems with the file system: {reason} ({path})

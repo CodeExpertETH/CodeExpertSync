@@ -91,8 +91,8 @@ export const api: Api = {
         taskOption.tryCatch(() => invoke('create_project_dir', { path, root })),
       ),
     ),
-  writeProjectFile: (filePath, content, readOnly) => {
-    return taskEither.tryCatch(
+  writeProjectFile: (filePath, content, readOnly) =>
+    taskEither.tryCatch(
       () =>
         invoke('write_file', {
           path: filePath,
@@ -100,8 +100,7 @@ export const api: Api = {
           readOnly,
         }),
       fromError,
-    );
-  },
+    ),
   logout: () =>
     pipe(
       os.appLocalDataDir(),
