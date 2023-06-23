@@ -1,7 +1,7 @@
 import { constVoid, task, taskEither } from '@code-expert/prelude';
 import { ProjectId, projectADT } from '@/domain/Project';
 import { ProjectMetadata } from '@/domain/ProjectMetadata';
-import { changesADT, syncStateADT } from '@/domain/SyncState';
+import { SyncException, changesADT, syncStateADT } from '@/domain/SyncState';
 
 const metadata: ProjectMetadata = {
   projectId: 'p1' as ProjectId,
@@ -28,7 +28,7 @@ const DELAY = 1250;
 export const openProject: (id: ProjectId) => taskEither.TaskEither<string, void> = () =>
   task.delay(DELAY)(taskEither.fromIO(constVoid));
 
-export const syncProject: (id: ProjectId) => taskEither.TaskEither<string, void> = () =>
+export const syncProject: (id: ProjectId) => taskEither.TaskEither<SyncException, void> = () =>
   task.delay(DELAY)(taskEither.fromIO(constVoid));
 
 export const removeProject: (id: ProjectId) => task.Task<void> = () =>

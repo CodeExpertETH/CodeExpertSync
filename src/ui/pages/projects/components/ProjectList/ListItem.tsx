@@ -2,6 +2,7 @@ import { Alert, Button, List } from 'antd';
 import React from 'react';
 import { constNull, remoteData, task, taskEither } from '@code-expert/prelude';
 import { Project, ProjectId, projectADT } from '@/domain/Project';
+import { SyncException, syncExceptionADT } from '@/domain/SyncState';
 import { ActionMenu } from '@/ui/components/ActionMenu';
 import { GuardRemoteEitherData } from '@/ui/components/GuardRemoteData';
 import { useTimeContext } from '@/ui/contexts/TimeContext';
@@ -42,7 +43,7 @@ const StyledButton = styled(Button, ({ tokens }) => ({
 export interface ListItemProps {
   project: Project;
   onOpen(id: ProjectId): taskEither.TaskEither<string, void>;
-  onSync(id: ProjectId): taskEither.TaskEither<string, void>;
+  onSync(id: ProjectId): taskEither.TaskEither<SyncException, void>;
   onRemove(id: ProjectId): task.Task<void>;
 }
 
@@ -54,7 +55,10 @@ export const ListItem = ({ project, onOpen, onSync, onRemove }: ListItemProps) =
   const [removalStateRD, runRemove] = useRemoteData2(onRemove);
 
   // All states combined. Order matters: the first failure gets precedence.
-  const actionStates = remoteData.sequenceT(openStateRD, syncStateRD);
+  const actionStates = remoteData.sequenceT(
+    viewFromStringException(openStateRD),
+    viewFromSyncException(syncStateRD),
+  );
 
   const syncButtonState = fromProject(project, remoteData.isPending(syncStateRD));
 
@@ -117,3 +121,29 @@ export const ListItem = ({ project, onOpen, onSync, onRemove }: ListItemProps) =
     </StyledListItem>
   );
 };
+
+// -------------------------------------------------------------------------------------------------
+
+const viewFromStringException: <A>(
+  e: remoteData.RemoteData<string, A>,
+) => remoteData.RemoteData<React.ReactElement, A> = remoteData.mapLeft((x) => <>{x}</>);
+
+const viewFromSyncException: <A>(
+  e: remoteData.RemoteData<SyncException, A>,
+) => remoteData.RemoteData<React.ReactElement, A> = remoteData.mapLeft(
+  syncExceptionADT.fold({
+    conflictingChanges: () => <>There are conflicting changes</>,
+    readOnlyFilesChanged: ({ path, reason }) => (
+      <>
+        Read-only files changed: {reason} ({path})
+      </>
+    ),
+    invalidFilename: (filename) => <>Filename invalid: "{filename}"</>,
+    fileSystemCorrupted: ({ path, reason }) => (
+      <>
+        Problems with the file system: {reason} ({path})
+      </>
+    ),
+    projectDirMissing: () => <>Project directory not found; set it up in settings</>,
+  }),
+);

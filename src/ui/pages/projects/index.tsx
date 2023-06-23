@@ -11,6 +11,7 @@ import {
   taskEither,
 } from '@code-expert/prelude';
 import { ClientId } from '@/domain/ClientId';
+import { invariantViolated } from '@/domain/exception';
 import { useGlobalContext } from '@/ui/GlobalContext';
 import { CourseHeader } from '@/ui/components/CourseHeader';
 import { VStack } from '@/ui/foundation/Layout';
@@ -51,13 +52,10 @@ export function Projects({ clientId, course }: { clientId: ClientId; course: Cou
               )}
               onSync={flow(
                 projectRepository.getProject,
-                taskEither.fromTaskOption(() => 'Project not found'),
-                taskEither.chain(
-                  flow(
-                    syncProject,
-                    taskEither.mapLeft((e) => `Sync error: ${e.message}`),
-                  ),
-                ),
+                taskEither.fromTaskOption(() => {
+                  throw invariantViolated('Project to sync not found');
+                }),
+                taskEither.chainFirst(syncProject),
                 taskEither.map(constVoid),
               )}
               onRemove={projectRepository.removeProject}

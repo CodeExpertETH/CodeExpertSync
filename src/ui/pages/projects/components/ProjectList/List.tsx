@@ -2,6 +2,7 @@ import { List as AntList, Card, Typography } from 'antd';
 import React from 'react';
 import { task, taskEither } from '@code-expert/prelude';
 import { Project, ProjectId } from '@/domain/Project';
+import { SyncException } from '@/domain/SyncState';
 import { VStack } from '@/ui/foundation/Layout';
 import { styled } from '@/ui/foundation/Theme';
 import { ListItem } from './ListItem';
@@ -17,7 +18,7 @@ export interface ListProps {
   exerciseName: string;
   projects: Array<Project>;
   onOpen(id: ProjectId): taskEither.TaskEither<string, void>;
-  onSync(id: ProjectId): taskEither.TaskEither<string, void>;
+  onSync(id: ProjectId): taskEither.TaskEither<SyncException, void>;
   onRemove(id: ProjectId): task.Task<void>;
 }
 

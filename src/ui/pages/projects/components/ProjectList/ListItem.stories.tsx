@@ -2,6 +2,7 @@ import { Meta, StoryObj } from '@storybook/react';
 import { List } from 'antd';
 import React from 'react';
 import { either, flow, taskEither } from '@code-expert/prelude';
+import { syncExceptionADT } from '@/domain/SyncState';
 import {
   localProject,
   openProject,
@@ -46,7 +47,7 @@ export const FailSync = {
   args: {
     onSync: flow(
       syncProject,
-      taskEither.chainEitherK(() => either.left('The project could not be synced.')),
+      taskEither.mapLeft(() => syncExceptionADT.projectDirMissing()),
     ),
   },
 } satisfies Story;
@@ -61,7 +62,7 @@ export const FailBoth = {
     ),
     onSync: flow(
       syncProject,
-      taskEither.chainEitherK(() => either.left('The project could not be synced.')),
+      taskEither.mapLeft(() => syncExceptionADT.projectDirMissing()),
     ),
   },
 } satisfies Story;
