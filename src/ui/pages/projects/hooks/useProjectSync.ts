@@ -451,32 +451,28 @@ const getFilesToUpload = (local: Array<LocalFileChange>, remote: Array<RemoteFil
     taskEither.map(array.unsafeFromReadonly),
   );
 
-const getFilesToDownload = (
-  remoteChanges: Array<RemoteFileChange>,
-  projectInfoRemote: Array<RemoteFileInfo>,
-): taskEither.TaskEither<Exception, Array<RemoteFileInfo>> =>
-  pipe(
-    projectInfoRemote,
-    array.filter(({ path }) =>
-      pipe(
-        remoteChanges,
-        array.filter((c) =>
-          remoteFileChange.fold(c.change, {
-            noChange: constFalse,
-            added: constTrue,
-            removed: constFalse,
-            updated: constTrue,
-          }),
+const getFilesToDownload =
+  (projectInfoRemote: Array<RemoteFileInfo>) =>
+  (remoteChanges: Array<RemoteFileChange>): Array<RemoteFileInfo> =>
+    pipe(
+      projectInfoRemote,
+      array.filter(({ path }) =>
+        pipe(
+          remoteChanges,
+          array.filter((c) =>
+            remoteFileChange.fold(c.change, {
+              noChange: constFalse,
+              added: constTrue,
+              removed: constFalse,
+              updated: constTrue,
+            }),
+          ),
+          array.exists((file) => file.path === path),
         ),
-        array.exists((file) => file.path === path),
       ),
-    ),
-    taskEither.of,
-  );
+    );
 
-const getFilesToDelete = (
-  remoteChanges: Array<RemoteFileChange>,
-): taskEither.TaskEither<Exception, Array<RemoteFileChange>> =>
+const getFilesToDelete = (remoteChanges: Array<RemoteFileChange>): Array<RemoteFileChange> =>
   pipe(
     remoteChanges,
     array.filter((c) =>
@@ -487,7 +483,6 @@ const getFilesToDelete = (
         updated: constFalse,
       }),
     ),
-    taskEither.of,
   );
 
 export const uploadChangedFiles = (
@@ -497,17 +492,21 @@ export const uploadChangedFiles = (
   localChanges: Array<LocalFileChange>,
 ): taskEither.TaskEither<Exception, unknown> =>
   pipe(
-    localChanges,
-    array.filter((c) =>
-      localFileChange.fold(c.change, {
-        noChange: constFalse,
-        added: constTrue,
-        removed: constFalse,
-        updated: constTrue,
-      }),
+    taskEither.Do,
+    taskEither.let('uploadFiles', () =>
+      pipe(
+        localChanges,
+        array.filter((c) =>
+          localFileChange.fold(c.change, {
+            noChange: constFalse,
+            added: constTrue,
+            removed: constFalse,
+            updated: constTrue,
+          }),
+        ),
+        array.map(({ path }) => path),
+      ),
     ),
-    array.traverse(taskEither.ApplicativePar)(({ path }) => taskEither.of(path)),
-    taskEither.bindTo('uploadFiles'),
     taskEither.bind('archivePath', () =>
       pipe(
         libOs.tempDir(),
@@ -521,7 +520,7 @@ export const uploadChangedFiles = (
     taskEither.bind('tarHash', ({ uploadFiles, archivePath }) =>
       api.buildTar(archivePath, projectDir, uploadFiles),
     ),
-    taskEither.bindW('removeFiles', () =>
+    taskEither.let('removeFiles', () =>
       pipe(
         localChanges,
         array.filter((c) =>
@@ -532,7 +531,7 @@ export const uploadChangedFiles = (
             updated: constFalse,
           }),
         ),
-        array.traverse(taskEither.ApplicativePar)(({ path }) => taskEither.of(path)),
+        array.map(({ path }) => path),
       ),
     ),
     taskEither.bind('body', ({ uploadFiles, archivePath }) =>
@@ -564,15 +563,15 @@ const checkConflicts = <R>({
 }: {
   localChanges: option.Option<NonEmptyArray<LocalFileChange>>;
   remoteChanges: option.Option<NonEmptyArray<RemoteFileChange>>;
-} & R): taskEither.TaskEither<Exception, void> =>
+} & R): either.Either<Exception, void> =>
   pipe(
     option.sequenceS({ local: localChanges, remote: remoteChanges }),
     option.chain(({ local, remote }) => getConflicts(local, remote)),
     option.fold(
-      () => taskEither.of(undefined),
+      () => either.right(undefined),
       (conflicts) => {
         console.log(conflicts);
-        return taskEither.left(invariantViolated('Conflicts are not yet handled'));
+        return either.left(invariantViolated('Conflicts are not yet handled'));
       },
     ),
   );
@@ -639,7 +638,7 @@ export const useProjectSync = () => {
             option.chain(({ local, previous }) => getLocalChanges(previous, local)),
           ),
         ),
-        taskEither.chainFirstW(checkConflicts),
+        taskEither.chainFirstEitherKW(checkConflicts),
         taskEither.bind('filesToUpload', ({ localChanges, projectInfoRemote }) =>
           pipe(
             localChanges,
@@ -648,19 +647,11 @@ export const useProjectSync = () => {
             ),
           ),
         ),
-        taskEither.bind('filesToDownload', ({ remoteChanges, projectInfoRemote }) =>
-          pipe(
-            remoteChanges,
-            option.traverse(taskEither.ApplicativePar)((changes) =>
-              getFilesToDownload(changes, projectInfoRemote.files),
-            ),
-          ),
+        taskEither.let('filesToDownload', ({ remoteChanges, projectInfoRemote }) =>
+          pipe(remoteChanges, option.map(getFilesToDownload(projectInfoRemote.files))),
         ),
-        taskEither.bind('filesToDelete', ({ remoteChanges }) =>
-          pipe(
-            remoteChanges,
-            option.traverse(taskEither.ApplicativePar)((changes) => getFilesToDelete(changes)),
-          ),
+        taskEither.let('filesToDelete', ({ remoteChanges }) =>
+          pipe(remoteChanges, option.map(getFilesToDelete)),
         ),
         // upload local changed files
         taskEither.chainFirst(({ projectDir, filesToUpload }) =>
