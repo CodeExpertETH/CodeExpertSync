@@ -35,23 +35,27 @@ export function useRemoteData<P, A>(run: (props: P) => task.Task<A>) {
  *
  * Because we're dealing with a Task, there is no error channel.
  */
-export function useRemoteData2<P, A>(run: (props: P) => task.Task<A>) {
+export function useRemoteData2<P extends ReadonlyArray<unknown>, A>(
+  run: (...props: P) => task.Task<A>,
+) {
   return useRemoteDataEither(flow(run, task.map(either.right)));
 }
 
 /**
  * Run a `TaskEither` and represent the states before, during and after as `RemoteData`.
  */
-export function useRemoteDataEither<P, E, A>(run: (props: P) => taskEither.TaskEither<E, A>) {
+export function useRemoteDataEither<P extends ReadonlyArray<unknown>, E, A>(
+  run: (...props: P) => taskEither.TaskEither<E, A>,
+) {
   const [state, mkSetState] = useRaceState<remoteData.RemoteData<E, A>>(remoteData.initial);
 
   const { current } = React.useRef({
     run,
-    refresh(props: P) {
+    refresh(...props: P) {
       const setState = mkSetState();
       setState(remoteData.pending);
       void pipe(
-        current.run(props),
+        current.run(...props),
         taskEither.matchW(remoteData.failure, remoteData.success),
         task.chainIOK((x) => () => setState(x)),
         task.run,

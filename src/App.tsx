@@ -39,7 +39,7 @@ export function App() {
   }, [clientIdRD, currentRoute, navigateTo]);
 
   useEffect(() => {
-    refreshClientId({});
+    refreshClientId();
   }, [refreshClientId]);
 
   return pipe(
