@@ -1,5 +1,5 @@
 use std::fs;
-use std::fs::File;
+use std::fs::{File, Permissions};
 use std::io::Write;
 use std::path::Path;
 
@@ -21,15 +21,23 @@ fn set_read_only(path: &Path) -> Result<(), String> {
         .map_err(|e| format!("Could not set permissions of file: {e}"))
 }
 
-fn remove_read_only(path: &Path) -> Result<(), String> {
+fn set_permissions(path: &Path, perms: Permissions) -> Result<(), String> {
+    File::open(path)
+        .and_then(|f| f.set_permissions(perms))
+        .map(|_| ())
+        .map_err(|e| format!("Could not set permissions of file: {e}"))
+}
+
+fn remove_read_only(path: &Path) -> Result<Permissions, String> {
     File::open(path)
         .and_then(|f| {
             f.metadata().map(|m| m.permissions()).map(|mut p| {
+                let prev_perms = p.clone();
                 p.set_readonly(false);
-                f.set_permissions(p)
+                let _ = f.set_permissions(p);
+                prev_perms
             })
         })
-        .map(|_| ())
         .map_err(|e| format!("Could not set permissions of file: {e}"))
 }
 
@@ -59,7 +67,7 @@ fn set_path_read_only(root_path: &Path, path: &Path, existing_path: &Path) -> Re
     Ok(())
 }
 #[tauri::command]
-pub fn create_project_dir(path: String, root: String) -> Result<(), String> {
+pub fn create_project_path(path: String, root: String) -> Result<(), String> {
     let create_path = Path::new(&path);
     let root_path = Path::new(&root);
     get_existing_path(create_path).and_then(|existing_path| {
@@ -76,20 +84,44 @@ pub fn create_project_dir(path: String, root: String) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn write_file(path: String, contents: Vec<u8>, read_only: bool) -> Result<(), String> {
-    let binding = Path::new(&path);
+pub fn create_project_dir(path: String, read_only: bool) -> Result<(), String> {
+    let create_path = Path::new(&path);
+    create_path
+        .parent()
+        .ok_or("Could not get parent path".to_string())
+        .and_then(|parent| {
+            let parent_permissions = remove_read_only(parent)?;
 
-    File::create(&binding)
-        .map_err(|e| format!("Could not create file: {e}"))
-        .and_then(|mut f| {
-            f.write_all(&contents)
-                .map_err(|e| format!("Could not write to file: {e}"))
-        })
-        .and_then(|_| {
+            fs::create_dir_all(create_path).map_err(|e| format!("Could not create dir: {e}"))?;
             if read_only {
-                set_read_only(&binding)
-            } else {
-                Ok(())
+                set_read_only(create_path)?;
             }
+            set_permissions(parent, parent_permissions)
+        })
+}
+
+#[tauri::command]
+pub fn write_file(path: String, contents: Vec<u8>, read_only: bool) -> Result<(), String> {
+    let create_path = Path::new(&path);
+    create_path
+        .parent()
+        .ok_or("Could not get parent path".to_string())
+        .and_then(|parent| {
+            let parent_permissions = remove_read_only(parent)?;
+
+            File::create(create_path)
+                .map_err(|e| format!("Could not create file: {e}"))
+                .and_then(|mut f| {
+                    f.write_all(&contents)
+                        .map_err(|e| format!("Could not write to file: {e}"))
+                })
+                .and_then(|_| {
+                    if read_only {
+                        set_read_only(create_path)
+                    } else {
+                        Ok(())
+                    }
+                })
+                .and_then(|_| set_permissions(parent, parent_permissions))
         })
 }

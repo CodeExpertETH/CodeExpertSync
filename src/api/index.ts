@@ -39,7 +39,8 @@ export interface Api {
   ): taskEither.TaskEither<Exception, void>;
   removeDir(filePath: string): taskEither.TaskEither<Exception, void>;
   getFileHash(filePath: string): taskEither.TaskEither<Exception, string>;
-  createProjectDir(filePath: string): taskOption.TaskOption<void>;
+  createProjectDir(filePath: string, readOnly: boolean): taskOption.TaskOption<void>;
+  createProjectPath(filePath: string): taskOption.TaskOption<void>;
   exists(path: string): task.Task<boolean>;
   logout(): task.Task<void>;
   getSystemInfo: taskOption.TaskOption<string>;
@@ -84,13 +85,15 @@ export const api: Api = {
   removeDir: (filePath) =>
     taskEither.tryCatch(() => removeDir(filePath, { recursive: true }), fromError),
   getFileHash: (path) => taskEither.tryCatch(() => invoke('get_file_hash', { path }), fromError),
-  createProjectDir: (path) =>
+  createProjectPath: (path) =>
     pipe(
       api.settingRead('projectDir', iots.string),
       taskOption.chain((root) =>
-        taskOption.tryCatch(() => invoke('create_project_dir', { path, root })),
+        taskOption.tryCatch(() => invoke('create_project_path', { path, root })),
       ),
     ),
+  createProjectDir: (path, readOnly) =>
+    taskOption.tryCatch(() => invoke('create_project_dir', { path, readOnly })),
   writeProjectFile: (filePath, content, readOnly) =>
     taskEither.tryCatch(
       () =>

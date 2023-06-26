@@ -13,7 +13,9 @@ import {
   iots,
   monoid,
   nonEmptyArray,
+  number,
   option,
+  ord,
   pipe,
   string,
   tagged,
@@ -50,6 +52,34 @@ const fromException = <A>(
 
 // -------------------------------------------------------------------------------------------------
 
+function updateDir({
+  projectDirPath,
+  projectDir,
+  permissions,
+}: {
+  projectDirPath: string;
+  projectDir: string;
+  permissions: FilePermissions;
+}): taskEither.TaskEither<SyncException, void> {
+  return pipe(
+    taskEither.Do,
+    taskEither.bind('systemFilePath', () =>
+      fromException(libPath.join(projectDir, projectDirPath)),
+    ),
+    taskEither.chainW(({ systemFilePath }) =>
+      pipe(
+        api.createProjectDir(systemFilePath, permissions === 'r'),
+        taskEither.fromTaskOption(() =>
+          syncExceptionADT.fileSystemCorrupted({
+            path: projectDir,
+            reason: 'Project dir could not be created',
+          }),
+        ),
+      ),
+    ),
+  );
+}
+
 const writeSingeFile = ({
   projectFilePath,
   projectId,
@@ -72,7 +102,7 @@ const writeSingeFile = ({
     ),
     taskEither.chainFirst(({ systemFilePath }) =>
       pipe(
-        api.createProjectDir(projectDir),
+        api.createProjectPath(projectDir),
         taskEither.fromTaskOption(() =>
           syncExceptionADT.fileSystemCorrupted({
             path: projectDir,
@@ -321,6 +351,12 @@ const getConflicts = (
   );
   return pipe(conflicts, nonEmptyArray.fromArray);
 };
+
+const getDirToUpdate = (projectInfoRemote: Array<RemoteFileInfo>): Array<RemoteFileInfo> =>
+  pipe(
+    projectInfoRemote,
+    array.filter((file) => !isFile(file)),
+  );
 
 const RemoteFileInfoC = iots.strict({
   path: iots.string,
@@ -758,27 +794,42 @@ export const useProjectSync = () => {
           ),
         ),
         // download and write added and updated files
-        taskEither.chainFirst(({ filesToDownload, projectDir }) =>
+        taskEither.chainFirst(({ filesToDownload, projectDir, projectInfoRemote }) =>
           pipe(
-            filesToDownload,
-            option.foldW(
-              () => taskEither.of<SyncException, void>(undefined),
-              (filesToDownload) =>
-                pipe(
-                  filesToDownload,
-                  array.traverse(taskEither.ApplicativeSeq)(
-                    ({ path, permissions, type, version }) =>
-                      writeSingeFile({
-                        projectFilePath: path,
-                        projectId: project.value.projectId,
-                        projectDir,
-                        type,
-                        version,
-                        permissions,
-                      }),
-                  ),
-                  taskEither.map(constVoid),
+            getDirToUpdate(projectInfoRemote.files),
+            array.sort(
+              ord.contramap((dir: { path: string }) => dir.path.split('/').length)(number.Ord),
+            ),
+            array.traverse(taskEither.ApplicativeSeq)((dir) =>
+              updateDir({
+                projectDir,
+                projectDirPath: dir.path,
+                permissions: dir.permissions,
+              }),
+            ),
+            taskEither.chain(() =>
+              pipe(
+                filesToDownload,
+                option.foldW(
+                  () => taskEither.of<SyncException, void>(undefined),
+                  (filesToDownload) =>
+                    pipe(
+                      filesToDownload,
+                      array.traverse(taskEither.ApplicativeSeq)(
+                        ({ path, permissions, type, version }) =>
+                          writeSingeFile({
+                            projectFilePath: path,
+                            projectId: project.value.projectId,
+                            projectDir,
+                            type,
+                            version,
+                            permissions,
+                          }),
+                      ),
+                      taskEither.map(constVoid),
+                    ),
                 ),
+              ),
             ),
           ),
         ),
