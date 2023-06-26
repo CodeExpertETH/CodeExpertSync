@@ -67,6 +67,7 @@ export function Projects({ clientId, course }: { clientId: ClientId; course: Cou
         option.fold(
           () => {
             dispatch({ setupState: globalSetupState.setup({ state: setupState.noProjectSync() }) });
+            return null;
           },
           (xs) => <VStack gap="lg">{xs}</VStack>,
         ),
