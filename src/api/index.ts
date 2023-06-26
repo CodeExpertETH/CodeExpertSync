@@ -116,5 +116,5 @@ export const api: Api = {
         );
       }, constVoid),
     ),
-  getSystemInfo: taskOption.tryCatch(() => invoke('system_info')),
+  getSystemInfo: async () => option.fromNullable<string>(await invoke('system_info')),
 };
