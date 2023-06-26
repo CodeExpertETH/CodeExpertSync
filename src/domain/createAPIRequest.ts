@@ -50,7 +50,7 @@ const toHeaders: (b: RequestBody) => Record<string, string> = requestBody.fold({
 });
 
 const toBody: (b: RequestBody) => Body = requestBody.fold({
-  json: (j) => Body.json(j as $Unexpressable), // fixme: tauri types say Body.json doesn't accept 'null', check what happens in that case
+  json: (j) => Body.json(j === null ? (j as $Unexpressable) : j), // Body.json claims it doesn't handle 'null', but does in fact accept it
   binary: ({ body }) => Body.bytes(body),
 });
 
