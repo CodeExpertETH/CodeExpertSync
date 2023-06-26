@@ -56,7 +56,7 @@ export function useRemoteDataEither<P extends ReadonlyArray<unknown>, E, A>(
       setState(remoteData.pending);
       void pipe(
         current.run(...props),
-        taskEither.matchW(remoteData.failure, remoteData.success),
+        task.map(remoteData.fromEither),
         task.chainIOK((x) => () => setState(x)),
         task.run,
       );
