@@ -11,8 +11,9 @@ import {
   taskEither,
 } from '@code-expert/prelude';
 import { ClientId } from '@/domain/ClientId';
+import { globalSetupState, setupState } from '@/domain/Setup';
 import { invariantViolated } from '@/domain/exception';
-import { useGlobalContext } from '@/ui/GlobalContext';
+import { useGlobalContext, useGlobalContextWithActions } from '@/ui/GlobalContext';
 import { CourseHeader } from '@/ui/components/CourseHeader';
 import { VStack } from '@/ui/foundation/Layout';
 import { PageLayout } from '@/ui/layout/PageLayout';
@@ -24,7 +25,7 @@ import { useProjectSync } from '@/ui/pages/projects/hooks/useProjectSync';
 import { useProjectEventUpdate } from './hooks/useProjectEventUpdate';
 
 export function Projects({ clientId, course }: { clientId: ClientId; course: CourseItem }) {
-  const { projectRepository } = useGlobalContext();
+  const [{ projectRepository }, dispatch] = useGlobalContextWithActions();
   const projects = pipe(
     useProperty(projectRepository.projects),
     array.filter((project) => courseItemEq.equals(fromProject(project), course)),
@@ -65,7 +66,9 @@ export function Projects({ clientId, course }: { clientId: ClientId; course: Cou
           )),
         ),
         option.fold(
-          () => <Typography.Text type="secondary">No projects</Typography.Text>,
+          () => {
+            dispatch({ setupState: globalSetupState.setup({ state: setupState.noProjectSync() }) });
+          },
           (xs) => <VStack gap="lg">{xs}</VStack>,
         ),
       )}
