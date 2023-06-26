@@ -1,5 +1,4 @@
 import { useProperty } from '@frp-ts/react';
-import { Typography } from 'antd';
 import React from 'react';
 import {
   array,
@@ -13,7 +12,7 @@ import {
 import { ClientId } from '@/domain/ClientId';
 import { globalSetupState, setupState } from '@/domain/Setup';
 import { invariantViolated } from '@/domain/exception';
-import { useGlobalContext, useGlobalContextWithActions } from '@/ui/GlobalContext';
+import { useGlobalContextWithActions } from '@/ui/GlobalContext';
 import { CourseHeader } from '@/ui/components/CourseHeader';
 import { VStack } from '@/ui/foundation/Layout';
 import { PageLayout } from '@/ui/layout/PageLayout';
