@@ -12,7 +12,9 @@ import {
   iots,
   monoid,
   nonEmptyArray,
+  number,
   option,
+  ord,
   pipe,
   string,
   tagged,
@@ -41,22 +43,23 @@ import { removeFile } from '@/lib/tauri/fs';
 import { useGlobalContext } from '@/ui/GlobalContext';
 import { useTimeContext } from '@/ui/contexts/TimeContext';
 
-function createProjectDir({
+function updateDir({
   projectDirPath,
   projectDir,
   permissions,
-  type,
 }: {
   projectDirPath: string;
   projectDir: string;
   permissions: FilePermissions;
-  type: 'dir';
 }) {
   return pipe(
     taskEither.Do,
     taskEither.bind('systemFilePath', () => libPath.join(projectDir, projectDirPath)),
-    taskEither.chainFirst(({ systemFilePath }) =>
-      api.createProjectDir(systemFilePath, permissions === 'r'),
+    taskEither.chainFirstW(({ systemFilePath }) =>
+      pipe(
+        api.createProjectDir(systemFilePath, permissions === 'r'),
+        taskEither.fromTaskOption(() => invariantViolated('Project dir could not be created')),
+      ),
     ),
   );
 }
@@ -80,7 +83,7 @@ function writeSingeFile({
     taskEither.bind('systemFilePath', () => libPath.join(projectDir, projectFilePath)),
     taskEither.chainFirst(({ systemFilePath }) =>
       pipe(
-        api.createProjectDir(projectDir),
+        api.createProjectPath(projectDir),
         taskEither.fromTaskOption(() => invariantViolated('Project dir could not be created')),
         taskEither.chain(() =>
           createSignedAPIRequest({
@@ -505,6 +508,15 @@ const getFilesToDownload = (
     taskEither.of,
   );
 
+const getDirToUpdate = (
+  projectInfoRemote: Array<RemoteFileInfo>,
+): taskEither.TaskEither<Exception, Array<RemoteFileInfo>> =>
+  pipe(
+    projectInfoRemote,
+    array.filter((file) => !isFile(file)),
+    taskEither.of,
+  );
+
 const getFilesToDelete = (
   remoteChanges: Array<RemoteFileChange>,
 ): taskEither.TaskEither<Exception, Array<RemoteFileChange>> =>
@@ -687,6 +699,9 @@ export const useProjectSync = () => {
             ),
           ),
         ),
+        taskEither.bind('getDirToUpdate', ({ projectInfoRemote }) =>
+          getDirToUpdate(projectInfoRemote.files),
+        ),
         taskEither.bind('filesToDelete', ({ remoteChanges }) =>
           pipe(
             remoteChanges,
@@ -710,38 +725,46 @@ export const useProjectSync = () => {
           ),
         ),
         // download and write added and updated files
-        taskEither.chainFirst(({ filesToDownload, projectDir, projectInfoRemote }) =>
-          pipe(
-            filesToDownload,
-            option.foldW(
-              () => taskEither.of(undefined),
-              (filesToDownload) =>
-                pipe(
-                  projectInfoRemote.files,
-                  array.filter((file) => !isFile(file)),
-                  (x) => x,
-                  array.traverse(taskEither.ApplicativeSeq)(
-                    ({ path, permissions, type, version }) => {
-                      console.log(path);
-                      return taskEither.of<Exception, undefined>(undefined);
-                    },
-                  ),
-                  array.chain(() => filesToDownload),
-                  array.traverse(taskEither.ApplicativeSeq)(
-                    ({ path, permissions, type, version }) =>
-                      writeSingeFile({
-                        projectFilePath: path,
-                        projectId: project.value.projectId,
-                        projectDir,
-                        type,
-                        version,
-                        permissions,
-                      }),
-                  ),
-                ),
+        taskEither.chainFirst(({ filesToDownload, projectDir, getDirToUpdate }) => {
+          console.log(getDirToUpdate);
+
+          return pipe(
+            getDirToUpdate,
+            array.sort(
+              ord.contramap((dir: { path: string }) => dir.path.split('/').length)(number.Ord),
             ),
-          ),
-        ),
+            array.traverse(taskEither.ApplicativeSeq)((dir) =>
+              updateDir({
+                projectDir,
+                projectDirPath: dir.path,
+                permissions: dir.permissions,
+              }),
+            ),
+            taskEither.chain(() =>
+              pipe(
+                filesToDownload,
+                option.foldW(
+                  () => taskEither.of(undefined),
+                  (filesToDownload) =>
+                    pipe(
+                      filesToDownload,
+                      array.traverse(taskEither.ApplicativeSeq)(
+                        ({ path, permissions, type, version }) =>
+                          writeSingeFile({
+                            projectFilePath: path,
+                            projectId: project.value.projectId,
+                            projectDir,
+                            type,
+                            version,
+                            permissions,
+                          }),
+                      ),
+                    ),
+                ),
+              ),
+            ),
+          );
+        }),
         //delete remote removed files
         taskEither.chainFirst(({ filesToDelete, projectDir }) =>
           pipe(
@@ -799,10 +822,10 @@ export const useProjectSync = () => {
             }),
           ),
         ),
-        taskEither.map((d) => {
-          console.log(d);
-          return d;
-        }),
+        // taskEither.map((d) => {
+        //   console.log(d);
+        //   return d;
+        // }),
         // taskEither.mapLeft((e) => {
         //   console.log('end error');
         //   console.error(e);
