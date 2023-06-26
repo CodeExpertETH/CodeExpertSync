@@ -3,7 +3,8 @@ import equal from 'fast-deep-equal';
 import React, { useEffect } from 'react';
 import { pipe, task } from '@code-expert/prelude';
 import { ProjectRepository } from '@/domain/ProjectRepository';
-import { GlobalSetupState, getSetupState } from '@/domain/Setup';
+import { GlobalSetupState, getSetupState, globalSetupState } from '@/domain/Setup';
+import { updateStateADT, useUpdate } from '@/ui/pages/update/hooks/useUpdate';
 import Loading from './components/Loading';
 
 export interface GlobalContext {
@@ -42,6 +43,7 @@ export const GlobalContextProvider = React.memo(function GlobalContextProvider({
   projectRepository,
 }: React.PropsWithChildren<{ projectRepository: ProjectRepository }>) {
   const [state, stateDispatch] = React.useReducer(reducer, undefined);
+  const updateState = useUpdate();
 
   useEffect(() => {
     if (state == null) {
@@ -59,6 +61,25 @@ export const GlobalContextProvider = React.memo(function GlobalContextProvider({
       );
     }
   }, [projectRepository, state]);
+
+  useEffect(() => {
+    void pipe(
+      updateState,
+      updateStateADT.fold({
+        noUpdate: () => undefined,
+        update: (manifest) => {
+          if (state != null && state.setupState._tag !== 'update') {
+            stateDispatch({
+              _init: initialState({
+                setupState: globalSetupState.update({ manifest }),
+                projectRepository,
+              }),
+            });
+          }
+        },
+      }),
+    );
+  }, [projectRepository, state, updateState]);
 
   return state == null
     ? React.createElement(Loading, { delayTime: 1000 })

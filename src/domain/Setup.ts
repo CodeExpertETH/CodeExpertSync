@@ -1,3 +1,4 @@
+import { UpdateManifest } from '@tauri-apps/api/updater';
 import { api } from 'api';
 import React from 'react';
 import {
@@ -22,6 +23,7 @@ export const setupState = tagged.build<SetupState>();
 export const globalSetupState = tagged.build<GlobalSetupState>();
 export type GlobalSetupState =
   | tagged.Tagged<'setup', { state: SetupState }>
+  | tagged.Tagged<'update', { manifest: UpdateManifest }>
   | tagged.Tagged<'setupDone'>;
 
 const getSetupStateNoSync = (projectRepository: ProjectRepository): GlobalSetupState =>

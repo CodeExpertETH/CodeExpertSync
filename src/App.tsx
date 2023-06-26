@@ -14,6 +14,7 @@ import { Logout } from '@/ui/pages/logout';
 import { Projects } from '@/ui/pages/projects';
 import { Settings } from '@/ui/pages/settings';
 import { Setup } from '@/ui/pages/setup';
+import { Updater } from '@/ui/pages/update';
 import { routes, useRoute } from '@/ui/routes';
 
 export function App() {
@@ -55,6 +56,7 @@ export function App() {
       () =>
         globalSetupState.fold(setupState, {
           setup: ({ state }) => <Setup state={state} />,
+          update: ({ manifest }) => <Updater manifest={manifest} />,
           setupDone: () =>
             routes.fold(currentRoute, {
               startup: () => <div>Starting …</div>,

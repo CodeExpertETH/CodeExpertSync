@@ -6,6 +6,7 @@ import { ClientId } from '@/domain/ClientId';
 import { SetupState, setupState } from '@/domain/Setup';
 import { EntityNotFoundException } from '@/domain/exception';
 import { GuardRemoteData } from '@/ui/components/GuardRemoteData';
+import { VStack } from '@/ui/foundation/Layout';
 import { useAsync } from '@/ui/hooks/useAsync';
 import { LoginStep } from '@/ui/pages/setup/LoginStep';
 import { ProjectDirStep } from '@/ui/pages/setup/ProjectDirStep';
@@ -40,7 +41,7 @@ export function Setup(props: { state: SetupState }) {
     <GuardRemoteData
       value={clientId}
       render={(clientId) => (
-        <>
+        <VStack mh>
           <Typography.Title level={5} type="secondary" style={{ marginTop: '1rem' }}>
             Setup
           </Typography.Title>
@@ -73,7 +74,7 @@ export function Setup(props: { state: SetupState }) {
               },
             ]}
           />
-        </>
+        </VStack>
       )}
     />
   );

@@ -71,7 +71,7 @@
       "endpoints": [
         "https://update-desktop-rduxf6hsba-oa.a.run.app?current_version={{current_version}}&target={{target}}&arch={{arch}}"
       ],
-      "dialog": true,
+      "dialog": false,
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEM2REM4NDYxNTEyQzRFN0IKUldSN1RpeFJZWVRjeHBFTXN1alp6cktrYm1BZkhMMHNzYUQ4dkc1WmNjZjdCbHQ3a3E2UVVEUHQK"
     },
     "systemTray": {
