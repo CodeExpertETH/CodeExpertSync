@@ -1,7 +1,7 @@
-import { $Unexpressable } from '@code-expert/type-utils';
 import React from 'react';
 import { tagged } from '@code-expert/prelude';
 import { ClientId } from '@/domain/ClientId';
+import { requireNonNull } from '@/domain/exception';
 import { CourseItem } from '@/ui/pages/courses/components/model';
 
 export type Route =
@@ -18,9 +18,7 @@ export const routes = tagged.build<Route>();
 
 type RouteContext = { currentRoute: Route; navigateTo(route: Route): void };
 
-const context = React.createContext<RouteContext>(
-  undefined as $Unexpressable /* Throw if no context is set */,
-);
+const context = React.createContext<RouteContext | undefined>(undefined);
 
 export const RouteContextProvider = React.memo(function RouteContextProvider({
   children,
@@ -33,4 +31,8 @@ export const RouteContextProvider = React.memo(function RouteContextProvider({
   );
 });
 
-export const useRoute = () => React.useContext(context);
+export const useRoute = () =>
+  requireNonNull(
+    React.useContext(context),
+    'useRoute must not be used without a RouteContextProvider',
+  );
