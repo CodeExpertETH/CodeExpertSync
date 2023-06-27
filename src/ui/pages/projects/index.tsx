@@ -21,6 +21,7 @@ import { ProjectList } from '@/ui/pages/projects/components/ProjectList';
 import { projectsByExercise } from '@/ui/pages/projects/components/ProjectList/model/Exercise';
 import { useProjectOpen } from '@/ui/pages/projects/hooks/useProjectOpen';
 import { useProjectSync } from '@/ui/pages/projects/hooks/useProjectSync';
+import { routes, useRoute } from '@/ui/routes';
 import { useProjectEventUpdate } from './hooks/useProjectEventUpdate';
 
 export function Projects({ clientId, course }: { clientId: ClientId; course: CourseItem }) {
@@ -31,12 +32,17 @@ export function Projects({ clientId, course }: { clientId: ClientId; course: Cou
   );
   const openProject = useProjectOpen();
   const syncProject = useProjectSync();
+  const { navigateTo } = useRoute();
+
+  const goOverview = () => {
+    navigateTo(routes.courses(clientId));
+  };
 
   useProjectEventUpdate(projectRepository.fetchChanges, clientId);
 
   return (
     <PageLayout>
-      <CourseHeader title={course.name} />
+      <CourseHeader semester={course.semester} title={course.name} goOverview={goOverview} />
       {pipe(
         nonEmptyArray.fromArray(projects),
         option.map(projectsByExercise),
