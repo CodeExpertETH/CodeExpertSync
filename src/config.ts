@@ -13,6 +13,7 @@ const Url = iots.brand(
 const Config = iots.type({
   CX_WEB_URL: Url,
   CX_API_URL: Url,
+  CX_REPO_RELEASE: Url,
   GITHUB_SHA: iots.union([iots.string, iots.undefined]),
 });
 

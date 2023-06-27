@@ -3,6 +3,7 @@ import { UpdateManifest, installUpdate } from '@tauri-apps/api/updater';
 import { Alert, Button, Spin, Typography } from 'antd';
 import React from 'react';
 import { pipe, tagged, taskEither } from '@code-expert/prelude';
+import { config } from '@/config';
 import { Box, VStack } from '@/ui/foundation/Layout';
 
 export type UpdateStatus =
@@ -23,7 +24,7 @@ const relaunchT = taskEither.tryCatch(
 
 export const updateStatus = tagged.build<UpdateStatus>();
 export function Updater(props: { manifest: UpdateManifest }) {
-  const href = `https://github.com/CodeExpertETH/CodeExpertDesktop/releases/tag/v${props.manifest.version}`;
+  const href = `${config.CX_REPO_RELEASE}/tag/v${props.manifest.version}`;
   const [status, setStatus] = React.useState<UpdateStatus>(updateStatus.start);
   const installUpdateL = () =>
     pipe(
