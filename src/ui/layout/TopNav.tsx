@@ -37,6 +37,7 @@ export const TopNav = ({ clientId }: { clientId: ClientId }) => {
         disabled={globalSetupState.fold(setupState, {
           setup: () => true,
           setupDone: () => false,
+          update: () => true,
         })}
         triggerSubMenuAction="click"
         items={[

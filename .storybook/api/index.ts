@@ -31,6 +31,9 @@ export const api: Api = {
   createProjectDir: () => {
     throw new Error('[Storybook] Not implemented');
   },
+  createProjectPath: () => {
+    throw new Error('[Storybook] Not implemented');
+  },
   logout: () => task.of(undefined),
   getSystemInfo: taskOption.of('Storybook'),
 };

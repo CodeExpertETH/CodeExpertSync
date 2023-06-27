@@ -7,7 +7,6 @@ export type UpdateState = tagged.Tagged<'noUpdate'> | tagged.Tagged<'update', Up
 export const updateStateADT = tagged.build<UpdateState>();
 
 export const useUpdate = (): UpdateState => {
-  console.log('use update');
   const [shouldUpdate, setShouldUpdate] = React.useState(false);
   const [manifest, setManifest] = React.useState<UpdateManifest | undefined>(undefined);
 
@@ -24,7 +23,7 @@ export const useUpdate = (): UpdateState => {
     shouldUpdate,
     boolean.foldW(
       () => updateStateADT.noUpdate(),
-      () => updateStateADT.update(manifest!),
+      () => updateStateADT.update(manifest as UpdateManifest), //if there is a update, manifest is defined
     ),
   );
 };
