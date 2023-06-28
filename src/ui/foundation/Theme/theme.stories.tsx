@@ -6,6 +6,7 @@ import React from 'react';
 import {
   adt,
   array,
+  boolean,
   eq,
   fn,
   nonEmptyArray,
@@ -79,7 +80,7 @@ export const Typography = () => (
 interface TokenSpec {
   name: string;
   group: Group;
-  value: string | number;
+  value: string | number | boolean;
 }
 
 const useTokenSpecs = (filteredGroup: Group): Array<TokenSpec> => {
@@ -157,7 +158,7 @@ const ColorPalette = () => {
                   height: 44,
                   width: '100%',
                   padding: 8,
-                  background: value,
+                  background: boolean.isBoolean(value) ? undefined : value,
                   color: invertText ? 'white' : 'black',
                   cursor: 'pointer',
                 }}
@@ -377,6 +378,8 @@ const ordTokenValue = ord.contramap(({ name, value }: TokenSpec) => {
   }
 
   if (number.isNumber(value)) return fn.tuple('number', value, 0);
+
+  if (boolean.isBoolean(value)) return fn.tuple('boolean', 0, 0);
 
   return fn.tuple(value, 0, 0);
 })(ord.tuple(string.Ord, number.Ord, number.Ord));

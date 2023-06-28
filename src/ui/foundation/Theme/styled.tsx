@@ -1,5 +1,7 @@
+import { Theme as AntTheme } from '@ant-design/cssinjs';
 import { $Unexpressable } from '@code-expert/type-utils';
 import { theme as antdTheme } from 'antd';
+import { MapToken, SeedToken } from 'antd/es/theme/interface';
 import { nanoid } from 'nanoid/non-secure';
 import React, {
   Attributes,
@@ -164,11 +166,18 @@ export const css: <C extends CSSWithVariants>(
     const appTheme = useTheme();
     const { theme, token, hashId } = antdTheme.useToken();
     const { styles, animations } = parseStyles(getStyles(appTheme));
-    const baseClasses = useStyleRegisterNoSSR({ theme, token, hashId, path: [namespace] }, () =>
-      new Array<CSSInterpolation>()
-        .concat(styles)
-        .map(rulesFromStyles(namespace))
-        .concat(animations),
+    const baseClasses = useStyleRegisterNoSSR(
+      {
+        theme: theme as unknown as AntTheme<SeedToken, MapToken>,
+        token,
+        hashId,
+        path: [namespace],
+      },
+      () =>
+        new Array<CSSInterpolation>()
+          .concat(styles)
+          .map(rulesFromStyles(namespace))
+          .concat(animations),
     );
     return [baseClasses, ...classListFromProps(props ?? {})].join(' ');
   };

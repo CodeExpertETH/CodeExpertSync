@@ -4,7 +4,6 @@ import StyleContext, {
   ATTR_MARK,
   ATTR_TOKEN,
   CSS_IN_JS_INSTANCE,
-  CSS_IN_JS_INSTANCE_ID,
 } from '@ant-design/cssinjs/es/StyleContext';
 import useGlobalCache from '@ant-design/cssinjs/es/hooks/useGlobalCache';
 import {
@@ -88,7 +87,7 @@ export function useStyleRegisterNoSSR(
           attachTo: container as $FixMe,
         });
 
-        (style as $IntentionalAny)[CSS_IN_JS_INSTANCE] = CSS_IN_JS_INSTANCE_ID;
+        (style as $IntentionalAny)[CSS_IN_JS_INSTANCE] = CSS_IN_JS_INSTANCE;
 
         // Used for `useCacheToken` to remove on batch when token removed
         style.setAttribute(ATTR_TOKEN, tokenKey);
