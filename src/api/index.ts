@@ -44,6 +44,7 @@ export interface Api {
   exists(path: string): task.Task<boolean>;
   logout(): task.Task<void>;
   getSystemInfo: taskOption.TaskOption<string>;
+  restart: task.Task<void>;
 }
 
 export const api: Api = {
@@ -117,4 +118,5 @@ export const api: Api = {
       }, constVoid),
     ),
   getSystemInfo: async () => option.fromNullable<string>(await invoke('system_info')),
+  restart: () => invoke('app_restart'),
 };
