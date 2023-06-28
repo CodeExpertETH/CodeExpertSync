@@ -61,6 +61,7 @@
     "monocle-ts": "^2.3.13",
     "nanoid": "^4.0.1",
     "newtype-ts": "^0.3.5",
+    "normalize-exception": "^3.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-fontawesome-svg-icon": "^1.1.2",

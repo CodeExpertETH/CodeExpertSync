@@ -5682,6 +5682,7 @@ __metadata:
     monocle-ts: ^2.3.13
     nanoid: ^4.0.1
     newtype-ts: ^0.3.5
+    normalize-exception: ^3.0.0
     prettier: ^2.8.4
     prop-types: ^15.8.1
     pure-rand: ^6.0.0
@@ -8343,6 +8344,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"is-error-instance@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "is-error-instance@npm:2.0.0"
+  checksum: 5278020cff9bfcbe0078be93041deeac1ca5ed0545d7172fe7209ff18f2d2e66b970e24630fd0647476e49124e7fc16bcdf67b6db787e599d3e17c25b88727f0
+  languageName: node
+  linkType: hard
+
 "is-extglob@npm:^2.1.1":
   version: 2.1.1
   resolution: "is-extglob@npm:2.1.1"
@@ -8447,6 +8455,13 @@ __metadata:
   version: 3.0.3
   resolution: "is-path-inside@npm:3.0.3"
   checksum: abd50f06186a052b349c15e55b182326f1936c89a78bf6c8f2b707412517c097ce04bc49a0ca221787bc44e1049f51f09a2ffb63d22899051988d3a618ba13e9
+  languageName: node
+  linkType: hard
+
+"is-plain-obj@npm:^4.1.0":
+  version: 4.1.0
+  resolution: "is-plain-obj@npm:4.1.0"
+  checksum: 6dc45da70d04a81f35c9310971e78a6a3c7a63547ef782e3a07ee3674695081b6ca4e977fbb8efc48dae3375e0b34558d2bcd722aec9bddfa2d7db5b041be8ce
   languageName: node
   linkType: hard
 
@@ -9836,6 +9851,16 @@ __metadata:
   bin:
     nopt: bin/nopt.js
   checksum: 82149371f8be0c4b9ec2f863cc6509a7fd0fa729929c009f3a58e4eb0c9e4cae9920e8f1f8eb46e7d032fec8fb01bede7f0f41a67eb3553b7b8e14fa53de1dac
+  languageName: node
+  linkType: hard
+
+"normalize-exception@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "normalize-exception@npm:3.0.0"
+  dependencies:
+    is-error-instance: ^2.0.0
+    is-plain-obj: ^4.1.0
+  checksum: e0b7585437c1b057f2d0bceea086410a9e905a367fb663c8a547ab4a72fd3fc40dbeed2a931062f569fa176530cd474383d5e201b88aa73e3945843af1d3b49e
   languageName: node
   linkType: hard
 
