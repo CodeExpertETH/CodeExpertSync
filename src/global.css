@@ -1,8 +1,13 @@
 html,
 body {
   position: fixed;
-  overflow: hidden;
+  overflow: hidden; /* [1.1] Prevent momentum scrolling of the app ... */
   width: 100%;
+}
+
+#root {
+  height: 100vh;
+  overflow-y: auto; /* [1.2] ... but allow scrolling content */
 }
 
 /*   antd with fontawesome */
