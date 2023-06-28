@@ -69,6 +69,7 @@
     "updater": {
       "active": true,
       "endpoints": [
+        "http://localhost:3100/update/check?version={{current_version}}&target={{target}}&arch={{arch}}",
         "https://update-desktop-rduxf6hsba-oa.a.run.app?current_version={{current_version}}&target={{target}}&arch={{arch}}"
       ],
       "dialog": false,

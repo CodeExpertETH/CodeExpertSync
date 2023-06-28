@@ -4,6 +4,7 @@ import { Alert, Button, Spin, Typography } from 'antd';
 import React from 'react';
 import { pipe, tagged, taskEither } from '@code-expert/prelude';
 import { config } from '@/config';
+import { Icon } from '@/ui/foundation/Icons';
 import { Box, VStack } from '@/ui/foundation/Layout';
 
 export type UpdateStatus =
@@ -39,7 +40,7 @@ export function Updater(props: { manifest: UpdateManifest }) {
     );
 
   return (
-    <VStack align="start" justify="start" gap="md" mh>
+    <VStack align="start" justify="start" gap="sm" mh>
       <Typography.Title level={5} type="secondary" style={{ marginTop: '1rem' }}>
         Update
       </Typography.Title>
@@ -49,9 +50,10 @@ export function Updater(props: { manifest: UpdateManifest }) {
       <Typography.Paragraph strong>
         Update to version {props.manifest.version} available.
       </Typography.Paragraph>
-      <Typography.Link href={href} target="_blank">
-        Release notes
-      </Typography.Link>
+      <Typography.Paragraph>
+        <Typography.Text strong>Release notes:</Typography.Text>
+        <br /> {props.manifest.body}
+      </Typography.Paragraph>
 
       <Box>
         {updateStatus.fold(status, {
@@ -93,7 +95,7 @@ export function Updater(props: { manifest: UpdateManifest }) {
       </Button>
 
       <Button block href={href} target="_blank">
-        Manual download update
+        <Icon name="external-link-alt" /> Manual download update
       </Button>
     </VStack>
   );
