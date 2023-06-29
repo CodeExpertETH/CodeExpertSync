@@ -36,4 +36,5 @@ export const api: Api = {
   },
   logout: () => task.of(undefined),
   getSystemInfo: taskOption.of('Storybook'),
+  restart: task.of(undefined),
 };

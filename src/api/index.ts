@@ -2,6 +2,7 @@ import { invoke } from '@tauri-apps/api';
 import { getVersion } from '@tauri-apps/api/app';
 import { createDir, exists as fsExists, removeDir, writeTextFile } from '@tauri-apps/api/fs';
 import { dirname } from '@tauri-apps/api/path';
+import { relaunch } from '@tauri-apps/api/process';
 import { Store as TauriStore } from 'tauri-plugin-store-api';
 import {
   constFalse,
@@ -44,6 +45,7 @@ export interface Api {
   exists(path: string): task.Task<boolean>;
   logout(): task.Task<void>;
   getSystemInfo: taskOption.TaskOption<string>;
+  restart: task.Task<void>;
 }
 
 export const api: Api = {
@@ -117,4 +119,5 @@ export const api: Api = {
       }, constVoid),
     ),
   getSystemInfo: async () => option.fromNullable<string>(await invoke('system_info')),
+  restart: () => relaunch(),
 };
