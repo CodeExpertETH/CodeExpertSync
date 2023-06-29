@@ -39,7 +39,6 @@ fn main() {
         .on_system_tray_event(system_tray::handle_system_tray_event)
         .invoke_handler(tauri::generate_handler![
             greet,
-            commands::app::app_restart,
             commands::system_info::system_info,
             commands::create_keys::create_keys,
             commands::create_jwt_token::create_jwt_token,

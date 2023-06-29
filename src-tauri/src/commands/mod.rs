@@ -1,4 +1,3 @@
-pub mod app;
 pub mod build_tar;
 pub mod create_jwt_token;
 pub mod create_keys;

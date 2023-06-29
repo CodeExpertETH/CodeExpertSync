@@ -1,6 +1,6 @@
 [package]
-name = "code_expert_desktop"
-version = "0.0.15"
+name = "code_expert_sync"
+version = "0.0.19"
 description = "A Tauri App"
 authors = ["you"]
 license = ""
