@@ -17,7 +17,7 @@ pub fn handle_system_tray_event(app: &AppHandle<Wry>, event: SystemTrayEvent) {
 }
 
 fn create_tray_menu() -> SystemTrayMenu {
-    let open = CustomMenuItem::new("open".to_string(), "Open Code Expert Desktop");
+    let open = CustomMenuItem::new("open".to_string(), "Open Code Expert Sync");
     let quit = CustomMenuItem::new("quit".to_string(), "Quit");
     SystemTrayMenu::new()
         .add_item(open)

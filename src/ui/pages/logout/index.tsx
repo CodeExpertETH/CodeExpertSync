@@ -25,12 +25,12 @@ export function Logout({ clientId }: { clientId: ClientId }) {
     );
   return (
     <Result
-      title="Logout from Code Expert Desktop"
-      subTitle="If you logout from Code Expert Desktop, you cannot sync the projects anymore."
+      title="Logout from Code Expert Sync"
+      subTitle="If you logout from Code Expert Sync, you cannot sync the projects anymore."
       icon={<Icon name="lock" size="4x" />}
       extra={
         <Button type="primary" danger onClick={logout}>
-          Logout Code Expert Desktop
+          Logout from Code Expert Sync
         </Button>
       }
     />

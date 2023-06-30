@@ -7,7 +7,7 @@
     "withGlobalTauri": false
   },
   "package": {
-    "productName": "code_expert_desktop",
+    "productName": "Code Expert Sync",
     "version": "../package.json"
   },
   "tauri": {
@@ -45,7 +45,7 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "identifier": "ch.ethz.code-expert.desktop",
+      "identifier": "ch.ethz.code-expert.sync",
       "longDescription": "",
       "macOS": {
         "entitlements": null,
@@ -83,7 +83,7 @@
         "fullscreen": false,
         "height": 800,
         "resizable": false,
-        "title": "Code Expert Desktop",
+        "title": "Code Expert Sync",
         "width": 400
       }
     ]

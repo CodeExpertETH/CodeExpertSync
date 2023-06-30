@@ -1,6 +1,6 @@
-# Code Expert Desktop
+# Code Expert Sync
 
-Code Expert Desktop allows syncing projects to a local file system. This allows students and lecturers to edit code with their own IDE and create local backups.
+Code Expert Sync allows syncing projects to a local file system. This allows students and lecturers to edit code with their own IDE and create local backups.
 
 ## Installation
 

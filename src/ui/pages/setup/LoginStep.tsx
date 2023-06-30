@@ -53,7 +53,7 @@ export const LoginStep = ({ clientId, active }: { clientId: ClientId; active: bo
               onClick={() => startAuthorization(code_verifier)}
               target="_blank"
             >
-              Authorize Code Expert Desktop
+              Authorize Code Expert Sync
             </Button>
           ),
           deniedAuthorization: () => (
@@ -65,7 +65,7 @@ export const LoginStep = ({ clientId, active }: { clientId: ClientId; active: bo
           waitingForAuthorization: () => (
             <>
               <Button type="primary" loading target="_blank">
-                Authorize Code Expert Desktop
+                Authorize Code Expert Sync
               </Button>
               <Typography.Paragraph>
                 Waiting for confirmation …{' '}

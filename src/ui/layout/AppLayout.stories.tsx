@@ -19,7 +19,7 @@ export const Default = {
     clientId: 'client-1' as ClientId,
     children: (
       <div>
-        <h1>Code Expert Desktop</h1>
+        <h1>Code Expert Sync</h1>
         <p>👋 Hello from the team!</p>
       </div>
     ),
