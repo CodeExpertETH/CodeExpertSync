@@ -1,6 +1,6 @@
 /* eslint-disable no-restricted-imports */
-import type { IconName as FaIconName, IconDefinition } from '@fortawesome/fontawesome-common-types';
 import '@fortawesome/fontawesome-svg-core/styles.css';
+import type { IconName as FaIconName, IconDefinition } from '@fortawesome/fontawesome-common-types';
 import { faDocker } from '@fortawesome/free-brands-svg-icons/faDocker';
 import { faHtml5 } from '@fortawesome/free-brands-svg-icons/faHtml5';
 import { faSlideshare } from '@fortawesome/free-brands-svg-icons/faSlideshare';
