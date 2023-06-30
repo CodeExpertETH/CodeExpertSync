@@ -1,10 +1,14 @@
 import { Result } from 'antd';
 import React, { useEffect } from 'react';
+import { createRoot } from 'react-dom/client';
 import { useHotkeys } from 'react-hotkeys-hook';
-import { boolean, constVoid, pipe, remoteData } from '@code-expert/prelude';
+import { boolean, constVoid, pipe, remoteData, task } from '@code-expert/prelude';
 import { registerApp } from '@/application/registerApp';
 import { globalSetupState } from '@/domain/Setup';
-import { useGlobalContextWithActions } from '@/ui/GlobalContext';
+import { mkProjectRepositoryTauri } from '@/infrastructure/tauri/ProjectRepository';
+import { GlobalContextProvider, useGlobalContextWithActions } from '@/ui/GlobalContext';
+import { ErrorBoundary } from '@/ui/components/ErrorBoundary';
+import { TimeContextProvider, timeContext } from '@/ui/contexts/TimeContext';
 import useNetworkState from '@/ui/hooks/useNetwork';
 import { useRemoteData2 } from '@/ui/hooks/useRemoteData';
 import { AppLayout } from '@/ui/layout';
@@ -15,7 +19,29 @@ import { Projects } from '@/ui/pages/projects';
 import { Settings } from '@/ui/pages/settings';
 import { Setup } from '@/ui/pages/setup';
 import { Updater } from '@/ui/pages/update';
-import { routes, useRoute } from '@/ui/routes';
+import { RouteContextProvider, routes, useRoute } from '@/ui/routes';
+
+export const render = (container: HTMLElement): Promise<void> =>
+  pipe(
+    mkProjectRepositoryTauri(),
+    task.map((projectRepository) => {
+      const root = createRoot(container);
+      root.render(
+        <React.StrictMode>
+          <ErrorBoundary>
+            <GlobalContextProvider projectRepository={projectRepository}>
+              <RouteContextProvider>
+                <TimeContextProvider value={timeContext}>
+                  <App />
+                </TimeContextProvider>
+              </RouteContextProvider>
+            </GlobalContextProvider>
+          </ErrorBoundary>
+        </React.StrictMode>,
+      );
+    }),
+    task.run,
+  );
 
 export function App() {
   const { online } = useNetworkState();

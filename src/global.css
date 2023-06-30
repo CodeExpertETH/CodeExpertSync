@@ -10,7 +10,94 @@ body {
   overflow-y: auto; /* [1.2] ... but allow scrolling content */
 }
 
-/*   antd with fontawesome */
+/**
+ * Fatal error
+ */
+.fatal-error {
+  --colorBorder: #d9d9d9;
+  --colorError: #ff4d4f;
+  --colorFillAlter: rgba(0, 0, 0, 0.02);
+  --colorPrimary: #1677ff;
+  --colorText: rgba(0, 0, 0, 0.88);
+  --colorTextDescription: rgba(0, 0, 0, 0.45);
+  --colorTextLightSolid: #ffffff;
+  color: var(--colorText);
+  font-family: -apple-system, BlinkMacSystemFont, segoe ui, Roboto, helvetica neue, Arial, noto sans,
+    sans-serif, apple color emoji, segoe ui emoji, segoe ui symbol, noto color emoji;
+  line-height: 1.4;
+  padding: 24px 16px 16px;
+  text-align: center;
+}
+.fatal-error svg {
+  color: var(--colorError);
+  font-size: 80px;
+  margin-block: 40px;
+}
+.fatal-error h1 {
+  font-size: 1.7em;
+  font-weight: 400;
+  margin-bottom: 0.3em;
+}
+.fatal-error h2 {
+  font-size: 1em;
+  color: var(--colorTextDescription);
+}
+.fatal-error .button-group {
+  margin-top: 24px;
+  margin-bottom: 40px;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+.fatal-error a,
+.fatal-error button {
+  background: var(--colorPrimary);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  box-shadow: rgba(5, 145, 255, 0.1) 0 2px 0 0;
+  color: var(--colorTextLightSolid);
+  cursor: pointer;
+  display: inline-block;
+  font-size: 14px;
+  font-weight: 400;
+  height: 32px;
+  line-height: 22px;
+  margin: 0;
+  padding-block: 4px;
+  padding-inline: 15px;
+  position: relative;
+  text-align: center;
+  touch-action: manipulation;
+  user-select: none;
+  white-space: nowrap;
+}
+.fatal-error a {
+  background: white;
+  border-color: var(--colorBorder);
+  box-shadow: var(--colorFillAlter) 0 2px 0 0;
+  color: var(--colorText);
+}
+.fatal-error details {
+  background: var(--colorFillAlter);
+  border: 1px solid var(--colorBorder);
+  border-radius: 6px;
+  text-align: left;
+  padding: 16px;
+}
+.fatal-error details summary {
+  cursor: pointer;
+}
+.fatal-error details div {
+  padding-block: 8px;
+}
+.fatal-error code {
+  line-height: 1.8;
+  font-size: 12px;
+}
+
+/**
+ * Antd with Fontawesome
+ */
 .ant-tag > span:not(:empty) + span:not(:empty),
 .ant-tag > span:not(:empty) + svg,
 .ant-tag > svg + span:not(:empty),
