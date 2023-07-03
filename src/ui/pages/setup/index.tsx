@@ -5,7 +5,7 @@ import { option, pipe, task } from '@code-expert/prelude';
 import { ClientId } from '@/domain/ClientId';
 import { SetupState, setupState } from '@/domain/Setup';
 import { EntityNotFoundException } from '@/domain/exception';
-import { GuardRemoteData } from '@/ui/components/GuardRemoteData';
+import { GuardRemoteDataA } from '@/ui/components/GuardRemoteData';
 import { VStack } from '@/ui/foundation/Layout';
 import { useAsync } from '@/ui/hooks/useAsync';
 import { LoginStep } from '@/ui/pages/setup/LoginStep';
@@ -38,7 +38,7 @@ export function Setup(props: { state: SetupState }) {
   });
 
   return (
-    <GuardRemoteData
+    <GuardRemoteDataA
       value={clientId}
       render={(clientId) => (
         <VStack mh>

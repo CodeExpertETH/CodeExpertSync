@@ -4,7 +4,7 @@ import { constNull, remoteData, task, taskEither } from '@code-expert/prelude';
 import { Project, ProjectId, projectADT } from '@/domain/Project';
 import { SyncException, syncExceptionADT } from '@/domain/SyncState';
 import { ActionMenu } from '@/ui/components/ActionMenu';
-import { GuardRemoteEitherData } from '@/ui/components/GuardRemoteData';
+import { GuardRemoteDataEither } from '@/ui/components/GuardRemoteData';
 import { useTimeContext } from '@/ui/contexts/TimeContext';
 import { Icon } from '@/ui/foundation/Icons';
 import { HStack, VStack } from '@/ui/foundation/Layout';
@@ -115,7 +115,7 @@ export const ListItem = ({ project, onOpen, onSync, onRemove }: ListItemProps) =
             />
           </HStack>
         </HStack>
-        <GuardRemoteEitherData
+        <GuardRemoteDataEither
           value={actionStates}
           render={constNull}
           pending={constNull}
