@@ -17,18 +17,10 @@ export interface GuardRemoteDataPropsA<A> {
 /**
  * Guard a render tree from rendering unless we have a value
  */
-export function GuardRemoteDataA<A>({
-  value,
-  render,
-  pending = renderLoading,
-  initial = pending,
-}: GuardRemoteDataPropsA<A>) {
+export function GuardRemoteDataA<A>(props: GuardRemoteDataPropsA<A>) {
   return (
     <GuardRemoteDataEither
-      value={value}
-      initial={initial}
-      pending={pending}
-      render={render}
+      {...props}
       failure={() => {
         throw new Error('Unexpected failure case in RemoteDataA');
       }}

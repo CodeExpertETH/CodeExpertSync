@@ -60,6 +60,6 @@ export function useRemoteDataEither<P extends ReadonlyArray<unknown>, E, A>(
 }
 
 /**
- * @deprecated Use {useRemoteDataEither} if an error channel is needed.
+ * @deprecated Use {@link useRemoteDataEither} if an error channel is needed.
  */
 export const useRemoteData = useRemoteDataEither;
