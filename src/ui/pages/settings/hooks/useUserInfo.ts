@@ -2,7 +2,7 @@ import fromThrown from 'normalize-exception';
 import { pipe, remoteData, taskEither } from '@code-expert/prelude';
 import { UserInfo, UserInfoC } from '@/domain/UserInfo';
 import { createSignedAPIRequest } from '@/domain/createAPIRequest';
-import { useRemoteDataA } from '@/ui/hooks/useRemoteData';
+import { useRemote } from '@/ui/hooks/useRemoteData';
 
 const getUserInfo = createSignedAPIRequest({
   path: 'user/info',
@@ -11,7 +11,7 @@ const getUserInfo = createSignedAPIRequest({
   codec: UserInfoC,
 });
 
-export const useUserInfo = (): remoteData.RemoteDataA<UserInfo> => {
-  const [state] = useRemoteDataA(() => pipe(getUserInfo, taskEither.getOrThrow(fromThrown)));
+export const useUserInfo = (): remoteData.Remote<UserInfo> => {
+  const [state] = useRemote(() => pipe(getUserInfo, taskEither.getOrThrow(fromThrown)));
   return state;
 };

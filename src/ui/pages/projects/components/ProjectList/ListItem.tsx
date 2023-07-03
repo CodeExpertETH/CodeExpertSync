@@ -4,12 +4,12 @@ import { constNull, remoteData, task, taskEither } from '@code-expert/prelude';
 import { Project, ProjectId, projectADT } from '@/domain/Project';
 import { SyncException, syncExceptionADT } from '@/domain/SyncState';
 import { ActionMenu } from '@/ui/components/ActionMenu';
-import { GuardRemoteDataEither } from '@/ui/components/GuardRemoteData';
+import { GuardRemoteEither } from '@/ui/components/GuardRemoteData';
 import { useTimeContext } from '@/ui/contexts/TimeContext';
 import { Icon } from '@/ui/foundation/Icons';
 import { HStack, VStack } from '@/ui/foundation/Layout';
 import { styled } from '@/ui/foundation/Theme';
-import { useRemoteDataA, useRemoteDataEither } from '@/ui/hooks/useRemoteData';
+import { useRemote, useRemoteEither } from '@/ui/hooks/useRemoteData';
 import { fromProject } from '@/ui/pages/projects/components/ProjectList/model/SyncButtonState';
 import { ForceSyncDirection } from '@/ui/pages/projects/hooks/useProjectSync';
 import { SyncButton } from './SyncButton';
@@ -51,9 +51,9 @@ export interface ListItemProps {
 export const ListItem = ({ project, onOpen, onSync, onRemove }: ListItemProps) => {
   const { now } = useTimeContext();
 
-  const [openStateRD, runOpen] = useRemoteDataEither(onOpen);
-  const [syncStateRD, runSync] = useRemoteDataEither(onSync);
-  const [removalStateRD, runRemove] = useRemoteDataA(onRemove);
+  const [openStateRD, runOpen] = useRemoteEither(onOpen);
+  const [syncStateRD, runSync] = useRemoteEither(onSync);
+  const [removalStateRD, runRemove] = useRemote(onRemove);
 
   // All states combined. Order matters: the first failure gets precedence.
   const actionStates = remoteData.sequenceT(
@@ -115,7 +115,7 @@ export const ListItem = ({ project, onOpen, onSync, onRemove }: ListItemProps) =
             />
           </HStack>
         </HStack>
-        <GuardRemoteDataEither
+        <GuardRemoteEither
           value={actionStates}
           render={constNull}
           pending={constNull}
@@ -129,15 +129,15 @@ export const ListItem = ({ project, onOpen, onSync, onRemove }: ListItemProps) =
 // -------------------------------------------------------------------------------------------------
 
 const viewFromStringException: <A>(
-  e: remoteData.RemoteData<string, A>,
-) => remoteData.RemoteData<React.ReactElement, A> = remoteData.mapLeft((x) => <>{x}</>);
+  e: remoteData.RemoteEither<string, A>,
+) => remoteData.RemoteEither<React.ReactElement, A> = remoteData.mapLeft((x) => <>{x}</>);
 
 const viewFromSyncException: (env: {
   forcePush(): void;
   forcePull(): void;
 }) => <A>(
-  e: remoteData.RemoteData<SyncException, A>,
-) => remoteData.RemoteData<React.ReactElement, A> = ({ forcePush, forcePull }) =>
+  e: remoteData.RemoteEither<SyncException, A>,
+) => remoteData.RemoteEither<React.ReactElement, A> = ({ forcePush, forcePull }) =>
   remoteData.mapLeft(
     syncExceptionADT.fold({
       conflictingChanges: () => (

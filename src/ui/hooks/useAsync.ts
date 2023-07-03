@@ -6,7 +6,7 @@ import { useRaceState } from './useRaceState';
  * Run a `Task` and represent the states before, during and after as `RemoteData`.
  */
 export function useAsync<A>(run: task.Task<A>, dependencyList: React.DependencyList) {
-  const [state, mkSetState] = useRaceState<remoteData.RemoteDataA<A>>(remoteData.initial);
+  const [state, mkSetState] = useRaceState<remoteData.Remote<A>>(remoteData.initial);
 
   React.useEffect(() => {
     const setState = mkSetState();

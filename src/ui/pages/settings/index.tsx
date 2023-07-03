@@ -7,7 +7,7 @@ import { iots, remoteData } from '@code-expert/prelude';
 import { ClientId } from '@/domain/ClientId';
 import { UserInfo } from '@/domain/UserInfo';
 import { EditableCard } from '@/ui/components/EditableCard';
-import { GuardRemoteDataA } from '@/ui/components/GuardRemoteData';
+import { GuardRemote } from '@/ui/components/GuardRemoteData';
 import { styled } from '@/ui/foundation/Theme';
 import { useSettingsFallback } from '@/ui/hooks/useSettings';
 import Version from '@/ui/pages/settings/Version';
@@ -118,7 +118,7 @@ export function Settings({ clientId }: { clientId: ClientId }) {
   const userInfoRD = useUserInfo();
 
   return (
-    <GuardRemoteDataA
+    <GuardRemote
       value={remoteData.sequenceS({
         projectDir: projectDirRD,
         userInfo: userInfoRD,

@@ -1,7 +1,7 @@
 import { Story } from '@storybook/react';
 import React from 'react';
 import { adt, either, pipe, remoteData, taskEither } from '@code-expert/prelude';
-import { useRemoteDataEither } from './useRemoteData';
+import { useRemoteEither } from './useRemoteData';
 
 const foldMeteorCallType = adt.foldFromKeys({ resolve: null, reject: null, throw: null });
 type MeteorCallType = adt.TypeOfKeys<typeof foldMeteorCallType>;
@@ -27,7 +27,7 @@ function mockMethodCall(type: MeteorCallType): taskEither.TaskEither<string, str
 
 interface UseRemoteDataTestProps {
   type: MeteorCallType;
-  useRemoteDataHook: typeof useRemoteDataEither;
+  useRemoteDataHook: typeof useRemoteEither;
 }
 
 function UseRemoteDataTest({ type, useRemoteDataHook }: UseRemoteDataTestProps) {
@@ -58,7 +58,7 @@ export default {
 };
 
 const Template: Story<{ type: MeteorCallType }> = ({ type = 'resolve' }) => (
-  <UseRemoteDataTest type={type} useRemoteDataHook={useRemoteDataEither} />
+  <UseRemoteDataTest type={type} useRemoteDataHook={useRemoteEither} />
 );
 
 export const Resolve = Template.bind({});

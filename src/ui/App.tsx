@@ -10,7 +10,7 @@ import { GlobalContextProvider, useGlobalContextWithActions } from '@/ui/GlobalC
 import { ErrorBoundary } from '@/ui/components/ErrorBoundary';
 import { TimeContextProvider, timeContext } from '@/ui/contexts/TimeContext';
 import useNetworkState from '@/ui/hooks/useNetwork';
-import { useRemoteDataA } from '@/ui/hooks/useRemoteData';
+import { useRemote } from '@/ui/hooks/useRemoteData';
 import { AppLayout } from '@/ui/layout';
 import { Courses } from '@/ui/pages/courses';
 import { Developer } from '@/ui/pages/developer';
@@ -47,7 +47,7 @@ export function App() {
   const { online } = useNetworkState();
   const [{ setupState }] = useGlobalContextWithActions();
   const { currentRoute, navigateTo } = useRoute();
-  const [clientIdRD, refreshClientId] = useRemoteDataA(registerApp);
+  const [clientIdRD, refreshClientId] = useRemote(registerApp);
 
   useHotkeys('ctrl+c+x', () => {
     if (remoteData.isSuccess(clientIdRD)) {

@@ -4,8 +4,8 @@ import Loading from './Loading';
 
 const renderLoading = () => <Loading delayTime={200} />;
 
-export interface GuardRemoteDataPropsA<A> {
-  value: remoteData.RemoteDataA<A>;
+export interface GuardRemoteProps<A> {
+  value: remoteData.Remote<A>;
   /* Renders only if all values are non-nullable */
   render(a: A): React.ReactNode;
   /* Renders a fallback if in unasked state */
@@ -17,19 +17,19 @@ export interface GuardRemoteDataPropsA<A> {
 /**
  * Guard a render tree from rendering unless we have a value
  */
-export function GuardRemoteDataA<A>(props: GuardRemoteDataPropsA<A>) {
+export function GuardRemote<A>(props: GuardRemoteProps<A>) {
   return (
-    <GuardRemoteDataEither
+    <GuardRemoteEither
       {...props}
       failure={() => {
-        throw new Error('Unexpected failure case in RemoteDataA');
+        throw new Error('Unexpected failure case in Remote');
       }}
     />
   );
 }
 
-export interface GuardRemoteDataEitherProps<E, A> {
-  value: remoteData.RemoteData<E, A>;
+export interface GuardRemoteEitherProps<E, A> {
+  value: remoteData.RemoteEither<E, A>;
   /* Renders only if all values are non-nullable */
   render(a: A): React.ReactNode;
   /* Renders on error */
@@ -43,12 +43,12 @@ export interface GuardRemoteDataEitherProps<E, A> {
 /**
  * Guard a render tree from rendering unless we have a value
  */
-export function GuardRemoteDataEither<E, A>({
+export function GuardRemoteEither<E, A>({
   value,
   render,
   failure,
   pending = renderLoading,
   initial = pending,
-}: GuardRemoteDataEitherProps<E, A>) {
+}: GuardRemoteEitherProps<E, A>) {
   return <>{pipe(value, remoteData.fold(initial, pending, failure, render))}</>;
 }
