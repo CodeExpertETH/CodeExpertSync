@@ -8,6 +8,7 @@ export * from '@devexperts/remote-data-ts';
 export * from './refresh-remote-data';
 
 export type RemoteDataA<A> = RD.RemoteData<never, A>;
+export type RemoteDataOption<A> = RD.RemoteData<undefined, A>;
 
 export const chainW =
   <D, A, B>(f: (a: A) => RD.RemoteData<D, B>) =>

@@ -1,5 +1,15 @@
 import React from 'react';
-import { either, flow, pipe, remoteData, task, taskEither } from '@code-expert/prelude';
+import {
+  constUndefined,
+  either,
+  flow,
+  fn,
+  pipe,
+  remoteData,
+  task,
+  taskEither,
+  taskOption,
+} from '@code-expert/prelude';
 import { useRaceState } from './useRaceState';
 
 /**
@@ -9,8 +19,17 @@ import { useRaceState } from './useRaceState';
  */
 export function useRemoteDataA<P extends ReadonlyArray<unknown>, A>(
   run: (...props: P) => task.Task<A>,
-) {
+): [remoteData.RemoteDataA<A>, (...props: P) => void] {
   return useRemoteDataEither(flow(run, task.map(either.right)));
+}
+
+/**
+ * Run a `TaskOption` and represent the states before, during and after as `RemoteData`.
+ */
+export function useRemoteDataOption<P extends ReadonlyArray<unknown>, A>(
+  run: (...props: P) => taskOption.TaskOption<A>,
+): [remoteData.RemoteDataOption<A>, (...props: P) => void] {
+  return useRemoteDataEither(flow(run, task.map(either.fromOption(constUndefined))));
 }
 
 /**
@@ -18,7 +37,7 @@ export function useRemoteDataA<P extends ReadonlyArray<unknown>, A>(
  */
 export function useRemoteDataEither<P extends ReadonlyArray<unknown>, E, A>(
   run: (...props: P) => taskEither.TaskEither<E, A>,
-) {
+): [remoteData.RemoteData<E, A>, (...props: P) => void] {
   const [state, mkSetState] = useRaceState<remoteData.RemoteData<E, A>>(remoteData.initial);
 
   const { current } = React.useRef({
@@ -37,7 +56,7 @@ export function useRemoteDataEither<P extends ReadonlyArray<unknown>, E, A>(
 
   current.run = run;
 
-  return [state, current.refresh] as const;
+  return fn.tuple(state, current.refresh);
 }
 
 /**

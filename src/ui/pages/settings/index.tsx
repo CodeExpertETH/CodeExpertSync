@@ -3,7 +3,7 @@ import { homeDir } from '@tauri-apps/api/path';
 import { Form, message } from 'antd';
 import { api } from 'api';
 import React from 'react';
-import { iots, remoteData, task } from '@code-expert/prelude';
+import { iots, remoteData } from '@code-expert/prelude';
 import { ClientId } from '@/domain/ClientId';
 import { UserInfo } from '@/domain/UserInfo';
 import { EditableCard } from '@/ui/components/EditableCard';
@@ -114,7 +114,7 @@ function SettingsInner({
 }
 
 export function Settings({ clientId }: { clientId: ClientId }) {
-  const projectDirRD = useSettingsFallback('projectDir', iots.string, task.of(''), []);
+  const projectDirRD = useSettingsFallback('projectDir', iots.string, '', []);
   const userInfoRD = useUserInfo();
 
   return (

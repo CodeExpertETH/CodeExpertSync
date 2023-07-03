@@ -1,8 +1,7 @@
 import { api } from 'api';
 import React from 'react';
-import { iots, pipe, remoteData, task, taskOption } from '@code-expert/prelude';
-import { Exception, InvariantViolation } from '@/domain/exception';
-import { useRaceState } from './useRaceState';
+import { iots, pipe, remoteData } from '@code-expert/prelude';
+import { useRemoteDataOption } from '@/ui/hooks/useRemoteData';
 
 /**
  * Run a `Task` and represent the states before, during and after as `RemoteData`.
@@ -11,19 +10,11 @@ export function useSettings<T>(
   key: string,
   decoder: iots.Decoder<unknown, T>,
   dependencyList: React.DependencyList,
-) {
-  const [state, mkSetState] = useRaceState<remoteData.RemoteData<Exception, T>>(remoteData.initial);
+): remoteData.RemoteDataOption<T> {
+  const [state, refresh] = useRemoteDataOption(api.settingRead<T>);
 
   React.useEffect(() => {
-    const setState = mkSetState();
-    void pipe(
-      api.settingRead(key, decoder),
-      task.map((a) =>
-        remoteData.fromOption(a, () => new InvariantViolation(`Setting ${key} was not found`)),
-      ),
-      task.map(setState),
-      task.run,
-    );
+    refresh(key, decoder);
   }, dependencyList); //eslint-disable-line react-hooks/exhaustive-deps
 
   return state;
@@ -32,21 +23,15 @@ export function useSettings<T>(
 export function useSettingsFallback<T>(
   key: string,
   decoder: iots.Decoder<unknown, T>,
-  fallBack: task.Task<T>,
+  fallBack: T,
   dependencyList: React.DependencyList,
-) {
-  const [state, mkSetState] = useRaceState<remoteData.RemoteData<Exception, T>>(remoteData.initial);
-
-  React.useEffect(() => {
-    const setState = mkSetState();
-    void pipe(
-      api.settingRead(key, decoder),
-      taskOption.getOrElse(() => fallBack),
-      task.map(remoteData.success),
-      task.map(setState),
-      task.run,
-    );
-  }, dependencyList); //eslint-disable-line react-hooks/exhaustive-deps
-
-  return state;
+): remoteData.RemoteDataA<T> {
+  return pipe(
+    useSettings(key, decoder, dependencyList),
+    remoteData.fold3(
+      () => remoteData.pending,
+      () => remoteData.success(fallBack),
+      remoteData.success,
+    ),
+  );
 }
