@@ -28,7 +28,7 @@ export type StackProps<C extends React.ElementType> = PolymorphicComponentPropWi
 
 export type StackComponent = <C extends React.ElementType = 'div'>(
   props: StackProps<C>,
-) => React.ReactElement | null;
+) => React.ReactNode;
 
 // eslint-disable-next-line react/display-name
 const Stack = <C extends React.ElementType = 'div'>(

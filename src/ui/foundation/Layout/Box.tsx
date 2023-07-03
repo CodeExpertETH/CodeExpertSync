@@ -10,7 +10,7 @@ export type BoxProps<C extends React.ElementType> = PolymorphicComponentPropWith
 
 export type BoxComponent = <C extends React.ElementType = 'div'>(
   props: BoxProps<C>,
-) => React.ReactElement | null;
+) => React.ReactNode;
 
 // eslint-disable-next-line react/display-name
 export const Box: BoxComponent = React.forwardRef(

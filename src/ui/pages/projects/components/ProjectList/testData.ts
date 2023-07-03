@@ -6,6 +6,8 @@ import { SyncException, changesADT, syncStateADT } from '@/domain/SyncState';
 const metadata: ProjectMetadata = {
   projectId: 'p1' as ProjectId,
   semester: 'SS23',
+  taskOrder: 1,
+  exerciseOrder: 1,
   courseName: 'Erdwissenschaftliche Datenanalyse und Visualisierung',
   exerciseName: 'Exercise 8: Two-Dimensional vectors, Characters, Recursion',
   taskName: '03 / Teil C.4: Testen einer Hypothese mittels DNA-Sequenzanalyse',

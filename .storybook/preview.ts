@@ -14,6 +14,8 @@ const projectRepository = await mkProjectRepositoryTesting([
     projectName: 'Project One',
     taskName: 'Task One',
     courseName: 'Course One',
+    taskOrder: 1,
+    exerciseOrder: 1,
     semester: 'AS22',
     taskOrder: 1,
     exerciseOrder: 1,
