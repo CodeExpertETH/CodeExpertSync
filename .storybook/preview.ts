@@ -17,8 +17,6 @@ const projectRepository = await mkProjectRepositoryTesting([
     taskOrder: 1,
     exerciseOrder: 1,
     semester: 'AS22',
-    taskOrder: 1,
-    exerciseOrder: 1,
     basePath: '/tmp/cxsync-test',
     files: [],
     syncedAt: new Date(),

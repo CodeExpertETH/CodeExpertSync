@@ -50,7 +50,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ant-design/cssinjs@npm:^1.10.1":
+"@ant-design/cssinjs@npm:1.10.1, @ant-design/cssinjs@npm:^1.10.1":
   version: 1.10.1
   resolution: "@ant-design/cssinjs@npm:1.10.1"
   dependencies:
@@ -65,24 +65,6 @@ __metadata:
     react: ">=16.0.0"
     react-dom: ">=16.0.0"
   checksum: ffaf1f8bc5bed4d05e91f5562c5a9a81c1892ae12c28e43100a8f1cd6e5d29617efacf83aa471dde8a4739f1a2c8b04281d1ecdb3d839e3b60ead5da2e461a39
-  languageName: node
-  linkType: hard
-
-"@ant-design/cssinjs@npm:^1.11.0-0":
-  version: 1.11.0-0
-  resolution: "@ant-design/cssinjs@npm:1.11.0-0"
-  dependencies:
-    "@babel/runtime": ^7.11.1
-    "@emotion/hash": ^0.8.0
-    "@emotion/unitless": ^0.7.5
-    classnames: ^2.3.1
-    csstype: ^3.0.10
-    rc-util: ^5.34.1
-    stylis: ^4.0.13
-  peerDependencies:
-    react: ">=16.0.0"
-    react-dom: ">=16.0.0"
-  checksum: 0c419fda6eb61248132ba8332b08eccc6b662616e4bed64222467e2dbf961b1b8f636be82978679f0e01803806d6300e34036f01c9d381b3fea4184ca136971a
   languageName: node
   linkType: hard
 
@@ -1939,7 +1921,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@code-expert/sync@workspace:."
   dependencies:
-    "@ant-design/cssinjs": ^1.11.0-0
+    "@ant-design/cssinjs": 1.10.1
     "@code-expert/configs-typescript": ^0.2.3
     "@code-expert/eslint-config-prettier-typescript-react": ^0.6.5
     "@code-expert/prettier-config": ^0.1.0
@@ -10963,19 +10945,6 @@ __metadata:
     react: ">=16.9.0"
     react-dom: ">=16.9.0"
   checksum: 0a1b19b8c60ea9e98a8db44beeb593bedb5edfc86941ff17bcac424cfbddaff8bf8a15837635ca4e1c30dfeb0fd9ace22da6e224750c26b939c7d5883dc7f249
-  languageName: node
-  linkType: hard
-
-"rc-util@npm:^5.34.1":
-  version: 5.34.1
-  resolution: "rc-util@npm:5.34.1"
-  dependencies:
-    "@babel/runtime": ^7.18.3
-    react-is: ^16.12.0
-  peerDependencies:
-    react: ">=16.9.0"
-    react-dom: ">=16.9.0"
-  checksum: ef4f0834db975ff77b1940c32f7ab75e201e06e16218dfc993066e994a0199330f433ab8587ab0a49101aa94ac009f8d553e3e8818185d9b6889e62791c77a16
   languageName: node
   linkType: hard
 

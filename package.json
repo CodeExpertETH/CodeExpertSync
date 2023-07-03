@@ -33,7 +33,7 @@
     "@ant-design/icons": "git+https://github.com/CodeExpertETH/antd-fa-icons.git#commit=0fc3daf65411014df241f5ff18cc8ff8fdc436ae"
   },
   "dependencies": {
-    "@ant-design/cssinjs": "^1.11.0-0",
+    "@ant-design/cssinjs": "1.10.1",
     "@ctrl/tinycolor": "^3.6.0",
     "@devexperts/remote-data-ts": "^2.1.1",
     "@emotion/hash": "^0.9.0",
