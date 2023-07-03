@@ -10,6 +10,8 @@ const metadata: ProjectMetadata = {
   exerciseName: 'Exercise 8: Two-Dimensional vectors, Characters, Recursion',
   taskName: '03 / Teil C.4: Testen einer Hypothese mittels DNA-Sequenzanalyse',
   projectName: '03 / Teil C.4: Testen einer Hypothese mittels DNA-Sequenzanalyse - Student attempt',
+  taskOrder: 1,
+  exerciseOrder: 1,
 };
 
 export const remoteProject = projectADT.remote(metadata);
