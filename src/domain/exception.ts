@@ -107,20 +107,3 @@ export function fromError(err: unknown): Exception {
     return new UncaughtException(e.message, e.stack);
   }
 }
-
-/**
- * Assert that the given value is never null, throw an invariant violation otherwise.
- */
-export function assertNonNull<A>(value: A, message?: string): asserts value is NonNullable<A> {
-  if (value == null) {
-    throw new InvariantViolation(['Non-null assertion failed', message].filter(Boolean).join(': '));
-  }
-}
-
-/**
- * Assert that the given value is not null and return it, throw an invariant violation otherwise.
- */
-export function requireNonNull<A>(value: A | null, message?: string): NonNullable<A> {
-  assertNonNull(value, message);
-  return value;
-}
