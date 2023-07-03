@@ -35,7 +35,7 @@ export function useRemoteData<P, A>(run: (props: P) => task.Task<A>) {
  *
  * Because we're dealing with a Task, there is no error channel.
  */
-export function useRemoteData2<P extends ReadonlyArray<unknown>, A>(
+export function useRemoteDataA<P extends ReadonlyArray<unknown>, A>(
   run: (...props: P) => task.Task<A>,
 ) {
   return useRemoteDataEither(flow(run, task.map(either.right)));

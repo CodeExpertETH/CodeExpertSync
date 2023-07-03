@@ -9,7 +9,7 @@ import { useTimeContext } from '@/ui/contexts/TimeContext';
 import { Icon } from '@/ui/foundation/Icons';
 import { HStack, VStack } from '@/ui/foundation/Layout';
 import { styled } from '@/ui/foundation/Theme';
-import { useRemoteData2, useRemoteDataEither } from '@/ui/hooks/useRemoteData';
+import { useRemoteDataA, useRemoteDataEither } from '@/ui/hooks/useRemoteData';
 import { fromProject } from '@/ui/pages/projects/components/ProjectList/model/SyncButtonState';
 import { ForceSyncDirection } from '@/ui/pages/projects/hooks/useProjectSync';
 import { SyncButton } from './SyncButton';
@@ -53,7 +53,7 @@ export const ListItem = ({ project, onOpen, onSync, onRemove }: ListItemProps) =
 
   const [openStateRD, runOpen] = useRemoteDataEither(onOpen);
   const [syncStateRD, runSync] = useRemoteDataEither(onSync);
-  const [removalStateRD, runRemove] = useRemoteData2(onRemove);
+  const [removalStateRD, runRemove] = useRemoteDataA(onRemove);
 
   // All states combined. Order matters: the first failure gets precedence.
   const actionStates = remoteData.sequenceT(
