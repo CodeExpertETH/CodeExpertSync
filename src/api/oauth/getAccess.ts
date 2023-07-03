@@ -1,6 +1,5 @@
-import { iots, pipe, taskEither } from '@code-expert/prelude';
+import { iots } from '@code-expert/prelude';
 import { ClientId } from '@/domain/ClientId';
-import { invariantViolated } from '@/domain/exception';
 import { apiPost, requestBody } from '@/utils/api';
 
 const codec = iots.null;
@@ -18,8 +17,5 @@ export const getAccess = (
     pubKey,
   });
 
-  return pipe(
-    apiPost({ path: 'app/oauth/gainAccess', body, codec }),
-    taskEither.mapLeft((e) => invariantViolated(e._tag)),
-  );
+  return apiPost({ path: 'app/oauth/gainAccess', body, codec });
 };

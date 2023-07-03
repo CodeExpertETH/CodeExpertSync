@@ -164,5 +164,6 @@ const viewFromSyncException: (env: {
         </>
       ),
       projectDirMissing: () => <>Project directory not found; set it up in settings</>,
+      networkError: ({ reason }) => <>Network error: {reason}</>,
     }),
   );

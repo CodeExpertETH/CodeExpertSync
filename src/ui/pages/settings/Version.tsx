@@ -1,6 +1,6 @@
 import { api } from 'api';
 import React from 'react';
-import { pipe, taskEither } from '@code-expert/prelude';
+import { pipe, task } from '@code-expert/prelude';
 import { config } from '@/config';
 import { styled } from '@/ui/foundation/Theme';
 
@@ -16,7 +16,7 @@ const Version = () => {
   const [version, setVersion] = React.useState<string>('');
 
   React.useEffect(() => {
-    void pipe(api.getVersion(), taskEither.map(setVersion), taskEither.run);
+    void pipe(api.getVersion, task.map(setVersion), task.run);
   }, []);
 
   return (

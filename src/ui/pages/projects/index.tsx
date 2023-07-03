@@ -14,7 +14,6 @@ import {
 import { ClientId } from '@/domain/ClientId';
 import { ordProjectExercise } from '@/domain/Project';
 import { globalSetupState, setupState } from '@/domain/Setup';
-import { invariantViolated } from '@/domain/exception';
 import { useGlobalContextWithActions } from '@/ui/GlobalContext';
 import { CourseHeader } from '@/ui/components/CourseHeader';
 import { VStack } from '@/ui/foundation/Layout';
@@ -27,6 +26,7 @@ import { projectsByExercise } from '@/ui/pages/projects/components/ProjectList/m
 import { useProjectOpen } from '@/ui/pages/projects/hooks/useProjectOpen';
 import { useProjectSync } from '@/ui/pages/projects/hooks/useProjectSync';
 import { routes, useRoute } from '@/ui/routes';
+import { panic } from '@/utils/error';
 import { useProjectEventUpdate } from './hooks/useProjectEventUpdate';
 
 export function Projects({ clientId, course }: { clientId: ClientId; course: CourseItem }) {
@@ -76,7 +76,7 @@ export function Projects({ clientId, course }: { clientId: ClientId; course: Cou
                       pipe(
                         projectRepository.getProject(projectId),
                         taskEither.fromTaskOption(() => {
-                          throw invariantViolated('Project to sync not found');
+                          panic('Project to sync not found');
                         }),
                         taskEither.chainFirst((project) => syncProject(project, { force })),
                         taskEither.map(constVoid),

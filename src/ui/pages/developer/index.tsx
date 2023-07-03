@@ -1,13 +1,12 @@
 import { BaseDirectory } from '@tauri-apps/api/fs';
 import { Alert, Button } from 'antd';
 import React from 'react';
-import { iots, pipe, task, taskEither, taskOption } from '@code-expert/prelude';
+import { iots, pipe, readonlyArray, task, taskOption } from '@code-expert/prelude';
+import { Project } from '@/domain/Project';
 import { globalSetupState, setupState } from '@/domain/Setup';
-import { Exception } from '@/domain/exception';
 import { fs } from '@/lib/tauri';
 import { useGlobalContextWithActions } from '@/ui/GlobalContext';
 import { VStack } from '@/ui/foundation/Layout';
-import { messageT } from '@/ui/helper/message';
 import { notificationT } from '@/ui/helper/notifications';
 import { routes, useRoute } from '@/ui/routes';
 import { apiGetSigned } from '@/utils/api';
@@ -22,10 +21,6 @@ export function Developer() {
         path: 'app/assertAccess',
         codec: iots.strict({ status: iots.string }),
       }),
-      taskEither.fold(
-        (e) => notificationT.error(`You are not authorized: ${e.message}`),
-        (d) => messageT.success(d.status),
-      ),
       task.run,
     );
   };
@@ -33,24 +28,22 @@ export function Developer() {
   const cleanConfig = () => {
     void pipe(
       projectRepository.projects.get(),
-      taskOption.fromPredicate((projects) => projects.length > 0),
-      taskOption.fold(
-        () => taskEither.right<Exception, unknown>(undefined),
-        taskEither.traverseSeqArray((project) =>
-          pipe(projectRepository.removeProject(project.value.projectId), taskEither.fromTask),
+      taskOption.fromPredicate(readonlyArray.isNonEmpty),
+      taskOption.chainFirstTaskK(
+        task.traverseSeqArray((project) =>
+          projectRepository.removeProject(project.value.projectId),
         ),
       ),
-      taskEither.alt(() => taskEither.right<Exception, unknown>(undefined)),
-      // chainFirstTaskK(() => TaskEither<E, A>) <=> ignore errors
-      taskEither.chainFirstTaskK(() =>
-        taskEither.sequenceT(
+      taskOption.alt(() => taskOption.some(readonlyArray.zero<Project>())),
+      taskOption.chainFirst(() =>
+        taskOption.sequenceT(
           fs.removeFile('settings.json', { dir: BaseDirectory.AppLocalData }),
           fs.removeFile('privateKey.pem', { dir: BaseDirectory.AppLocalData }),
         ),
       ),
-      taskEither.fold(
-        (e) => notificationT.error(`${e.message} : You are not authorized`),
-        () => notificationT.success('deleted config data'),
+      taskOption.fold(
+        () => notificationT.error('You are not authorized'),
+        () => notificationT.success('Deleted config data'),
       ),
       task.map(() => {
         dispatchContext({

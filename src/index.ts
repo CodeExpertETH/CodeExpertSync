@@ -10,7 +10,7 @@ import './reset.css';
 import './global.css';
 import AppSignal from '@appsignal/javascript';
 import { relaunch } from '@tauri-apps/api/process';
-import fromThrown from 'normalize-exception';
+import { fromThrown } from '@/utils/error';
 import { config } from '@/config';
 
 const appSignal =

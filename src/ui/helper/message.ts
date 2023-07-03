@@ -12,7 +12,7 @@ import {
   task,
   taskEither,
 } from '@code-expert/prelude';
-import { Exception, fromError, isException } from '@/domain/exception';
+import { fromThrown } from '@/utils/error';
 
 export type Message<F> = {
   /**
@@ -45,15 +45,11 @@ export type Content = React.ReactNode | string;
 export type Message1<F extends URIS> = Message<Kind<F, void>>;
 export type Message2<F extends URIS2, E> = Message<Kind2<F, E, void>>;
 
-const exception = (e: Exception, duration?: number) => void antdMessage.error(e.message, duration);
-
 export const messageIO: Message1<io.URI> = {
-  error: (e, duration) => () =>
-    string.isString(e) || React.isValidElement(e)
-      ? void antdMessage.error(e, duration)
-      : isException(e)
-      ? exception(e, duration)
-      : exception(fromError(e), duration),
+  error: (e, duration) => () => {
+    const message = string.isString(e) || React.isValidElement(e) ? e : fromThrown(e).message;
+    return antdMessage.error(message, duration);
+  },
   info: (content, duration) => () => void antdMessage.info(content, duration),
   loading: (content, duration) => () => void antdMessage.loading(content, duration),
   success: (content, duration) => () => void antdMessage.success(content, duration),

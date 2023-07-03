@@ -4,7 +4,6 @@ import {
   array,
   constVoid,
   constant,
-  either,
   flow,
   io,
   ioOption,
@@ -20,9 +19,8 @@ import { ProjectFiles } from '@/domain/ProjectFiles';
 import { ProjectMetadata } from '@/domain/ProjectMetadata';
 import { ProjectRepository } from '@/domain/ProjectRepository';
 import { changesADT, syncStateADT } from '@/domain/SyncState';
-import { fromError } from '@/domain/exception';
 import { path } from '@/lib/tauri';
-import { apiGetSigned, apiPostSigned } from '@/utils/api';
+import { apiError, apiGetSigned, apiPostSigned } from '@/utils/api';
 import { projectConfigStore } from './internal/ProjectConfigStore';
 import { projectMetadataStore } from './internal/ProjectMetadataStore';
 
@@ -88,8 +86,8 @@ export const mkProjectRepositoryTauri = (): task.Task<ProjectRepository> => {
           taskEither.chainFirstTaskK(persistMetadata),
           taskEither.chainTaskK(projectsFromMetadata),
           taskEither.chainFirstIOK(setProjects), // FIXME This overwrites existing sync state
-          task.map(flow(either.getOrThrow(fromError), constVoid)), // FIXME Don't throw network errors
-          task.run,
+          taskEither.map(constVoid),
+          taskEither.run,
         );
       },
 
@@ -104,14 +102,14 @@ export const mkProjectRepositoryTauri = (): task.Task<ProjectRepository> => {
               taskOption.chainOptionK(projectPrism.local.getOption),
             ),
           }),
-          taskOption.chainTaskEitherK(({ rootDir, project }) =>
+          taskOption.chainTaskK(({ rootDir, project }) =>
             path.join(rootDir, project.value.basePath),
           ),
         );
 
         const removeProjectDir: taskEither.TaskEither<Array<string>, void> = pipe(
           getProjectDir,
-          taskOption.chainTaskEitherK(api.removeDir),
+          taskOption.chain(api.removeDir),
           taskEither.fromTaskOption(() => ['Could not remove project dir']),
         );
 
@@ -121,7 +119,18 @@ export const mkProjectRepositoryTauri = (): task.Task<ProjectRepository> => {
             jwtPayload: { projectId },
             codec: iots.strict({ removed: iots.boolean }),
           }),
-          taskEither.bimap(() => ['Could not remove project access'], constVoid),
+          taskEither.mapLeft(
+            apiError.fold({
+              noNetwork: () => ['No network access'],
+              clientError: (e) => [`Client error (${e.statusCode}): ${e.message}`],
+              serverError: (e) => [`Server error (${e.statusCode}): ${e.message}`],
+            }),
+          ),
+          taskEither.filterOrElse(
+            ({ removed }) => removed,
+            () => ['Could not remove project access'],
+          ),
+          taskEither.map(constVoid),
         );
 
         const removeMetadata: taskEither.TaskEither<Array<string>, void> = pipe(

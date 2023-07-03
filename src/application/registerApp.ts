@@ -11,17 +11,16 @@ import {
   taskOption,
 } from '@code-expert/prelude';
 import { ClientId } from '@/domain/ClientId';
-import { fromError, invariantViolated } from '@/domain/exception';
 import { apiGet, apiPost, requestBody } from '@/utils/api';
+import { fromThrown } from '@/utils/error';
 
 const getClientToken: task.Task<string> = pipe(
   apiGet({
     path: 'app/clientId',
     codec: iots.strict({ token: iots.string }),
   }),
-  taskEither.mapLeft((e) => invariantViolated(e._tag)),
   taskEither.map(({ token }) => token),
-  task.map(either.getOrThrow(fromError)),
+  task.map(either.getOrThrow(fromThrown)),
 );
 
 const getSystemInfo: task.Task<{ os: string; name: string; version: string }> = task.sequenceS({
@@ -50,10 +49,9 @@ export const registerApp = (): task.Task<ClientId> =>
               }),
               codec: iots.strict({ clientId: ClientId }),
             }),
-            taskEither.mapLeft((e) => invariantViolated(e._tag)),
             taskEither.map(({ clientId }) => clientId),
             taskEither.chainFirstTaskK((clientId) => api.settingWrite('clientId', clientId)),
-            task.map(flow(either.getOrThrow(fromError), option.some)),
+            task.map(flow(either.getOrThrow(fromThrown), option.some)),
           ),
         ),
       ),

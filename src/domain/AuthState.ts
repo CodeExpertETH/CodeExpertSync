@@ -1,9 +1,8 @@
 import { api } from 'api';
 import React from 'react';
-import { pipe, tagged, task, taskEither } from '@code-expert/prelude';
+import { pipe, tagged, task } from '@code-expert/prelude';
 import { getAccess } from '@/api/oauth/getAccess';
 import { config } from '@/config';
-import { notificationT } from '@/ui/helper/notifications';
 import useTimeout from '@/ui/hooks/useTimeout';
 import { pkceChallenge } from '@/utils/crypto';
 import { ClientId } from './ClientId';
@@ -56,11 +55,10 @@ export const useAuthState = (
     const onAuthToken = async ({ data: authToken }: { data: string }) => {
       if (authState.is.waitingForAuthorization(state)) {
         await pipe(
-          api.create_keys(),
-          taskEither.chainW((publicKey) =>
+          api.create_keys,
+          task.chain((publicKey) =>
             getAccess(clientId, state.value.code_verifier, authToken, publicKey),
           ),
-          taskEither.foldW(notificationT.error, task.of),
           task.run,
         );
         sse.current?.close();

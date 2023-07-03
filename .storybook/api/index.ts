@@ -1,14 +1,14 @@
-import { either, option, task, taskEither, taskOption } from '@code-expert/prelude';
+import { option, task, taskOption } from '@code-expert/prelude';
 import type { Api } from '../../src/api';
 
 const fileStore = new Map();
 const settingsStore = new Map();
 
 export const api: Api = {
-  getVersion: () => () => Promise.resolve(either.right('Version: Storybook')),
-  create_keys: () => taskEither.of('FIXME secret-key'),
-  create_jwt_tokens: () => taskEither.of('FIXME jwt-token'),
-  buildTar: () => taskEither.of('FIXME hash'),
+  getVersion: task.of('Version: Storybook'),
+  create_keys: task.of('FIXME secret-key'),
+  create_jwt_tokens: () => task.of('FIXME jwt-token'),
+  buildTar: () => task.of('FIXME hash'),
   settingRead: (key) => taskOption.fromIO(() => settingsStore.get(key)),
   settingWrite: (key, value) => () => {
     settingsStore.set(key, value);
@@ -16,7 +16,7 @@ export const api: Api = {
   },
   exists: () => task.of(true) /* FIXME Correct implementation */,
   writeFile: (filePath, content) =>
-    taskEither.fromIO(() => {
+    task.fromIO(() => {
       fileStore.set(filePath, content);
     }),
   writeProjectFile: () => {

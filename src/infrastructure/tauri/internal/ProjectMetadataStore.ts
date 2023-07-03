@@ -12,7 +12,7 @@ import {
 } from '@code-expert/prelude';
 import { ProjectId } from '@/domain/Project';
 import { ProjectMetadata } from '@/domain/ProjectMetadata';
-import { fromError } from '@/domain/exception';
+import { fromThrown } from '@/utils/error';
 
 const store = new TauriStore('project_metadata.json');
 
@@ -39,7 +39,7 @@ export const projectMetadataStore = {
       taskOption.tryCatch(() =>
         pipe(
           iots.array(ProjectMetadata).decode(projects),
-          either.getOrThrow(fromError),
+          either.getOrThrow(fromThrown),
           array.map((x) => store.set(x.projectId, x)),
           (xs) => Promise.allSettled(xs),
         ),
