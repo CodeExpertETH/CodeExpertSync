@@ -10,6 +10,7 @@ import {
   taskEither,
 } from '@code-expert/prelude';
 import { ClientId } from '@/domain/ClientId';
+import { ordProjectExercise } from '@/domain/Project';
 import { globalSetupState, setupState } from '@/domain/Setup';
 import { invariantViolated } from '@/domain/exception';
 import { useGlobalContextWithActions } from '@/ui/GlobalContext';
@@ -44,7 +45,9 @@ export function Projects({ clientId, course }: { clientId: ClientId; course: Cou
     <PageLayout>
       <CourseHeader semester={course.semester} title={course.name} goOverview={goOverview} />
       {pipe(
-        nonEmptyArray.fromArray(projects),
+        projects,
+        array.sort(ordProjectExercise),
+        nonEmptyArray.fromArray,
         option.map(projectsByExercise),
         option.map(
           nonEmptyArray.map(({ name, projects }) => (

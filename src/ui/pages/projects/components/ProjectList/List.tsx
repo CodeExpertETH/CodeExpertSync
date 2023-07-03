@@ -1,7 +1,7 @@
 import { List as AntList, Card, Typography } from 'antd';
 import React from 'react';
-import { task, taskEither } from '@code-expert/prelude';
-import { Project, ProjectId } from '@/domain/Project';
+import { array, pipe, task, taskEither } from '@code-expert/prelude';
+import { Project, ProjectId, ordProjectTask } from '@/domain/Project';
 import { SyncException } from '@/domain/SyncState';
 import { VStack } from '@/ui/foundation/Layout';
 import { styled } from '@/ui/foundation/Theme';
@@ -29,7 +29,7 @@ export const List = ({ exerciseName, projects, onOpen, onSync, onRemove }: ListP
     <StyledCard size="small">
       <AntList
         size="small"
-        dataSource={projects}
+        dataSource={pipe(projects, array.sort(ordProjectTask))}
         renderItem={(project) => (
           <ListItem project={project} onOpen={onOpen} onSync={onSync} onRemove={onRemove} />
         )}
