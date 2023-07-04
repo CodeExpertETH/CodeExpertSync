@@ -8,7 +8,7 @@ import { globalSetupState } from '@/domain/Setup';
 import { mkProjectRepositoryTauri } from '@/infrastructure/tauri/ProjectRepository';
 import { GlobalContextProvider, useGlobalContextWithActions } from '@/ui/GlobalContext';
 import { ErrorBoundary } from '@/ui/components/ErrorBoundary';
-import { GuardRemoteData } from '@/ui/components/GuardRemoteData';
+import { GuardRemote } from '@/ui/components/GuardRemoteData';
 import { TimeContextProvider, timeContext } from '@/ui/contexts/TimeContext';
 import useNetworkState from '@/ui/hooks/useNetwork';
 import { useRemote } from '@/ui/hooks/useRemoteData';
@@ -69,7 +69,7 @@ export function App() {
         />
       ),
       () => (
-        <GuardRemoteData
+        <GuardRemote
           value={clientIdRD}
           pending={() => <div>Loading …</div>}
           render={(clientId) =>
@@ -90,7 +90,7 @@ export function App() {
                   ),
                   courses: () => (
                     <AppLayout>
-                      <Courses clientId={clientId} />
+                      <Courses />
                     </AppLayout>
                   ),
                   projects: ({ course }) => (

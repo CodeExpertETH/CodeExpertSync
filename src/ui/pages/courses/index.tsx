@@ -1,7 +1,6 @@
 import { useProperty } from '@frp-ts/react';
 import { Typography } from 'antd';
 import React from 'react';
-import { ClientId } from '@/domain/ClientId';
 import { useGlobalContext } from '@/ui/GlobalContext';
 import { styled } from '@/ui/foundation/Theme';
 import { PageLayout } from '@/ui/layout/PageLayout';
@@ -14,7 +13,7 @@ const StyledTitle = styled(Typography.Title, () => ({
   marginBottom: '0.2em !important',
 }));
 
-export const Courses = ({ clientId }: { clientId: ClientId }) => {
+export const Courses = () => {
   const { navigateTo } = useRoute();
   const { projectRepository } = useGlobalContext();
   const projects = useProperty(projectRepository.projects);
@@ -24,7 +23,7 @@ export const Courses = ({ clientId }: { clientId: ClientId }) => {
     (course: CourseItem) => {
       navigateTo(routes.projects({ course }));
     },
-    [clientId, navigateTo],
+    [navigateTo],
   );
 
   return (

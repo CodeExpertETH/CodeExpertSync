@@ -3,7 +3,7 @@ import { homeDir } from '@tauri-apps/api/path';
 import { Form, message } from 'antd';
 import { api } from 'api';
 import React from 'react';
-import { iots, remoteData, task } from '@code-expert/prelude';
+import { iots, remoteData } from '@code-expert/prelude';
 import { UserInfo } from '@/domain/UserInfo';
 import { EditableCard } from '@/ui/components/EditableCard';
 import { GuardRemote } from '@/ui/components/GuardRemoteData';
