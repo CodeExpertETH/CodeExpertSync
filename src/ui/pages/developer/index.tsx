@@ -20,7 +20,7 @@ export function Developer({ clientId }: { clientId: ClientId }) {
   const testAuth = () => {
     void pipe(
       createSignedAPIRequest({
-        path: 'app/checkAccess',
+        path: 'app/assertAccess',
         method: 'GET',
         jwtPayload: {},
         codec: iots.strict({ status: iots.string }),

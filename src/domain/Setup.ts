@@ -1,6 +1,5 @@
 import { UpdateManifest } from '@tauri-apps/api/updater';
 import { api } from 'api';
-import React from 'react';
 import {
   iots,
   nonEmptyArray,
@@ -46,7 +45,7 @@ const getSetupNoProjectDir = (projectRepository: ProjectRepository): task.Task<G
 export const getSetupState = (projectRepository: ProjectRepository): task.Task<GlobalSetupState> =>
   pipe(
     createSignedAPIRequest({
-      path: 'app/checkAccess',
+      path: 'app/assertAccess',
       method: 'GET',
       jwtPayload: {},
       codec: iots.strict({ status: iots.string }),
@@ -59,12 +58,3 @@ export const getSetupState = (projectRepository: ProjectRepository): task.Task<G
           : task.fromIO(() => globalSetupState.setup({ state: setupState.notAuthorized() })),
     ),
   );
-export const useSetupState = () => {
-  const [state, setState] = React.useState<SetupState>(() => setupState.notAuthorized());
-
-  React.useEffect(() => {
-    //TODO update the state
-  }, []);
-
-  return [state, setState] as const;
-};
