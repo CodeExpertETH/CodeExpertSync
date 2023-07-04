@@ -4,7 +4,6 @@ import { Form, message } from 'antd';
 import { api } from 'api';
 import React from 'react';
 import { iots, remoteData, task } from '@code-expert/prelude';
-import { ClientId } from '@/domain/ClientId';
 import { UserInfo } from '@/domain/UserInfo';
 import { EditableCard } from '@/ui/components/EditableCard';
 import { GuardRemoteData } from '@/ui/components/GuardRemoteData';
@@ -26,15 +25,7 @@ const SettingsDiv = styled('div', ({ tokens }) => ({
   padding: tokens.padding,
 }));
 
-function SettingsInner({
-  clientId,
-  projectDir,
-  userInfo,
-}: {
-  clientId: ClientId;
-  projectDir: string;
-  userInfo: UserInfo;
-}) {
+function SettingsInner({ projectDir, userInfo }: { projectDir: string; userInfo: UserInfo }) {
   const { navigateTo } = useRoute();
   const [form] = Form.useForm();
 
@@ -52,7 +43,7 @@ function SettingsInner({
   };
 
   const logout = () => {
-    navigateTo(routes.logout(clientId));
+    navigateTo(routes.logout());
   };
 
   //TODO think about if we want to implement this
@@ -113,7 +104,7 @@ function SettingsInner({
   );
 }
 
-export function Settings({ clientId }: { clientId: ClientId }) {
+export function Settings() {
   const projectDirRD = useSettingsFallback('projectDir', iots.string, task.of(''), []);
   const userInfoRD = useUserInfo();
 
@@ -124,7 +115,7 @@ export function Settings({ clientId }: { clientId: ClientId }) {
         userInfo: userInfoRD,
       })}
       render={({ projectDir, userInfo }) => (
-        <SettingsInner clientId={clientId} userInfo={userInfo} projectDir={projectDir} />
+        <SettingsInner userInfo={userInfo} projectDir={projectDir} />
       )}
     />
   );

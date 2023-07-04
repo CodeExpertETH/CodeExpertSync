@@ -2,7 +2,7 @@ import { Result } from 'antd';
 import React, { useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { useHotkeys } from 'react-hotkeys-hook';
-import { boolean, pipe, remoteData, task } from '@code-expert/prelude';
+import { boolean, pipe, task } from '@code-expert/prelude';
 import { registerApp } from '@/application/registerApp';
 import { globalSetupState } from '@/domain/Setup';
 import { mkProjectRepositoryTauri } from '@/infrastructure/tauri/ProjectRepository';
@@ -51,9 +51,7 @@ export function App() {
   const [clientIdRD, refreshClientId] = useRemoteData2(registerApp);
 
   useHotkeys('ctrl+c+x', () => {
-    if (remoteData.isSuccess(clientIdRD)) {
-      navigateTo(routes.developer(clientIdRD.value));
-    }
+    navigateTo(routes.developer());
   });
 
   useEffect(() => {
@@ -80,33 +78,29 @@ export function App() {
               update: ({ manifest }) => <Updater manifest={manifest} />,
               setupDone: () =>
                 routes.fold(currentRoute, {
-                  startup: () => {
-                    navigateTo(routes.courses(clientId));
-                    return null;
-                  },
-                  settings: (clientId) => (
-                    <AppLayout clientId={clientId}>
-                      <Settings clientId={clientId} />
+                  settings: () => (
+                    <AppLayout>
+                      <Settings />
                     </AppLayout>
                   ),
-                  logout: (clientId) => (
-                    <AppLayout clientId={clientId}>
-                      <Logout clientId={clientId} />
+                  logout: () => (
+                    <AppLayout>
+                      <Logout />
                     </AppLayout>
                   ),
-                  courses: (clientId) => (
-                    <AppLayout clientId={clientId}>
+                  courses: () => (
+                    <AppLayout>
                       <Courses clientId={clientId} />
                     </AppLayout>
                   ),
-                  projects: ({ clientId, course }) => (
-                    <AppLayout clientId={clientId}>
+                  projects: ({ course }) => (
+                    <AppLayout>
                       <Projects clientId={clientId} course={course} />
                     </AppLayout>
                   ),
-                  developer: (clientId) => (
-                    <AppLayout clientId={clientId}>
-                      <Developer clientId={clientId} />
+                  developer: () => (
+                    <AppLayout>
+                      <Developer />
                     </AppLayout>
                   ),
                 }),

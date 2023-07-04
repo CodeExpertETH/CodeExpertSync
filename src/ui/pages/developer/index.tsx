@@ -2,7 +2,6 @@ import { BaseDirectory } from '@tauri-apps/api/fs';
 import { Alert, Button } from 'antd';
 import React from 'react';
 import { iots, pipe, task, taskEither, taskOption } from '@code-expert/prelude';
-import { ClientId } from '@/domain/ClientId';
 import { globalSetupState, setupState } from '@/domain/Setup';
 import { createSignedAPIRequest } from '@/domain/createAPIRequest';
 import { Exception } from '@/domain/exception';
@@ -13,7 +12,7 @@ import { messageT } from '@/ui/helper/message';
 import { notificationT } from '@/ui/helper/notifications';
 import { routes, useRoute } from '@/ui/routes';
 
-export function Developer({ clientId }: { clientId: ClientId }) {
+export function Developer() {
   const [{ projectRepository }, dispatchContext] = useGlobalContextWithActions();
   const { navigateTo } = useRoute();
 
@@ -59,7 +58,7 @@ export function Developer({ clientId }: { clientId: ClientId }) {
         dispatchContext({
           setupState: globalSetupState.setup({ state: setupState.notAuthorized() }),
         });
-        navigateTo(routes.courses(clientId));
+        navigateTo(routes.courses());
         return undefined;
       }),
       task.run,
@@ -74,7 +73,7 @@ export function Developer({ clientId }: { clientId: ClientId }) {
       />
       <Button
         onClick={() => {
-          navigateTo(routes.courses(clientId));
+          navigateTo(routes.courses());
         }}
         block
       >

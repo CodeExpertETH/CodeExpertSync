@@ -2,13 +2,12 @@ import { Button, Result } from 'antd';
 import { api } from 'api';
 import React from 'react';
 import { pipe, task } from '@code-expert/prelude';
-import { ClientId } from '@/domain/ClientId';
 import { globalSetupState, setupState } from '@/domain/Setup';
 import { useGlobalContextWithActions } from '@/ui/GlobalContext';
 import { Icon } from '@/ui/foundation/Icons';
 import { routes, useRoute } from '@/ui/routes';
 
-export function Logout({ clientId }: { clientId: ClientId }) {
+export function Logout() {
   const [, dispatch] = useGlobalContextWithActions();
   const { navigateTo } = useRoute();
 
@@ -19,7 +18,7 @@ export function Logout({ clientId }: { clientId: ClientId }) {
         dispatch({
           setupState: globalSetupState.setup({ state: setupState.notAuthorized() }),
         });
-        navigateTo(routes.courses(clientId));
+        navigateTo(routes.courses());
       }),
       task.run,
     );

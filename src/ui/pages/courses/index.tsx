@@ -22,7 +22,7 @@ export const Courses = ({ clientId }: { clientId: ClientId }) => {
 
   const onOpen = React.useCallback(
     (course: CourseItem) => {
-      navigateTo(routes.projects({ clientId, course }));
+      navigateTo(routes.projects({ course }));
     },
     [clientId, navigateTo],
   );

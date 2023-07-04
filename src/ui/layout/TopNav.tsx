@@ -1,22 +1,21 @@
 import { Menu } from 'antd';
 import React from 'react';
 import codeExpertLogo from '@/assets/logo_invert.png';
-import { ClientId } from '@/domain/ClientId';
 import { globalSetupState } from '@/domain/Setup';
 import { useGlobalContextWithActions } from '@/ui/GlobalContext';
 import { Icon } from '@/ui/foundation/Icons';
 import { HStack } from '@/ui/foundation/Layout';
 import { routes, useRoute } from '@/ui/routes';
 
-export const TopNav = ({ clientId }: { clientId: ClientId }) => {
+export const TopNav = () => {
   const [{ setupState }] = useGlobalContextWithActions();
   const { navigateTo } = useRoute();
 
   const onClick = ({ key }: { key: string }) => {
     if (key === 'settings') {
-      navigateTo(routes.settings(clientId));
+      navigateTo(routes.settings());
     } else if (key === 'logout') {
-      navigateTo(routes.logout(clientId));
+      navigateTo(routes.logout());
     }
   };
 
@@ -27,7 +26,7 @@ export const TopNav = ({ clientId }: { clientId: ClientId }) => {
         height="40"
         alt="Code Expert"
         aria-hidden="true"
-        onClick={() => navigateTo(routes.courses(clientId))}
+        onClick={() => navigateTo(routes.courses())}
       />
       <Menu
         theme="dark"

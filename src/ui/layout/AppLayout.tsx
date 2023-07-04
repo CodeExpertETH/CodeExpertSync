@@ -1,6 +1,5 @@
 import { Layout } from 'antd';
 import React from 'react';
-import { ClientId } from '@/domain/ClientId';
 import { styled } from '@/ui/foundation/Theme';
 import { TopNav } from './TopNav';
 
@@ -17,14 +16,13 @@ const StyledContent = styled(Layout.Content, () => ({
 }));
 
 export interface AppLayoutProps {
-  clientId: ClientId;
   children: React.ReactNode;
 }
 
-export const AppLayout = ({ children, clientId }: AppLayoutProps) => (
+export const AppLayout = ({ children }: AppLayoutProps) => (
   <StyledLayout>
     <StyledLayoutHeader>
-      <TopNav clientId={clientId} />
+      <TopNav />
     </StyledLayoutHeader>
     <StyledContent>{children}</StyledContent>
   </StyledLayout>

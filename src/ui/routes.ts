@@ -1,16 +1,14 @@
 import React from 'react';
 import { tagged } from '@code-expert/prelude';
-import { ClientId } from '@/domain/ClientId';
 import { requireNonNull } from '@/domain/exception';
 import { CourseItem } from '@/ui/pages/courses/components/model';
 
 export type Route =
-  | tagged.Tagged<'startup'>
-  | tagged.Tagged<'courses', ClientId>
-  | tagged.Tagged<'projects', { clientId: ClientId; course: CourseItem }>
-  | tagged.Tagged<'settings', ClientId>
-  | tagged.Tagged<'logout', ClientId>
-  | tagged.Tagged<'developer', ClientId>;
+  | tagged.Tagged<'courses'>
+  | tagged.Tagged<'projects', { course: CourseItem }>
+  | tagged.Tagged<'settings'>
+  | tagged.Tagged<'logout'>
+  | tagged.Tagged<'developer'>;
 
 export const routes = tagged.build<Route>();
 
@@ -23,7 +21,7 @@ const context = React.createContext<RouteContext | undefined>(undefined);
 export const RouteContextProvider = React.memo(function RouteContextProvider({
   children,
 }: React.PropsWithChildren) {
-  const [currentRoute, setCurrentRoute] = React.useState(routes.wide.startup());
+  const [currentRoute, setCurrentRoute] = React.useState(routes.wide.courses());
   return React.createElement(
     context.Provider,
     { value: { currentRoute, navigateTo: setCurrentRoute } },

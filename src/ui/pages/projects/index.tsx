@@ -36,7 +36,7 @@ export function Projects({ clientId, course }: { clientId: ClientId; course: Cou
   const { navigateTo } = useRoute();
 
   const goOverview = () => {
-    navigateTo(routes.courses(clientId));
+    navigateTo(routes.courses());
   };
 
   useProjectEventUpdate(projectRepository.fetchChanges, clientId);
