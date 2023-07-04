@@ -1,17 +1,16 @@
 import React from 'react';
 import { flow, remoteData, task } from '@code-expert/prelude';
-import { Exception, fromError } from '@/domain/exception';
 import { useRaceState } from './useRaceState';
 
 /**
  * Run a `Task` and represent the states before, during and after as `RemoteData`.
  */
 export function useAsync<A>(run: task.Task<A>, dependencyList: React.DependencyList) {
-  const [state, mkSetState] = useRaceState<remoteData.RemoteData<Exception, A>>(remoteData.initial);
+  const [state, mkSetState] = useRaceState<remoteData.Remote<A>>(remoteData.initial);
 
   React.useEffect(() => {
     const setState = mkSetState();
-    void run().then(remoteData.success, flow(fromError, remoteData.failure)).then(setState);
+    void run().then(flow(remoteData.success, setState));
   }, dependencyList); //eslint-disable-line react-hooks/exhaustive-deps
 
   return state;

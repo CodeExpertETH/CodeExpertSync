@@ -6,7 +6,7 @@ import React from 'react';
 import { iots, remoteData, task } from '@code-expert/prelude';
 import { UserInfo } from '@/domain/UserInfo';
 import { EditableCard } from '@/ui/components/EditableCard';
-import { GuardRemoteData } from '@/ui/components/GuardRemoteData';
+import { GuardRemote } from '@/ui/components/GuardRemoteData';
 import { styled } from '@/ui/foundation/Theme';
 import { useSettingsFallback } from '@/ui/hooks/useSettings';
 import Version from '@/ui/pages/settings/Version';
@@ -105,11 +105,11 @@ function SettingsInner({ projectDir, userInfo }: { projectDir: string; userInfo:
 }
 
 export function Settings() {
-  const projectDirRD = useSettingsFallback('projectDir', iots.string, task.of(''), []);
+  const projectDirRD = useSettingsFallback('projectDir', iots.string, '', []);
   const userInfoRD = useUserInfo();
 
   return (
-    <GuardRemoteData
+    <GuardRemote
       value={remoteData.sequenceS({
         projectDir: projectDirRD,
         userInfo: userInfoRD,

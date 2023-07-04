@@ -7,6 +7,12 @@ import { FunctionN } from 'fp-ts/function';
 export * from '@devexperts/remote-data-ts';
 export * from './refresh-remote-data';
 
+export type Remote<A> = RD.RemoteData<never, A>;
+
+export type RemoteOption<A> = RD.RemoteData<undefined, A>;
+
+export type RemoteEither<E, A> = RD.RemoteData<E, A>;
+
 export const chainW =
   <D, A, B>(f: (a: A) => RD.RemoteData<D, B>) =>
   <E>(ma: RD.RemoteData<E, A>): RD.RemoteData<D | E, B> => {
