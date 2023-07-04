@@ -85,7 +85,7 @@ export const GlobalContextProvider = React.memo(function GlobalContextProvider({
         },
       }),
     );
-  }, [projectRepository, state, updateState]);
+  }, [projectRepository, state, updateState, online]);
 
   return state == null
     ? React.createElement(Loading, { delayTime: 1000 })
