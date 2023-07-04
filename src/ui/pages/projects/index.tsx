@@ -4,6 +4,7 @@ import {
   array,
   boolean,
   constVoid,
+  flow,
   nonEmptyArray,
   option,
   pipe,
@@ -59,23 +60,10 @@ export function Projects({ clientId, course }: { clientId: ClientId; course: Cou
               key={name}
               exerciseName={name}
               projects={projects}
-              onOpen={(projectId) =>
-                pipe(
-                  online,
-                  boolean.fold(
-                    () => {
-                      notificationIO.warning('No internet connection', 5)();
-                      return taskEither.right(undefined);
-                    },
-                    () =>
-                      pipe(
-                        projectId,
-                        openProject,
-                        taskEither.fromTaskOption(() => 'Could not open project'),
-                      ),
-                  ),
-                )
-              }
+              onOpen={flow(
+                openProject,
+                taskEither.fromTaskOption(() => 'Could not open project'),
+              )}
               onSync={(projectId, force) =>
                 pipe(
                   online,
