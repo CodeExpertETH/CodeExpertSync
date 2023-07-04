@@ -1,5 +1,6 @@
 import { Menu } from 'antd';
 import React from 'react';
+import { constFalse, constTrue } from '@code-expert/prelude';
 import codeExpertLogo from '@/assets/logo_invert.png';
 import { globalSetupState } from '@/domain/Setup';
 import { useGlobalContextWithActions } from '@/ui/GlobalContext';
@@ -34,9 +35,9 @@ export const TopNav = () => {
         selectedKeys={[]}
         onClick={onClick}
         disabled={globalSetupState.fold(setupState, {
-          setup: () => true,
-          setupDone: () => false,
-          update: () => true,
+          setup: constTrue,
+          setupDone: constFalse,
+          update: constTrue,
         })}
         triggerSubMenuAction="click"
         items={[

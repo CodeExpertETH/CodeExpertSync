@@ -56,8 +56,6 @@ export function App() {
     refreshClientId();
   }, [refreshClientId]);
 
-  console.log(online);
-
   return pipe(
     online,
     boolean.fold(
@@ -74,8 +72,16 @@ export function App() {
           pending={() => <div>Loading …</div>}
           render={(clientId) =>
             globalSetupState.fold(setupState, {
-              setup: ({ state }) => <Setup state={state} />,
-              update: ({ manifest }) => <Updater manifest={manifest} />,
+              setup: ({ state }) => (
+                <AppLayout>
+                  <Setup state={state} />
+                </AppLayout>
+              ),
+              update: ({ manifest }) => (
+                <AppLayout>
+                  <Updater manifest={manifest} />
+                </AppLayout>
+              ),
               setupDone: () =>
                 routes.fold(currentRoute, {
                   settings: () => (
