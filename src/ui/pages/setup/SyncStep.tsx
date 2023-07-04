@@ -7,13 +7,14 @@ import { ClientId } from '@/domain/ClientId';
 import { getSetupState } from '@/domain/Setup';
 import { useGlobalContextWithActions } from '@/ui/GlobalContext';
 import { Icon } from '@/ui/foundation/Icons';
+import ProjectEventStatus from '@/ui/pages/projects/components/ProjectEventStatus';
 import { useProjectEventUpdate } from '@/ui/pages/projects/hooks/useProjectEventUpdate';
 
 export const SyncStep = ({ clientId, active }: { clientId: ClientId; active: boolean }) => {
   const [{ projectRepository }, dispatch] = useGlobalContextWithActions();
   const projects = useProperty(projectRepository.projects);
 
-  useProjectEventUpdate(projectRepository.fetchChanges, clientId);
+  const sseStatus = useProjectEventUpdate(projectRepository.fetchChanges, clientId);
 
   React.useEffect(() => {
     void pipe(
@@ -27,6 +28,7 @@ export const SyncStep = ({ clientId, active }: { clientId: ClientId; active: boo
 
   return active ? (
     <>
+      <ProjectEventStatus status={sseStatus} />
       <Typography.Paragraph>
         Visit the{' '}
         <a target="_blank" rel="noreferrer" href={config.CX_WEB_URL}>

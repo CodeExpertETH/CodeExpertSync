@@ -18,6 +18,7 @@ import { CourseHeader } from '@/ui/components/CourseHeader';
 import { VStack } from '@/ui/foundation/Layout';
 import { PageLayout } from '@/ui/layout/PageLayout';
 import { CourseItem, courseItemEq, fromProject } from '@/ui/pages/courses/components/model';
+import ProjectEventStatus from '@/ui/pages/projects/components/ProjectEventStatus';
 import { ProjectList } from '@/ui/pages/projects/components/ProjectList';
 import { projectsByExercise } from '@/ui/pages/projects/components/ProjectList/model/Exercise';
 import { useProjectOpen } from '@/ui/pages/projects/hooks/useProjectOpen';
@@ -39,10 +40,11 @@ export function Projects({ clientId, course }: { clientId: ClientId; course: Cou
     navigateTo(routes.courses());
   };
 
-  useProjectEventUpdate(projectRepository.fetchChanges, clientId);
+  const sseStatus = useProjectEventUpdate(projectRepository.fetchChanges, clientId);
 
   return (
     <PageLayout>
+      <ProjectEventStatus status={sseStatus} />
       <CourseHeader semester={course.semester} title={course.name} goOverview={goOverview} />
       {pipe(
         projects,
