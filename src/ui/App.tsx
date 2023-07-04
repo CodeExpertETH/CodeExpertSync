@@ -10,7 +10,6 @@ import { GlobalContextProvider, useGlobalContextWithActions } from '@/ui/GlobalC
 import { ErrorBoundary } from '@/ui/components/ErrorBoundary';
 import { GuardRemote } from '@/ui/components/GuardRemoteData';
 import { TimeContextProvider, timeContext } from '@/ui/contexts/TimeContext';
-import useNetworkState from '@/ui/hooks/useNetwork';
 import { useRemote } from '@/ui/hooks/useRemoteData';
 import { AppLayout } from '@/ui/layout';
 import { Courses } from '@/ui/pages/courses';
@@ -45,8 +44,7 @@ export const render = (container: HTMLElement): Promise<void> =>
   );
 
 export function App() {
-  const { online } = useNetworkState();
-  const [{ setupState }] = useGlobalContextWithActions();
+  const [{ setupState, online }] = useGlobalContextWithActions();
   const { currentRoute, navigateTo } = useRoute();
   const [clientIdRD, refreshClientId] = useRemote(registerApp);
 
@@ -57,6 +55,8 @@ export function App() {
   useEffect(() => {
     refreshClientId();
   }, [refreshClientId]);
+
+  console.log(online);
 
   return pipe(
     online,

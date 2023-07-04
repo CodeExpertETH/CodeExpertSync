@@ -4,15 +4,17 @@ import React, { useEffect } from 'react';
 import { pipe, task } from '@code-expert/prelude';
 import { ProjectRepository } from '@/domain/ProjectRepository';
 import { GlobalSetupState, getSetupState, globalSetupState } from '@/domain/Setup';
+import useNetworkState from '@/ui/hooks/useNetwork';
 import { updateStateADT, useUpdate } from '@/ui/pages/update/hooks/useUpdate';
 import Loading from './components/Loading';
 
 export interface GlobalContext {
   readonly setupState: GlobalSetupState;
   readonly projectRepository: ProjectRepository;
+  readonly online: boolean;
 }
 
-type MandatoryFields = keyof Pick<GlobalContext, 'setupState' | 'projectRepository'>;
+type MandatoryFields = keyof Pick<GlobalContext, 'setupState' | 'projectRepository' | 'online'>;
 
 export function initialState(
   defaults: Pick<GlobalContext, MandatoryFields> & Partial<Omit<GlobalContext, MandatoryFields>>,
@@ -45,6 +47,8 @@ export const GlobalContextProvider = React.memo(function GlobalContextProvider({
   const [state, stateDispatch] = React.useReducer(reducer, undefined);
   const updateState = useUpdate();
 
+  const { online } = useNetworkState();
+
   useEffect(() => {
     if (state == null) {
       void pipe(
@@ -54,13 +58,14 @@ export const GlobalContextProvider = React.memo(function GlobalContextProvider({
             _init: initialState({
               setupState,
               projectRepository,
+              online,
             }),
           });
         }),
         task.run,
       );
     }
-  }, [projectRepository, state]);
+  }, [online, projectRepository, state]);
 
   useEffect(() => {
     void pipe(
@@ -73,6 +78,7 @@ export const GlobalContextProvider = React.memo(function GlobalContextProvider({
               _init: initialState({
                 setupState: globalSetupState.update({ manifest }),
                 projectRepository,
+                online,
               }),
             });
           }
