@@ -403,11 +403,8 @@ const findClosest =
               )
             : pipe(
                 libPath.dirname(relPath),
-                taskEither.fromTaskOption(() =>
-                  syncExceptionADT.fileSystemCorrupted({
-                    path: relPath,
-                    reason: 'Could not determine dirname',
-                  }),
+                taskEither.mapLeft((reason) =>
+                  syncExceptionADT.fileSystemCorrupted({ path: relPath, reason }),
                 ),
                 taskEither.chain(findClosest(map)),
               ),
@@ -474,11 +471,8 @@ const checkEveryNewAncestorIsValidDirName =
           taskOption.chain((p) =>
             pipe(
               libPath.dirname(p),
-              taskEither.fromTaskOption(() =>
-                syncExceptionADT.fileSystemCorrupted({
-                  path: p,
-                  reason: 'Could not determine dirname',
-                }),
+              taskEither.mapLeft((reason) =>
+                syncExceptionADT.fileSystemCorrupted({ path: p, reason }),
               ),
               task.map((x) => option.of([x, x])),
             ),

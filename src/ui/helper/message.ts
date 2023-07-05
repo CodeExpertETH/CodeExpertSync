@@ -12,7 +12,7 @@ import {
   task,
   taskEither,
 } from '@code-expert/prelude';
-import { fromThrown } from '@/utils/error';
+import { messageFromThrown } from '@/utils/error';
 
 export type Message<F> = {
   /**
@@ -47,7 +47,7 @@ export type Message2<F extends URIS2, E> = Message<Kind2<F, E, void>>;
 
 export const messageIO: Message1<io.URI> = {
   error: (e, duration) => () => {
-    const message = string.isString(e) || React.isValidElement(e) ? e : fromThrown(e).message;
+    const message = string.isString(e) || React.isValidElement(e) ? e : messageFromThrown(e);
     return antdMessage.error(message, duration);
   },
   info: (content, duration) => () => void antdMessage.info(content, duration),
