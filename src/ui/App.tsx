@@ -1,8 +1,7 @@
-import { Result } from 'antd';
 import React, { useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { useHotkeys } from 'react-hotkeys-hook';
-import { boolean, pipe, task } from '@code-expert/prelude';
+import { pipe, task } from '@code-expert/prelude';
 import { registerApp } from '@/application/registerApp';
 import { globalSetupState } from '@/domain/Setup';
 import { mkProjectRepositoryTauri } from '@/infrastructure/tauri/ProjectRepository';
@@ -44,7 +43,7 @@ export const render = (container: HTMLElement): Promise<void> =>
   );
 
 export function App() {
-  const [{ setupState, online }] = useGlobalContextWithActions();
+  const [{ setupState }] = useGlobalContextWithActions();
   const { currentRoute, navigateTo } = useRoute();
   const [clientIdRD, refreshClientId] = useRemote(registerApp);
 
@@ -56,64 +55,52 @@ export function App() {
     refreshClientId();
   }, [refreshClientId]);
 
-  return pipe(
-    online,
-    boolean.fold(
-      () => (
-        <Result
-          status="warning"
-          title="No internet connection."
-          subTitle="Code Expert requires an active internet connection to be able to work correctly."
-        />
-      ),
-      () => (
-        <GuardRemote
-          value={clientIdRD}
-          pending={() => <div>Loading …</div>}
-          render={(clientId) =>
-            globalSetupState.fold(setupState, {
-              setup: ({ state }) => (
+  return (
+    <GuardRemote
+      value={clientIdRD}
+      pending={() => <div>Loading …</div>}
+      render={(clientId) =>
+        globalSetupState.fold(setupState, {
+          setup: ({ state }) => (
+            <AppLayout>
+              <Setup state={state} />
+            </AppLayout>
+          ),
+          update: ({ manifest }) => (
+            <AppLayout>
+              <Updater manifest={manifest} />
+            </AppLayout>
+          ),
+          setupDone: () =>
+            routes.fold(currentRoute, {
+              settings: () => (
                 <AppLayout>
-                  <Setup state={state} />
+                  <Settings />
                 </AppLayout>
               ),
-              update: ({ manifest }) => (
+              logout: () => (
                 <AppLayout>
-                  <Updater manifest={manifest} />
+                  <Logout />
                 </AppLayout>
               ),
-              setupDone: () =>
-                routes.fold(currentRoute, {
-                  settings: () => (
-                    <AppLayout>
-                      <Settings />
-                    </AppLayout>
-                  ),
-                  logout: () => (
-                    <AppLayout>
-                      <Logout />
-                    </AppLayout>
-                  ),
-                  courses: () => (
-                    <AppLayout>
-                      <Courses />
-                    </AppLayout>
-                  ),
-                  projects: ({ course }) => (
-                    <AppLayout>
-                      <Projects clientId={clientId} course={course} />
-                    </AppLayout>
-                  ),
-                  developer: () => (
-                    <AppLayout>
-                      <Developer />
-                    </AppLayout>
-                  ),
-                }),
-            })
-          }
-        />
-      ),
-    ),
+              courses: () => (
+                <AppLayout>
+                  <Courses />
+                </AppLayout>
+              ),
+              projects: ({ course }) => (
+                <AppLayout>
+                  <Projects clientId={clientId} course={course} />
+                </AppLayout>
+              ),
+              developer: () => (
+                <AppLayout>
+                  <Developer />
+                </AppLayout>
+              ),
+            }),
+        })
+      }
+    />
   );
 }
