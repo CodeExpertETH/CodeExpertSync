@@ -4,7 +4,8 @@
     "outDir": "./build",
     "paths": {
       "@code-expert/test-utils": ["../test-utils"],
-      "@code-expert/type-utils": ["../type-utils"]
+      "@code-expert/type-utils": ["../type-utils"],
+      "@code-expert/remote-ts": ["../remote"]
     }
   },
   "include": ["**/*"],
@@ -12,5 +13,6 @@
   "references": [
     { "path": "../test-utils" },
     { "path": "../type-utils" },
+    { "path": "../remote" }
   ]
 }
