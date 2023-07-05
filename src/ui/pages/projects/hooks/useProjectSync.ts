@@ -38,12 +38,13 @@ import {
 import { LocalProject, Project, ProjectId, projectADT, projectPrism } from '@/domain/Project';
 import { ProjectMetadata } from '@/domain/ProjectMetadata';
 import { SyncException, changesADT, syncExceptionADT, syncStateADT } from '@/domain/SyncState';
-import { createSignedAPIRequest, requestBody } from '@/domain/createAPIRequest';
 import { Exception, fromError, invariantViolated } from '@/domain/exception';
 import { fs as libFs, os as libOs, path as libPath } from '@/lib/tauri';
 import { removeFile } from '@/lib/tauri/fs';
+import { requestBody } from '@/lib/tauri/http';
 import { useGlobalContext } from '@/ui/GlobalContext';
 import { useTimeContext } from '@/ui/contexts/TimeContext';
+import { httpGetSigned, httpPostSigned } from '@/utils/httpSigned';
 
 const fromException = <A>(
   te: taskEither.TaskEither<Exception, A>,
@@ -111,9 +112,8 @@ const writeSingeFile = ({
         ),
         taskEither.chain(() =>
           fromException(
-            createSignedAPIRequest({
+            httpGetSigned({
               path: `project/${projectId}/file`,
-              method: 'GET',
               jwtPayload: { path: projectFilePath },
               codec: iots.string,
               responseType: ResponseType.Text,
@@ -371,10 +371,8 @@ const getProjectInfoRemote = (
   projectId: ProjectId,
 ): task.Task<{ _id: ProjectId; files: Array<RemoteFileInfo> }> =>
   pipe(
-    createSignedAPIRequest({
+    httpGetSigned({
       path: `project/${projectId}/info`,
-      method: 'GET',
-      jwtPayload: {},
       codec: iots.strict({
         _id: ProjectId,
         files: iots.array(RemoteFileInfoC),
@@ -652,8 +650,7 @@ export const uploadChangedFiles = (
         : libFs.readBinaryFile(archivePath),
     ),
     taskEither.chain(({ body, tarHash, removeFiles, uploadFiles }) =>
-      createSignedAPIRequest({
-        method: 'POST',
+      httpPostSigned({
         path: `project/${projectId}/files`,
         jwtPayload: array.isEmpty(uploadFiles) ? { removeFiles } : { tarHash, removeFiles },
         body: requestBody.binary({

@@ -1,8 +1,10 @@
-import { iots } from '@code-expert/prelude';
+import { iots, pipe, taskEither } from '@code-expert/prelude';
 import { ClientId } from '@/domain/ClientId';
-import { createAPIRequest, requestBody } from '@/domain/createAPIRequest';
+import { invariantViolated } from '@/domain/exception';
+import { httpPost, requestBody } from '@/lib/tauri/http';
 
-const responseCodec = iots.null;
+const codec = iots.null;
+
 export const getAccess = (
   clientId: ClientId,
   code_verifier: string,
@@ -16,10 +18,8 @@ export const getAccess = (
     pubKey,
   });
 
-  return createAPIRequest({
-    method: 'POST',
-    path: 'app/oauth/gainAccess',
-    body,
-    codec: responseCodec,
-  });
+  return pipe(
+    httpPost({ path: 'app/oauth/gainAccess', body, codec }),
+    taskEither.mapLeft((e) => invariantViolated(e._tag)),
+  );
 };

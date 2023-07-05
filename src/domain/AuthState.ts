@@ -57,7 +57,7 @@ export const useAuthState = (
       if (authState.is.waitingForAuthorization(state)) {
         await pipe(
           api.create_keys(),
-          taskEither.chain((publicKey) =>
+          taskEither.chainW((publicKey) =>
             getAccess(clientId, state.value.code_verifier, authToken, publicKey),
           ),
           taskEither.foldW(notificationT.error, task.of),
