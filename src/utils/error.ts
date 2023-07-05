@@ -2,6 +2,8 @@ import normalizeException from 'normalize-exception';
 
 export const fromThrown: (e: unknown) => Error = normalizeException;
 
+export const messageFromThrown = (e: unknown): string => fromThrown(e).message;
+
 export const toFatalError = (message: string): Error => {
   const error = new Error(message);
   error.name = 'Fatal error';

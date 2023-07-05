@@ -1,21 +1,23 @@
 import { invoke } from '@tauri-apps/api';
 import { getVersion } from '@tauri-apps/api/app';
-import { createDir, exists as fsExists, removeDir, writeTextFile } from '@tauri-apps/api/fs';
-import { dirname } from '@tauri-apps/api/path';
+import { exists as fsExists, removeDir } from '@tauri-apps/api/fs';
 import { relaunch } from '@tauri-apps/api/process';
 import { Store as TauriStore } from 'tauri-plugin-store-api';
 import {
   constFalse,
   constVoid,
   flow,
+  identity,
   iots,
   option,
   pipe,
   task,
+  taskEither,
   taskOption,
 } from '@code-expert/prelude';
 import { os, path } from '@/lib/tauri';
 import { removeFile } from '@/lib/tauri/fs';
+import { messageFromThrown } from '@/utils/error';
 
 const store = new TauriStore('settings.json');
 
@@ -25,13 +27,16 @@ export interface Api {
   create_jwt_tokens(claims: Record<string, unknown>): task.Task<string>;
   buildTar(fileName: string, rootDir: string, files: Array<string>): task.Task<string>;
   settingRead<T>(key: string, decoder: iots.Decoder<unknown, T>): taskOption.TaskOption<T>;
-  settingWrite(key: string, value: unknown): taskOption.TaskOption<void>;
-  writeFile(filePath: string, content: string): task.Task<void>;
-  writeProjectFile(filePath: string, content: string, readOnly: boolean): task.Task<void>;
-  removeDir(filePath: string): taskOption.TaskOption<void>;
-  getFileHash(filePath: string): task.Task<string>;
-  createProjectDir(filePath: string, readOnly: boolean): taskOption.TaskOption<void>;
-  createProjectPath(filePath: string): taskOption.TaskOption<void>;
+  settingWrite(key: string, value: unknown): task.Task<void>;
+  writeProjectFile(
+    filePath: string,
+    content: string,
+    readOnly: boolean,
+  ): taskEither.TaskEither<string, void>;
+  removeDir(filePath: string): taskEither.TaskEither<string, void>;
+  getFileHash(filePath: string): taskEither.TaskEither<string, string>;
+  createProjectDir(filePath: string, readOnly: boolean): taskEither.TaskEither<string, void>;
+  createProjectPath(filePath: string): taskEither.TaskEither<string, void>;
   exists(path: string): task.Task<boolean>;
   logout(): task.Task<void>;
   getSystemInfo: taskOption.TaskOption<string>;
@@ -48,36 +53,38 @@ export const api: Api = {
       taskOption.tryCatch(() => store.get(key)),
       taskOption.chainOptionK(flow(decoder.decode, option.fromEither)),
     ),
-  settingWrite: (key, value) =>
-    taskOption.tryCatch(() =>
-      value != null
-        ? store.set(key, value).then(() => store.save())
-        : store.delete(key).then(() => store.save()),
-    ),
+  settingWrite: (key, value) => () =>
+    value != null
+      ? store.set(key, value).then(() => store.save())
+      : store.delete(key).then(() => store.save()),
   exists(path: string) {
     return pipe(
       taskOption.tryCatch(() => fsExists(path)),
-      taskOption.match(constFalse, (exists) => exists),
+      taskOption.match(constFalse, identity),
     );
   },
-  writeFile: (filePath, content) => async () => {
-    const dir = await dirname(filePath);
-    if (!(await fsExists(dir))) {
-      await createDir(dir, { recursive: true });
-    }
-    return writeTextFile(filePath, content);
-  },
-  removeDir: (filePath) => taskOption.tryCatch(() => removeDir(filePath, { recursive: true })),
+  removeDir: (filePath) =>
+    taskEither.tryCatch(
+      () => removeDir(filePath, { recursive: true }),
+      (reason) => `[removeDir]: ${messageFromThrown(reason)}`,
+    ),
   getFileHash: (path) => () => invoke('get_file_hash', { path }),
   createProjectPath: (path) =>
     pipe(
       api.settingRead('projectDir', iots.string),
-      taskOption.chain((root) =>
-        taskOption.tryCatch(() => invoke('create_project_path', { path, root })),
+      taskEither.fromTaskOption(() => 'Could not find project dir'),
+      taskEither.chain((root) =>
+        taskEither.tryCatch(
+          () => invoke('create_project_path', { path, root }),
+          (reason) => `[createProjectPath]: ${messageFromThrown(reason)}`,
+        ),
       ),
     ),
   createProjectDir: (path, readOnly) =>
-    taskOption.tryCatch(() => invoke('create_project_dir', { path, readOnly })),
+    taskEither.tryCatch(
+      () => invoke('create_project_dir', { path, readOnly }),
+      (reason) => `[createProjectDir]: ${messageFromThrown(reason)}`,
+    ),
   writeProjectFile: (filePath, content, readOnly) => () =>
     invoke('write_file', {
       path: filePath,

@@ -1,7 +1,6 @@
-import { option, task, taskOption } from '@code-expert/prelude';
+import { task, taskOption } from '@code-expert/prelude';
 import type { Api } from '../../src/api';
 
-const fileStore = new Map();
 const settingsStore = new Map();
 
 export const api: Api = {
@@ -12,13 +11,9 @@ export const api: Api = {
   settingRead: (key) => taskOption.fromIO(() => settingsStore.get(key)),
   settingWrite: (key, value) => () => {
     settingsStore.set(key, value);
-    return Promise.resolve(option.some(undefined));
+    return Promise.resolve(undefined);
   },
   exists: () => task.of(true) /* FIXME Correct implementation */,
-  writeFile: (filePath, content) =>
-    task.fromIO(() => {
-      fileStore.set(filePath, content);
-    }),
   writeProjectFile: () => {
     throw new Error('[Storybook] Not implemented');
   },

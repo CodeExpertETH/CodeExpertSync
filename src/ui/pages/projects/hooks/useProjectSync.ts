@@ -60,11 +60,8 @@ function updateDir({
     taskEither.chainW(({ systemFilePath }) =>
       pipe(
         api.createProjectDir(systemFilePath, permissions === 'r'),
-        taskEither.fromTaskOption(() =>
-          syncExceptionADT.fileSystemCorrupted({
-            path: projectDir,
-            reason: 'Project dir could not be created',
-          }),
+        taskEither.mapLeft((reason) =>
+          syncExceptionADT.fileSystemCorrupted({ path: projectDir, reason }),
         ),
       ),
     ),
@@ -92,11 +89,8 @@ const writeSingeFile = ({
     taskEither.chainFirst(({ systemFilePath }) =>
       pipe(
         api.createProjectPath(projectDir),
-        taskEither.fromTaskOption(() =>
-          syncExceptionADT.wide.fileSystemCorrupted({
-            path: projectDir,
-            reason: 'Project dir could not be created',
-          }),
+        taskEither.mapLeft((reason) =>
+          syncExceptionADT.wide.fileSystemCorrupted({ path: projectDir, reason }),
         ),
         taskEither.chain(() =>
           pipe(
@@ -109,12 +103,24 @@ const writeSingeFile = ({
             taskEither.mapLeft(syncExceptionFromHttpError),
           ),
         ),
-        taskEither.chainTaskK((fileContent) =>
-          api.writeProjectFile(systemFilePath, fileContent, permissions === 'r'),
+        taskEither.chain((fileContent) =>
+          pipe(
+            api.writeProjectFile(systemFilePath, fileContent, permissions === 'r'),
+            taskEither.mapLeft((reason) =>
+              syncExceptionADT.wide.fileSystemCorrupted({ path: projectDir, reason }),
+            ),
+          ),
         ),
       ),
     ),
-    taskEither.bindTaskK('hash', ({ systemFilePath }) => api.getFileHash(systemFilePath)),
+    taskEither.bind('hash', ({ systemFilePath }) =>
+      pipe(
+        api.getFileHash(systemFilePath),
+        taskEither.mapLeft((reason) =>
+          syncExceptionADT.wide.fileSystemCorrupted({ path: projectDir, reason }),
+        ),
+      ),
+    ),
     taskEither.map(({ hash }) => ({
       path: projectFilePath,
       version,
@@ -144,7 +150,12 @@ const addHash =
   }): task.Task<{ path: string; type: 'file'; hash: string }> =>
     pipe(
       libPath.join(projectDir, path),
-      task.chain(api.getFileHash),
+      task.chain(
+        flow(
+          api.getFileHash,
+          taskEither.getOrThrow((e) => panic(`Could not get file hash: ${e}`)),
+        ),
+      ),
       task.map((hash) => ({ path, type, hash })),
     );
 

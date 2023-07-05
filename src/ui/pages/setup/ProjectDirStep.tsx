@@ -3,7 +3,7 @@ import { homeDir } from '@tauri-apps/api/path';
 import { Typography } from 'antd';
 import { api } from 'api';
 import React from 'react';
-import { pipe, task, taskOption } from '@code-expert/prelude';
+import { pipe, task } from '@code-expert/prelude';
 import { getSetupState } from '@/domain/Setup';
 import { useGlobalContextWithActions } from '@/ui/GlobalContext';
 import { EditableCard } from '@/ui/components/EditableCard';
@@ -20,8 +20,8 @@ export const ProjectDirStep = ({ active }: { active: boolean }) => {
     if (projectDir != null) {
       await pipe(
         api.settingWrite('projectDir', projectDir),
-        taskOption.chainTaskK(() => getSetupState(projectRepository)),
-        taskOption.map((state) => dispatch({ setupState: state })),
+        task.chain(() => getSetupState(projectRepository)),
+        task.map((state) => dispatch({ setupState: state })),
         task.run,
       );
     }
