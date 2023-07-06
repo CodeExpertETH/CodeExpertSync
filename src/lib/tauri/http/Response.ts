@@ -45,7 +45,7 @@ export const parseResponse: <A>(
 // -------------------------------------------------------------------------------------------------
 
 const toHttpError = ({ statusCode, message }: ResponseError): HttpError => {
-  if (500 <= statusCode && statusCode < 600) return httpError.serverError({ statusCode, message });
-  if (400 <= statusCode && statusCode < 500) return httpError.clientError({ statusCode, message });
+  if (statusCode >= 500 && statusCode < 600) return httpError.serverError({ statusCode, message });
+  if (statusCode >= 400 && statusCode < 500) return httpError.clientError({ statusCode, message });
   throw new Error(`Request failed with unsupported status code (${statusCode}: ${message})`);
 };
