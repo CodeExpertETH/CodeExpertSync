@@ -15,6 +15,7 @@ const Config = iots.type({
   CX_API_URL: Url,
   CX_REPO_RELEASE: Url,
   GITHUB_SHA: iots.union([iots.string, iots.undefined]),
+  APP_SIGNAL_KEY: iots.string,
 });
 
 export type Config = iots.TypeOf<typeof Config>;
