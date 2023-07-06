@@ -1,7 +1,7 @@
 import { iots, pipe, taskEither } from '@code-expert/prelude';
 import { ClientId } from '@/domain/ClientId';
 import { invariantViolated } from '@/domain/exception';
-import { httpPost, requestBody } from '@/lib/tauri/http';
+import { apiPost, requestBody } from '@/utils/api';
 
 const codec = iots.null;
 
@@ -19,7 +19,7 @@ export const getAccess = (
   });
 
   return pipe(
-    httpPost({ path: 'app/oauth/gainAccess', body, codec }),
+    apiPost({ path: 'app/oauth/gainAccess', body, codec }),
     taskEither.mapLeft((e) => invariantViolated(e._tag)),
   );
 };

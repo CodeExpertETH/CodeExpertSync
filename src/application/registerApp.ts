@@ -12,10 +12,10 @@ import {
 } from '@code-expert/prelude';
 import { ClientId } from '@/domain/ClientId';
 import { fromError, invariantViolated } from '@/domain/exception';
-import { httpGet, httpPost, requestBody } from '@/lib/tauri/http';
+import { apiGet, apiPost, requestBody } from '@/utils/api';
 
 const getClientToken: task.Task<string> = pipe(
-  httpGet({
+  apiGet({
     path: 'app/clientId',
     codec: iots.strict({ token: iots.string }),
   }),
@@ -42,7 +42,7 @@ export const registerApp = (): task.Task<ClientId> =>
         task.bind('token', () => getClientToken),
         task.chain((payload) =>
           pipe(
-            httpPost({
+            apiPost({
               path: 'app/register',
               body: requestBody.json({
                 ...payload,

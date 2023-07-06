@@ -11,7 +11,7 @@ import {
   taskOption,
 } from '@code-expert/prelude';
 import { ProjectRepository } from '@/domain/ProjectRepository';
-import { httpGetSigned } from '@/utils/httpSigned';
+import { apiGetSigned } from '@/utils/api';
 
 export type SetupState =
   | tagged.Tagged<'notAuthorized'>
@@ -44,7 +44,7 @@ const getSetupNoProjectDir = (projectRepository: ProjectRepository): task.Task<G
   );
 export const getSetupState = (projectRepository: ProjectRepository): task.Task<GlobalSetupState> =>
   pipe(
-    httpGetSigned({
+    apiGetSigned({
       path: 'app/assertAccess',
       codec: iots.strict({ status: iots.string }),
     }),

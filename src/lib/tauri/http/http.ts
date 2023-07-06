@@ -1,13 +1,11 @@
 import { $Unexpressable } from '@code-expert/type-utils';
 import * as http from '@tauri-apps/api/http';
 import { constant, iots, option, pipe, record, taskEither } from '@code-expert/prelude';
-import { config } from '@/config';
 import { HttpError, httpError } from './HttpError';
 import { RequestBody, requestBody } from './RequestBody';
 import { parseResponse } from './Response';
 
 export interface HttpGetOptions<A> extends Omit<http.FetchOptions, 'method' | 'body'> {
-  path: string;
   codec: iots.Decoder<unknown, A>;
   token?: string;
 }
@@ -16,30 +14,28 @@ export interface HttpPostOptions<A> extends HttpGetOptions<A> {
   body?: RequestBody;
 }
 
-export const httpGet = <A>(options: HttpGetOptions<A>): taskEither.TaskEither<HttpError, A> =>
-  fetch({ ...options, method: 'GET' });
+export const httpGet = <A>(
+  url: string,
+  options: HttpGetOptions<A>,
+): taskEither.TaskEither<HttpError, A> => fetch(url, { ...options, method: 'GET' });
 
-export const httpPost = <A>(options: HttpPostOptions<A>): taskEither.TaskEither<HttpError, A> =>
-  fetch({ ...options, method: 'POST' });
+export const httpPost = <A>(
+  url: string,
+  options: HttpPostOptions<A>,
+): taskEither.TaskEither<HttpError, A> => fetch(url, { ...options, method: 'POST' });
 
 // -------------------------------------------------------------------------------------------------
 
 interface FetchOptions<A> extends Omit<http.FetchOptions, 'body'> {
-  path: string;
   codec: iots.Decoder<unknown, A>;
   token?: string;
   body?: RequestBody;
 }
 
-const fetch = <A>({
-  path,
-  codec,
-  token,
-  body,
-  headers: headers_,
-  ...fetchOptions
-}: FetchOptions<A>): taskEither.TaskEither<HttpError, A> => {
-  const url = new URL(path, config.CX_API_URL).href;
+const fetch = <A>(
+  url: string,
+  { codec, token, body, headers: headers_, ...fetchOptions }: FetchOptions<A>,
+): taskEither.TaskEither<HttpError, A> => {
   const finalHeaders = {
     ...headers_,
     ...(token != null ? { Authorization: `Bearer ${token}` } : {}),

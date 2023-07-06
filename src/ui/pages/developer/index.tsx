@@ -10,7 +10,7 @@ import { VStack } from '@/ui/foundation/Layout';
 import { messageT } from '@/ui/helper/message';
 import { notificationT } from '@/ui/helper/notifications';
 import { routes, useRoute } from '@/ui/routes';
-import { httpGetSigned } from '@/utils/httpSigned';
+import { apiGetSigned } from '@/utils/api';
 
 export function Developer() {
   const [{ projectRepository }, dispatchContext] = useGlobalContextWithActions();
@@ -18,7 +18,7 @@ export function Developer() {
 
   const testAuth = () => {
     void pipe(
-      httpGetSigned({
+      apiGetSigned({
         path: 'app/assertAccess',
         codec: iots.strict({ status: iots.string }),
       }),

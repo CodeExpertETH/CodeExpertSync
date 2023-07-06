@@ -22,7 +22,7 @@ import { ProjectRepository } from '@/domain/ProjectRepository';
 import { changesADT, syncStateADT } from '@/domain/SyncState';
 import { fromError } from '@/domain/exception';
 import { path } from '@/lib/tauri';
-import { httpGetSigned, httpPostSigned } from '@/utils/httpSigned';
+import { apiGetSigned, apiPostSigned } from '@/utils/api';
 import { projectConfigStore } from './internal/ProjectConfigStore';
 import { projectMetadataStore } from './internal/ProjectMetadataStore';
 
@@ -81,7 +81,7 @@ export const mkProjectRepositoryTauri = (): task.Task<ProjectRepository> => {
 
       fetchChanges: () => {
         void pipe(
-          httpGetSigned({
+          apiGetSigned({
             path: 'project/metadata',
             codec: iots.array(ProjectMetadata),
           }),
@@ -116,7 +116,7 @@ export const mkProjectRepositoryTauri = (): task.Task<ProjectRepository> => {
         );
 
         const removeProjectAccess: taskEither.TaskEither<Array<string>, void> = pipe(
-          httpPostSigned({
+          apiPostSigned({
             path: 'app/projectAccess/remove',
             jwtPayload: { projectId },
             codec: iots.strict({ removed: iots.boolean }),

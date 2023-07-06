@@ -2,9 +2,9 @@ import fromThrown from 'normalize-exception';
 import { pipe, remoteData, taskEither } from '@code-expert/prelude';
 import { UserInfo, UserInfoC } from '@/domain/UserInfo';
 import { useAsync } from '@/ui/hooks/useAsync';
-import { httpGetSigned } from '@/utils/httpSigned';
+import { apiGetSigned } from '@/utils/api';
 
-const getUserInfo = httpGetSigned({
+const getUserInfo = apiGetSigned({
   path: 'user/info',
   codec: UserInfoC,
 });

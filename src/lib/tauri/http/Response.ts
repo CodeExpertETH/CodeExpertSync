@@ -16,10 +16,11 @@ const Response = iots.union([
   }),
   iots.strict({
     ok: iots.literal(false),
-    data: ResponseError,
+    data: ResponseError, // FIXME This is specific to our API
   }),
 ]);
 
+// FIXME Error + Success codec needed here
 export const parseResponse: <A>(
   codec: iots.Decoder<unknown, A>,
 ) => (r: http.Response<unknown>) => either.Either<HttpError, A> = (codec) =>

@@ -41,10 +41,9 @@ import { SyncException, changesADT, syncExceptionADT, syncStateADT } from '@/dom
 import { Exception, fromError, invariantViolated } from '@/domain/exception';
 import { fs as libFs, os as libOs, path as libPath } from '@/lib/tauri';
 import { removeFile } from '@/lib/tauri/fs';
-import { requestBody } from '@/lib/tauri/http';
 import { useGlobalContext } from '@/ui/GlobalContext';
 import { useTimeContext } from '@/ui/contexts/TimeContext';
-import { httpGetSigned, httpPostSigned } from '@/utils/httpSigned';
+import { apiGetSigned, apiPostSigned, requestBody } from '@/utils/api';
 
 const fromException = <A>(
   te: taskEither.TaskEither<Exception, A>,
@@ -112,7 +111,7 @@ const writeSingeFile = ({
         ),
         taskEither.chain(() =>
           fromException(
-            httpGetSigned({
+            apiGetSigned({
               path: `project/${projectId}/file`,
               jwtPayload: { path: projectFilePath },
               codec: iots.string,
@@ -371,7 +370,7 @@ const getProjectInfoRemote = (
   projectId: ProjectId,
 ): task.Task<{ _id: ProjectId; files: Array<RemoteFileInfo> }> =>
   pipe(
-    httpGetSigned({
+    apiGetSigned({
       path: `project/${projectId}/info`,
       codec: iots.strict({
         _id: ProjectId,
@@ -650,7 +649,7 @@ export const uploadChangedFiles = (
         : libFs.readBinaryFile(archivePath),
     ),
     taskEither.chain(({ body, tarHash, removeFiles, uploadFiles }) =>
-      httpPostSigned({
+      apiPostSigned({
         path: `project/${projectId}/files`,
         jwtPayload: array.isEmpty(uploadFiles) ? { removeFiles } : { tarHash, removeFiles },
         body: requestBody.binary({
