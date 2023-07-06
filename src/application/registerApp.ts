@@ -11,15 +11,15 @@ import {
   taskOption,
 } from '@code-expert/prelude';
 import { ClientId } from '@/domain/ClientId';
-import { createAPIRequest, requestBody } from '@/domain/createAPIRequest';
-import { fromError } from '@/domain/exception';
+import { fromError, invariantViolated } from '@/domain/exception';
+import { apiGet, apiPost, requestBody } from '@/utils/api';
 
 const getClientToken: task.Task<string> = pipe(
-  createAPIRequest({
-    method: 'GET',
+  apiGet({
     path: 'app/clientId',
     codec: iots.strict({ token: iots.string }),
   }),
+  taskEither.mapLeft((e) => invariantViolated(e._tag)),
   taskEither.map(({ token }) => token),
   task.map(either.getOrThrow(fromError)),
 );
@@ -42,8 +42,7 @@ export const registerApp = (): task.Task<ClientId> =>
         task.bind('token', () => getClientToken),
         task.chain((payload) =>
           pipe(
-            createAPIRequest({
-              method: 'POST',
+            apiPost({
               path: 'app/register',
               body: requestBody.json({
                 ...payload,
@@ -51,6 +50,7 @@ export const registerApp = (): task.Task<ClientId> =>
               }),
               codec: iots.strict({ clientId: ClientId }),
             }),
+            taskEither.mapLeft((e) => invariantViolated(e._tag)),
             taskEither.map(({ clientId }) => clientId),
             taskEither.chainFirstTaskK((clientId) => api.settingWrite('clientId', clientId)),
             task.map(flow(either.getOrThrow(fromError), option.some)),

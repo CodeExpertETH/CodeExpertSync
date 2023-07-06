@@ -1,13 +1,11 @@
 import fromThrown from 'normalize-exception';
 import { pipe, remoteData, taskEither } from '@code-expert/prelude';
 import { UserInfo, UserInfoC } from '@/domain/UserInfo';
-import { createSignedAPIRequest } from '@/domain/createAPIRequest';
 import { useAsync } from '@/ui/hooks/useAsync';
+import { apiGetSigned } from '@/utils/api';
 
-const getUserInfo = createSignedAPIRequest({
+const getUserInfo = apiGetSigned({
   path: 'user/info',
-  jwtPayload: {},
-  method: 'GET',
   codec: UserInfoC,
 });
 

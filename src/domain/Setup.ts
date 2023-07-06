@@ -11,7 +11,7 @@ import {
   taskOption,
 } from '@code-expert/prelude';
 import { ProjectRepository } from '@/domain/ProjectRepository';
-import { createSignedAPIRequest } from '@/domain/createAPIRequest';
+import { apiGetSigned } from '@/utils/api';
 
 export type SetupState =
   | tagged.Tagged<'notAuthorized'>
@@ -44,10 +44,8 @@ const getSetupNoProjectDir = (projectRepository: ProjectRepository): task.Task<G
   );
 export const getSetupState = (projectRepository: ProjectRepository): task.Task<GlobalSetupState> =>
   pipe(
-    createSignedAPIRequest({
+    apiGetSigned({
       path: 'app/assertAccess',
-      method: 'GET',
-      jwtPayload: {},
       codec: iots.strict({ status: iots.string }),
     }),
     taskEither.fold<Error, { status: string }, GlobalSetupState>(

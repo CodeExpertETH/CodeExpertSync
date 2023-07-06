@@ -3,7 +3,6 @@ import { Alert, Button } from 'antd';
 import React from 'react';
 import { iots, pipe, task, taskEither, taskOption } from '@code-expert/prelude';
 import { globalSetupState, setupState } from '@/domain/Setup';
-import { createSignedAPIRequest } from '@/domain/createAPIRequest';
 import { Exception } from '@/domain/exception';
 import { fs } from '@/lib/tauri';
 import { useGlobalContextWithActions } from '@/ui/GlobalContext';
@@ -11,6 +10,7 @@ import { VStack } from '@/ui/foundation/Layout';
 import { messageT } from '@/ui/helper/message';
 import { notificationT } from '@/ui/helper/notifications';
 import { routes, useRoute } from '@/ui/routes';
+import { apiGetSigned } from '@/utils/api';
 
 export function Developer() {
   const [{ projectRepository }, dispatchContext] = useGlobalContextWithActions();
@@ -18,10 +18,8 @@ export function Developer() {
 
   const testAuth = () => {
     void pipe(
-      createSignedAPIRequest({
+      apiGetSigned({
         path: 'app/assertAccess',
-        method: 'GET',
-        jwtPayload: {},
         codec: iots.strict({ status: iots.string }),
       }),
       taskEither.fold(
