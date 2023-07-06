@@ -1,43 +1,47 @@
 import { $Unexpressable } from '@code-expert/type-utils';
 import * as http from '@tauri-apps/api/http';
-import { constant, iots, option, pipe, record, taskEither } from '@code-expert/prelude';
+import { constant, either, iots, option, pipe, record, taskEither } from '@code-expert/prelude';
 import { HttpError, httpError } from './HttpError';
 import { RequestBody, requestBody } from './RequestBody';
 import { parseResponse } from './Response';
 
-export interface HttpGetOptions<A> extends Omit<http.FetchOptions, 'method' | 'body'> {
-  codec: iots.Decoder<unknown, A>;
+export interface HttpGetOptions<E, A> extends Omit<http.FetchOptions, 'method' | 'body'> {
+  valueCodec: iots.Type<A, unknown>;
+  errorCodec: iots.Type<E, unknown>;
   token?: string;
 }
 
-export interface HttpPostOptions<A> extends HttpGetOptions<A> {
+export interface HttpPostOptions<E, A> extends HttpGetOptions<E, A> {
   body?: RequestBody;
 }
 
-export const httpGet = <A>(
+export const httpGet = <E, A>(
   url: string,
-  options: HttpGetOptions<A>,
-): taskEither.TaskEither<HttpError, A> => fetch(url, { ...options, method: 'GET' });
+  options: HttpGetOptions<E, A>,
+): taskEither.TaskEither<HttpError, either.Either<E, A>> =>
+  fetch(url, { ...options, method: 'GET' });
 
-export const httpPost = <A>(
+export const httpPost = <E, A>(
   url: string,
-  options: HttpPostOptions<A>,
-): taskEither.TaskEither<HttpError, A> => fetch(url, { ...options, method: 'POST' });
+  options: HttpPostOptions<E, A>,
+): taskEither.TaskEither<HttpError, either.Either<E, A>> =>
+  fetch(url, { ...options, method: 'POST' });
 
 // -------------------------------------------------------------------------------------------------
 
-interface FetchOptions<A> extends Omit<http.FetchOptions, 'body'> {
-  codec: iots.Decoder<unknown, A>;
+interface FetchOptions<E, A> extends Omit<http.FetchOptions, 'body'> {
+  valueCodec: iots.Type<A, unknown>;
+  errorCodec: iots.Type<E, unknown>;
   token?: string;
   body?: RequestBody;
 }
 
-const fetch = <A>(
+const fetch = <E, A>(
   url: string,
-  { codec, token, body, headers: headers_, ...fetchOptions }: FetchOptions<A>,
-): taskEither.TaskEither<HttpError, A> => {
+  { valueCodec, errorCodec, token, body, headers, ...fetchOptions }: FetchOptions<E, A>,
+): taskEither.TaskEither<HttpError, either.Either<E, A>> => {
   const finalHeaders = {
-    ...headers_,
+    ...headers,
     ...(token != null ? { Authorization: `Bearer ${token}` } : {}),
     ...(body != null ? headersFromRequestBody(body) : {}),
   };
@@ -50,7 +54,7 @@ const fetch = <A>(
         // See https://developer.mozilla.org/en-US/docs/Web/API/fetch
         httpError.wide.noNetwork(),
     ),
-    taskEither.chainEitherK(parseResponse(codec)),
+    taskEither.chainEitherK(parseResponse({ valueCodec, errorCodec })),
   );
 };
 

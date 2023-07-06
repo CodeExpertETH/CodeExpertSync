@@ -2,7 +2,7 @@ import React from 'react';
 import { pipe, remoteData, tagged, task, taskEither } from '@code-expert/prelude';
 import { config } from '@/config';
 import { ClientId } from '@/domain/ClientId';
-import { createToken } from '@/utils/api';
+import { createToken } from '@/utils/jwt';
 
 export type SSEException = tagged.Tagged<'disconnected'>;
 export const sseExceptionADT = tagged.build<SSEException>();

@@ -1,18 +1,17 @@
 import * as http from '@tauri-apps/api/http';
 import { api } from 'api';
-import { iots, pipe, taskEither } from '@code-expert/prelude';
+import { either, iots, pipe, tagged, task, taskEither } from '@code-expert/prelude';
 import { config } from '@/config';
 import { ClientId } from '@/domain/ClientId';
 import { EntityNotFoundException, Exception, invariantViolated } from '@/domain/exception';
-import { HttpError, RequestBody, httpGet, httpPost } from '@/lib/tauri/http';
+import { HttpError, RequestBody, httpError, httpGet, httpPost } from '@/lib/tauri/http';
+import { JwtPayload, createToken } from '@/utils/jwt';
 
 export { requestBody } from '@/lib/tauri/http';
 
-export type JwtPayload = Record<string, unknown>;
-
 export interface ApiGetOptions<A> extends Omit<http.FetchOptions, 'method' | 'body'> {
   path: string;
-  codec: iots.Decoder<unknown, A>;
+  codec: iots.Type<A, unknown>;
   token?: string;
 }
 
@@ -30,18 +29,26 @@ export interface ApiPostSignedOptions<A> extends ApiPostOptions<A> {
 
 export const apiGet = <A>({
   path,
+  codec,
   ...options
-}: ApiGetOptions<A>): taskEither.TaskEither<HttpError, A> => {
+}: ApiGetOptions<A>): taskEither.TaskEither<ApiError, A> => {
   const url = new URL(path, config.CX_API_URL).href;
-  return httpGet(url, { ...options });
+  return pipe(
+    httpGet(url, { ...options, valueCodec: codec, errorCodec: ResponseError }),
+    task.map(fromHttpError),
+  );
 };
 
 export const apiPost = <A>({
   path,
+  codec,
   ...options
-}: ApiPostOptions<A>): taskEither.TaskEither<HttpError, A> => {
+}: ApiPostOptions<A>): taskEither.TaskEither<ApiError, A> => {
   const url = new URL(path, config.CX_API_URL).href;
-  return httpPost(url, { ...options });
+  return pipe(
+    httpPost(url, { ...options, valueCodec: codec, errorCodec: ResponseError }),
+    task.map(fromHttpError),
+  );
 };
 
 export const apiGetSigned = <A>({
@@ -74,14 +81,49 @@ export const apiPostSigned = <A>({
     ),
   );
 
-export const createToken =
-  (clientId: ClientId) =>
-  (payload: JwtPayload = {}) =>
-    api.create_jwt_tokens({
-      ...payload,
-      iss: clientId,
-      exp: Math.floor(Date.now() / 1000) + 10,
-    });
+// -------------------------------------------------------------------------------------------------
+
+export type ApiError =
+  | tagged.Tagged<'noNetwork'>
+  | tagged.Tagged<'clientError', { statusCode: number; message: string }>
+  | tagged.Tagged<'serverError', { statusCode: number; message: string }>;
+
+export const apiError = tagged.build<ApiError>();
+
+const ResponseError = iots.strict({
+  statusCode: iots.number,
+  error: iots.string,
+  message: iots.string,
+});
+
+type ResponseError = iots.TypeOf<typeof ResponseError>;
+
+const fromHttpError = <A>(
+  value: either.Either<HttpError, either.Either<ResponseError, A>>,
+): either.Either<ApiError, A> =>
+  pipe(
+    value,
+    either.mapLeft(
+      httpError.fold({
+        noNetwork: () => apiError.wide.noNetwork(),
+        invalidPayload: (errs) => {
+          throw new Error(`Payload did not match specification: ${errs.join('; ')}`);
+        },
+      }),
+    ),
+    either.chain(
+      either.fold(
+        (e) => either.left(fromResponseError(e)),
+        (a) => either.right(a),
+      ),
+    ),
+  );
+
+const fromResponseError = ({ statusCode, message }: ResponseError): ApiError => {
+  if (statusCode >= 500 && statusCode < 600) return apiError.serverError({ statusCode, message });
+  if (statusCode >= 400 && statusCode < 500) return apiError.clientError({ statusCode, message });
+  throw new Error(`Request failed with unsupported status code (${statusCode}: ${message})`);
+};
 
 // -------------------------------------------------------------------------------------------------
 

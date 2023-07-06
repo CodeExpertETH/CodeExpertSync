@@ -2,51 +2,32 @@ import * as http from '@tauri-apps/api/http';
 import { either, flow, iots } from '@code-expert/prelude';
 import { HttpError, httpError } from './HttpError';
 
-const ResponseError = iots.strict({
-  statusCode: iots.number,
-  error: iots.string,
-  message: iots.string,
-});
-type ResponseError = iots.TypeOf<typeof ResponseError>;
+function mkResponseCodec<E, A>({
+  valueCodec,
+  errorCodec,
+}: {
+  valueCodec: iots.Type<A, unknown>;
+  errorCodec: iots.Type<E, unknown>;
+}) {
+  return iots.union([
+    iots.strict({
+      ok: iots.literal(true),
+      data: valueCodec,
+    }),
+    iots.strict({
+      ok: iots.literal(false),
+      data: errorCodec,
+    }),
+  ]);
+}
 
-const Response = iots.union([
-  iots.strict({
-    ok: iots.literal(true),
-    data: iots.unknown,
-  }),
-  iots.strict({
-    ok: iots.literal(false),
-    data: ResponseError, // FIXME This is specific to our API
-  }),
-]);
-
-// FIXME Error + Success codec needed here
-export const parseResponse: <A>(
-  codec: iots.Decoder<unknown, A>,
-) => (r: http.Response<unknown>) => either.Either<HttpError, A> = (codec) =>
+export const parseResponse: <E, A>(codecs: {
+  valueCodec: iots.Type<A, unknown>;
+  errorCodec: iots.Type<E, unknown>;
+}) => (r: http.Response<unknown>) => either.Either<HttpError, either.Either<E, A>> = (codecs) =>
   flow(
-    Response.decode,
-    either.mapLeft(iots.formatValidationErrors),
-    either.getOrThrow(
-      (errs) =>
-        new Error(`Fetch response did not match Tauri’s "Response" type': ${errs.join('; ')}`),
-    ),
-    (res) => (res.ok ? either.right(res.data) : either.left(toHttpError(res.data))),
-    either.map(
-      flow(
-        codec.decode,
-        either.mapLeft(iots.formatValidationErrors),
-        either.getOrThrow(
-          (errs) => new Error(`Response payload did not match codec: ${errs.join('; ')}`),
-        ),
-      ),
+    mkResponseCodec(codecs).decode,
+    either.bimap(flow(iots.formatValidationErrors, httpError.invalidPayload), (res) =>
+      res.ok ? either.right(res.data) : either.left(res.data),
     ),
   );
-
-// -------------------------------------------------------------------------------------------------
-
-const toHttpError = ({ statusCode, message }: ResponseError): HttpError => {
-  if (statusCode >= 500 && statusCode < 600) return httpError.serverError({ statusCode, message });
-  if (statusCode >= 400 && statusCode < 500) return httpError.clientError({ statusCode, message });
-  throw new Error(`Request failed with unsupported status code (${statusCode}: ${message})`);
-};
