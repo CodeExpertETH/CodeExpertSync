@@ -85,12 +85,16 @@ export const api: Api = {
       () => invoke('create_project_dir', { path, readOnly }),
       (reason) => `[createProjectDir]: ${messageFromThrown(reason)}`,
     ),
-  writeProjectFile: (filePath, content, readOnly) => () =>
-    invoke('write_file', {
-      path: filePath,
-      contents: Array.from(new TextEncoder().encode(content)),
-      readOnly,
-    }),
+  writeProjectFile: (filePath, content, readOnly) =>
+    taskEither.tryCatch(
+      () =>
+        invoke('write_file', {
+          path: filePath,
+          contents: Array.from(new TextEncoder().encode(content)),
+          readOnly,
+        }),
+      (reason) => `[writeProjectFile]: ${messageFromThrown(reason)}`,
+    ),
   logout: () =>
     pipe(
       os.appLocalDataDir,
