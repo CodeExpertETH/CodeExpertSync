@@ -20,7 +20,7 @@ import { ProjectMetadata } from '@/domain/ProjectMetadata';
 import { ProjectRepository } from '@/domain/ProjectRepository';
 import { changesADT, syncStateADT } from '@/domain/SyncState';
 import { path } from '@/lib/tauri';
-import { apiError, apiGetSigned, apiPostSigned } from '@/utils/api';
+import { apiErrorToMessage, apiGetSigned, apiPostSigned } from '@/utils/api';
 import { projectConfigStore } from './internal/ProjectConfigStore';
 import { projectMetadataStore } from './internal/ProjectMetadataStore';
 
@@ -119,13 +119,7 @@ export const mkProjectRepositoryTauri = (): task.Task<ProjectRepository> => {
             jwtPayload: { projectId },
             codec: iots.strict({ removed: iots.boolean }),
           }),
-          taskEither.mapLeft(
-            apiError.fold({
-              noNetwork: () => ['No network access'],
-              clientError: (e) => [`Client error (${e.statusCode}): ${e.message}`],
-              serverError: (e) => [`Server error (${e.statusCode}): ${e.message}`],
-            }),
-          ),
+          taskEither.mapLeft(flow(apiErrorToMessage, array.of)),
           taskEither.filterOrElse(
             ({ removed }) => removed,
             () => ['Could not remove project access'],

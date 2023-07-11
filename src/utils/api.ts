@@ -82,6 +82,14 @@ export type ApiError =
 
 export const apiError = tagged.build<ApiError>();
 
+export const apiErrorToMessage: (err: ApiError) => string = apiError.fold({
+  noNetwork: () => 'Network is not available',
+  clientError: (e) => `Client error (${e.statusCode}): ${e.message}`,
+  serverError: (e) => `Server error (${e.statusCode}): ${e.message}`,
+});
+
+// -------------------------------------------------------------------------------------------------
+
 const ResponseError = iots.strict({
   statusCode: iots.number,
   error: iots.string,
