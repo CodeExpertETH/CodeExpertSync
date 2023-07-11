@@ -8,9 +8,13 @@
  */
 import './reset.css';
 import './global.css';
+import AppSignal from '@appsignal/javascript';
 import { relaunch } from '@tauri-apps/api/process';
 import fromThrown from 'normalize-exception';
+import { config } from '@/config';
 
+const appSignal =
+  config.APP_SIGNAL_KEY != null ? new AppSignal({ key: config.APP_SIGNAL_KEY }) : undefined;
 // React throws several times in short succession, we only want to handle the last error.
 const debouncedErrorHandler = debounce(handleError, 100);
 
@@ -46,9 +50,8 @@ function handleError(thrown: unknown) {
 /**
  * Log the error for debugging purposes.
  */
-function logError({ message, stack }: Error) {
-  console.error(message);
-  console.debug(stack);
+function logError(error: Error) {
+  void appSignal?.sendError(error);
 }
 
 /**

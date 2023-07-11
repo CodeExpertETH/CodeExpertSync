@@ -98,6 +98,35 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@appsignal/core@npm:=1.1.19":
+  version: 1.1.19
+  resolution: "@appsignal/core@npm:1.1.19"
+  dependencies:
+    "@appsignal/types": =3.0.0
+    isomorphic-unfetch: ^3.1.0
+    tslib: ^2.3.0
+  checksum: ac91f053a594e9dab6e3a47f0924c316163e4ee27f8b362084cc4dd1b978bc9100c7972734f57767dec13034a945a054ca68601567a752b4f56720dbc0e4953c
+  languageName: node
+  linkType: hard
+
+"@appsignal/javascript@npm:^1.3.26":
+  version: 1.3.26
+  resolution: "@appsignal/javascript@npm:1.3.26"
+  dependencies:
+    "@appsignal/core": =1.1.19
+    "@appsignal/types": =3.0.0
+    tslib: ^2.3.0
+  checksum: fa2ca7b941ee14f69cb861261ecdb4cc8e1d6cfab22ae21781d35f3c4255057d9da7dfc3964df03c0ab30b2d22cebe5d30778d56ad27117f84321868d27349c9
+  languageName: node
+  linkType: hard
+
+"@appsignal/types@npm:=3.0.0":
+  version: 3.0.0
+  resolution: "@appsignal/types@npm:3.0.0"
+  checksum: b510de78c8b2218421ad9f1c48579891527c39ad3d88ce912435d5685171f1a361503d63401f86b3a0096ecab4143628b24f7758602b906cb4076812f89dde7c
+  languageName: node
+  linkType: hard
+
 "@aw-web-design/x-default-browser@npm:1.4.88":
   version: 1.4.88
   resolution: "@aw-web-design/x-default-browser@npm:1.4.88"
@@ -1922,6 +1951,7 @@ __metadata:
   resolution: "@code-expert/sync@workspace:."
   dependencies:
     "@ant-design/cssinjs": 1.10.1
+    "@appsignal/javascript": ^1.3.26
     "@code-expert/configs-typescript": ^0.2.3
     "@code-expert/eslint-config-prettier-typescript-react": ^0.6.5
     "@code-expert/prettier-config": ^0.1.0
@@ -12489,6 +12519,13 @@ __metadata:
   version: 2.5.0
   resolution: "tslib@npm:2.5.0"
   checksum: ae3ed5f9ce29932d049908ebfdf21b3a003a85653a9a140d614da6b767a93ef94f460e52c3d787f0e4f383546981713f165037dc2274df212ea9f8a4541004e1
+  languageName: node
+  linkType: hard
+
+"tslib@npm:^2.3.0":
+  version: 2.6.0
+  resolution: "tslib@npm:2.6.0"
+  checksum: c01066038f950016a18106ddeca4649b4d76caa76ec5a31e2a26e10586a59fceb4ee45e96719bf6c715648e7c14085a81fee5c62f7e9ebee68e77a5396e5538f
   languageName: node
   linkType: hard
 
