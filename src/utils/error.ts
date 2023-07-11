@@ -21,11 +21,7 @@ export function panic(message: string): never {
  * Assert that the given condition will always hold, throw an invariant violation otherwise.
  */
 export function invariant(condition: boolean, message: string): asserts condition {
-  if (!condition) {
-    const error = new Error(message);
-    error.name = 'Invariant violation';
-    throw error;
-  }
+  if (!condition) panic(message);
 }
 
 /**
