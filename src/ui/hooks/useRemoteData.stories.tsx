@@ -1,6 +1,6 @@
 import { Story } from '@storybook/react';
 import React from 'react';
-import { adt, either, pipe, remoteData, taskEither } from '@code-expert/prelude';
+import { adt, either, pipe, remoteEither, taskEither } from '@code-expert/prelude';
 import { useRemoteEither } from './useRemoteData';
 
 const foldMeteorCallType = adt.foldFromKeys({ resolve: null, reject: null, throw: null });
@@ -25,18 +25,18 @@ function mockMethodCall(type: MeteorCallType): taskEither.TaskEither<string, str
 
 // -----------------------------------------------------------------------------
 
-interface UseRemoteDataTestProps {
+interface UseRemoteEitherTestProps {
   type: MeteorCallType;
-  useRemoteDataHook: typeof useRemoteEither;
+  useRemoteEitherHook: typeof useRemoteEither;
 }
 
-function UseRemoteDataTest({ type, useRemoteDataHook }: UseRemoteDataTestProps) {
-  const [rd, refresh] = useRemoteDataHook(mockMethodCall);
+function UseRemoteEitherTest({ type, useRemoteEitherHook }: UseRemoteEitherTestProps) {
+  const [rd, refresh] = useRemoteEitherHook(mockMethodCall);
   return (
     <div>
       {pipe(
         rd,
-        remoteData.fold(
+        remoteEither.match(
           () => <div>[Initial]</div>,
           () => <div>[Loading]</div>,
           (e) => <div>[Error] {e}</div>,
@@ -44,7 +44,7 @@ function UseRemoteDataTest({ type, useRemoteDataHook }: UseRemoteDataTestProps) 
         ),
       )}
       <button type="button" onClick={() => refresh(type)}>
-        {remoteData.isInitial(rd) || remoteData.isPending(rd) ? 'Fetch' : 'Refresh'}
+        {remoteEither.isInitial(rd) || remoteEither.isPending(rd) ? 'Fetch' : 'Refresh'}
       </button>
     </div>
   );
@@ -53,12 +53,12 @@ function UseRemoteDataTest({ type, useRemoteDataHook }: UseRemoteDataTestProps) 
 // -----------------------------------------------------------------------------
 
 export default {
-  title: 'hooks/useRemoteData',
-  component: UseRemoteDataTest,
+  title: 'hooks/useRemoteEither',
+  component: UseRemoteEitherTest,
 };
 
 const Template: Story<{ type: MeteorCallType }> = ({ type = 'resolve' }) => (
-  <UseRemoteDataTest type={type} useRemoteDataHook={useRemoteEither} />
+  <UseRemoteEitherTest type={type} useRemoteEitherHook={useRemoteEither} />
 );
 
 export const Resolve = Template.bind({});

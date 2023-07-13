@@ -1,11 +1,10 @@
 import React from 'react';
 import {
-  constUndefined,
-  either,
-  flow,
   fn,
   pipe,
-  remoteData,
+  remote,
+  remoteEither,
+  remoteOption,
   task,
   taskEither,
   taskOption,
@@ -19,35 +18,17 @@ import { useRaceState } from './useRaceState';
  */
 export function useRemote<P extends ReadonlyArray<unknown>, A>(
   run: (...props: P) => task.Task<A>,
-): [remoteData.Remote<A>, (...props: P) => void] {
-  return useRemoteEither(flow(run, task.map(either.right)));
-}
-
-/**
- * Run a `TaskOption` and represent the states before, during and after as `RemoteData`.
- */
-export function useRemoteOption<P extends ReadonlyArray<unknown>, A>(
-  run: (...props: P) => taskOption.TaskOption<A>,
-): [remoteData.RemoteOption<A>, (...props: P) => void] {
-  return useRemoteEither(flow(run, task.map(either.fromOption(constUndefined))));
-}
-
-/**
- * Run a `TaskEither` and represent the states before, during and after as `RemoteData`.
- */
-export function useRemoteEither<P extends ReadonlyArray<unknown>, E, A>(
-  run: (...props: P) => taskEither.TaskEither<E, A>,
-): [remoteData.RemoteEither<E, A>, (...props: P) => void] {
-  const [state, mkSetState] = useRaceState<remoteData.RemoteEither<E, A>>(remoteData.initial);
+): [remote.Remote<A>, (...props: P) => void] {
+  const [state, mkSetState] = useRaceState<remote.Remote<A>>(remote.initial);
 
   const { current } = React.useRef({
     run,
     refresh(...props: P) {
       const setState = mkSetState();
-      setState(remoteData.pending);
+      setState(remote.pending);
       pipe(
         current.run(...props),
-        task.map(remoteData.fromEither),
+        task.map(remote.of),
         task.chainIOK((x) => () => setState(x)),
         task.run,
       );
@@ -57,6 +38,24 @@ export function useRemoteEither<P extends ReadonlyArray<unknown>, E, A>(
   current.run = run;
 
   return fn.tuple(state, current.refresh);
+}
+
+/**
+ * Run a `TaskOption` and represent the states before, during and after as `RemoteData`.
+ */
+export function useRemoteOption<P extends ReadonlyArray<unknown>, A>(
+  run: (...props: P) => taskOption.TaskOption<A>,
+): [remoteOption.RemoteOption<A>, (...props: P) => void] {
+  return useRemote(run);
+}
+
+/**
+ * Run a `TaskEither` and represent the states before, during and after as `RemoteData`.
+ */
+export function useRemoteEither<P extends ReadonlyArray<unknown>, E, A>(
+  run: (...props: P) => taskEither.TaskEither<E, A>,
+): [remoteEither.RemoteEither<E, A>, (...props: P) => void] {
+  return useRemote(run);
 }
 
 /**

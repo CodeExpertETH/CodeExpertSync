@@ -1,5 +1,5 @@
 import React from 'react';
-import { pipe, remoteData, tagged, task } from '@code-expert/prelude';
+import { pipe, remoteEither, tagged, task } from '@code-expert/prelude';
 import { config } from '@/config';
 import { ClientId } from '@/domain/ClientId';
 import { createToken } from '@/utils/jwt';
@@ -10,18 +10,19 @@ export const sseExceptionADT = tagged.build<SSEException>();
 export const useProjectEventUpdate = (
   onProjectAdded: () => void,
   clientId: ClientId,
-): remoteData.RemoteEither<SSEException, EventSource> => {
+): remoteEither.RemoteEither<SSEException, EventSource> => {
   const sse = React.useRef<EventSource | null>(null);
+  // TODO: this doesn't need to be more than a Option<SseException>. Separate this hook into useEventSource(...): RemoteEither<SSEException, EventSource> and useEventListener(eventSource, 'projectAcces', onProjectAdded)
   const [sseStatus, setSseStatus] = React.useState<
-    remoteData.RemoteEither<SSEException, EventSource>
-  >(remoteData.initial);
+    remoteEither.RemoteEither<SSEException, EventSource>
+  >(remoteEither.initial);
 
   const onConnect = React.useCallback(function (this: EventSource) {
-    setSseStatus(remoteData.success(this));
+    setSseStatus(remoteEither.right(this));
   }, []);
 
   const onDisconnect = React.useCallback(() => {
-    setSseStatus(remoteData.initial);
+    setSseStatus(remoteEither.initial);
   }, []);
 
   React.useEffect(() => {
@@ -32,7 +33,7 @@ export const useProjectEventUpdate = (
           createToken(clientId)(),
           task.map((token) => {
             if (sse.current == null) {
-              setSseStatus(remoteData.pending);
+              setSseStatus(remoteEither.pending);
               sse.current = new EventSource(
                 `${config.CX_API_URL}/app/projectAccess?token=${token}`,
               );
@@ -67,7 +68,7 @@ export const useProjectEventUpdate = (
         clearTimeout(timeout);
       }
       timeout = setTimeout(registerEventSource, 2500);
-      setSseStatus(remoteData.failure(sseExceptionADT.disconnected()));
+      setSseStatus(remoteEither.left(sseExceptionADT.disconnected()));
     };
 
     registerEventSource();

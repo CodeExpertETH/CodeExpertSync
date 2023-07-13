@@ -1,6 +1,6 @@
 import { Alert, Button, List, Typography } from 'antd';
 import React from 'react';
-import { constNull, remoteData, task, taskEither } from '@code-expert/prelude';
+import { constNull, remoteEither, task, taskEither } from '@code-expert/prelude';
 import { Project, ProjectId, projectADT } from '@/domain/Project';
 import { SyncException, syncExceptionADT } from '@/domain/SyncState';
 import { ActionMenu } from '@/ui/components/ActionMenu';
@@ -56,7 +56,7 @@ export const ListItem = ({ project, onOpen, onSync, onRemove }: ListItemProps) =
   const [removalStateRD, runRemove] = useRemote(onRemove);
 
   // All states combined. Order matters: the first failure gets precedence.
-  const actionStates = remoteData.sequenceT(
+  const actionStates = remoteEither.sequenceT(
     viewFromStringException(openStateRD),
     viewFromSyncException({
       forcePush: () => runSync(project.value.projectId, 'push'),
@@ -64,7 +64,7 @@ export const ListItem = ({ project, onOpen, onSync, onRemove }: ListItemProps) =
     })(syncStateRD),
   );
 
-  const syncButtonState = fromProject(project, remoteData.isPending(syncStateRD));
+  const syncButtonState = fromProject(project, remoteEither.isPending(syncStateRD));
 
   return (
     <StyledListItem>
@@ -74,7 +74,7 @@ export const ListItem = ({ project, onOpen, onSync, onRemove }: ListItemProps) =
             type={'link'}
             block
             onClick={() => runOpen(project.value.projectId)}
-            disabled={remoteData.isPending(openStateRD)}
+            disabled={remoteEither.isPending(openStateRD)}
           >
             {project.value.taskName}
           </StyledButton>
@@ -107,7 +107,7 @@ export const ListItem = ({ project, onOpen, onSync, onRemove }: ListItemProps) =
                     key: 'remove',
                     icon: <Icon name="trash" />,
                     danger: true,
-                    disabled: remoteData.isPending(removalStateRD),
+                    disabled: remoteEither.isPending(removalStateRD),
                     onClick: () => runRemove(project.value.projectId),
                   },
                 ],
@@ -129,16 +129,16 @@ export const ListItem = ({ project, onOpen, onSync, onRemove }: ListItemProps) =
 // -------------------------------------------------------------------------------------------------
 
 const viewFromStringException: <A>(
-  e: remoteData.RemoteEither<string, A>,
-) => remoteData.RemoteEither<React.ReactElement, A> = remoteData.mapLeft((x) => <>{x}</>);
+  e: remoteEither.RemoteEither<string, A>,
+) => remoteEither.RemoteEither<React.ReactElement, A> = remoteEither.mapLeft((x) => <>{x}</>);
 
 const viewFromSyncException: (env: {
   forcePush(): void;
   forcePull(): void;
 }) => <A>(
-  e: remoteData.RemoteEither<SyncException, A>,
-) => remoteData.RemoteEither<React.ReactElement, A> = ({ forcePush, forcePull }) =>
-  remoteData.mapLeft(
+  e: remoteEither.RemoteEither<SyncException, A>,
+) => remoteEither.RemoteEither<React.ReactElement, A> = ({ forcePush, forcePull }) =>
+  remoteEither.mapLeft(
     syncExceptionADT.fold({
       conflictingChanges: () => (
         <>

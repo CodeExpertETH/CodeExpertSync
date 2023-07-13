@@ -1,6 +1,6 @@
 import { api } from 'api';
 import React from 'react';
-import { iots, pipe, remoteData } from '@code-expert/prelude';
+import { constant, iots, option, pipe, remote, remoteOption } from '@code-expert/prelude';
 import { useRemoteOption } from '@/ui/hooks/useRemoteData';
 
 /**
@@ -10,7 +10,7 @@ export function useSettings<T>(
   key: string,
   decoder: iots.Decoder<unknown, T>,
   dependencyList: React.DependencyList,
-): remoteData.RemoteOption<T> {
+): remoteOption.RemoteOption<T> {
   const [state, refresh] = useRemoteOption(api.settingRead<T>);
 
   React.useEffect(() => {
@@ -25,13 +25,10 @@ export function useSettingsFallback<T>(
   decoder: iots.Decoder<unknown, T>,
   fallBack: T,
   dependencyList: React.DependencyList,
-): remoteData.Remote<T> {
+): remote.Remote<T> {
   return pipe(
     useSettings(key, decoder, dependencyList),
-    remoteData.fold3(
-      () => remoteData.pending,
-      () => remoteData.success(fallBack),
-      remoteData.success,
-    ),
+    // FIXME this change demonstrates the difference between implementations well
+    remote.map(option.getOrElse(constant(fallBack))),
   );
 }
