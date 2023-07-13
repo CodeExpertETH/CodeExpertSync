@@ -1,7 +1,7 @@
 import { Alt1 } from 'fp-ts/Alt';
 import { Alternative1 } from 'fp-ts/Alternative';
 import * as applicative from 'fp-ts/Applicative';
-import { Apply1 } from 'fp-ts/Apply';
+import * as apply from 'fp-ts/Apply';
 import * as array from 'fp-ts/Array';
 import { Chain1 } from 'fp-ts/Chain';
 import { Compactable1 } from 'fp-ts/Compactable';
@@ -118,9 +118,9 @@ export const getOrElse =
  * f(pending) // "it's pending"
  * f(done(21)) // '22'
  */
-export const fold =
-  <A, B>(onInitial: () => B, onPending: () => B, onDone: (value: A) => B) =>
-  (ma: Remote<A>): B => {
+export const matchW =
+  <I, P, A, B>(onInitial: () => I, onPending: () => P, onDone: (value: A) => B) =>
+  (ma: Remote<A>): I | P | B => {
     switch (ma._tag) {
       case 'initial': {
         return onInitial();
@@ -133,6 +133,14 @@ export const fold =
       }
     }
   };
+
+export const match: <A, B>(
+  onInitial: () => B,
+  onPending: () => B,
+  onDone: (value: A) => B,
+) => (ma: Remote<A>) => B = matchW;
+
+export const fold = match;
 
 /**
  * A more concise way to "unwrap" values from {@link Remote} "container".
@@ -398,7 +406,7 @@ export const Applicative: applicative.Applicative1<URI> = {
   of,
 };
 
-export const Apply: Apply1<URI> = {
+export const Apply: apply.Apply1<URI> = {
   URI,
   map: _map,
   ap: _ap,
@@ -544,3 +552,7 @@ export const getShow = <A>(SA: Show<A>): Show<Remote<A>> => ({
 
 export const sequenceArray: <A>(rs: Array<Remote<A>>) => Remote<Array<A>> =
   array.sequence(Applicative);
+
+export const sequenceS = apply.sequenceS(Apply);
+
+export const sequenceT = apply.sequenceT(Apply);

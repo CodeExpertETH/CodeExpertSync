@@ -44,7 +44,7 @@ import * as optionT from './optionT';
 import * as ord from './ord';
 import * as profiling from './profiling';
 import * as record from './record';
-import * as remoteData from './remote-data';
+import * as remoteDataDeprecated from './remote-data';
 import * as separated from './separated';
 import * as string from './string';
 import * as struct from './struct';
@@ -59,6 +59,13 @@ export type { Endomorphism } from 'fp-ts/Endomorphism';
 export * from './function';
 export * as monad from 'fp-ts/Monad';
 export * as refinement from './refinement';
+
+/**
+ * Use {@link remoteEither}
+ *
+ * @deprecated
+ */
+const remoteData = remoteDataDeprecated;
 
 export {
   adt,

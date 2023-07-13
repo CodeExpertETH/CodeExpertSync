@@ -15,6 +15,7 @@ import { pipe } from 'fp-ts/function';
 
 export {
   left as failure,
+  right as success,
   pending,
   // progress not supported - Pending has no progress
   initial,
@@ -23,7 +24,7 @@ export {
   isInitial,
   getOrElse,
   match as fold,
-  fold3,
+  match3 as fold3,
   toNullable,
   toUndefined,
   fromOption,
@@ -38,7 +39,8 @@ export {
   sequenceT as combine,
 
   // extra
-  chainW,
+  flatMap as chain,
+  flatMap as chainW,
   fromNullable,
   filterOrElse,
   staleWhileRevalidate,
