@@ -49,10 +49,7 @@ export const api: Api = {
   create_jwt_tokens: (claims) => () => invoke('create_jwt_token', { claims }),
   buildTar: (fileName, rootDir, files) => () => invoke('build_tar', { fileName, rootDir, files }),
   settingRead: (key, decoder) =>
-    pipe(
-      taskOption.tryCatch(() => store.get(key)),
-      taskOption.chainOptionK(flow(decoder.decode, option.fromEither)),
-    ),
+    pipe(() => store.get(key), task.map(decoder.decode), taskOption.fromTaskEither),
   settingWrite: (key, value) => () =>
     value != null
       ? store.set(key, value).then(() => store.save())
