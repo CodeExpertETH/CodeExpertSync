@@ -1,12 +1,12 @@
 import { tauri, path as tauriPath } from '@tauri-apps/api';
 import { task, taskEither, taskOption } from '@code-expert/prelude';
-import { messageFromThrown } from '@/utils/error';
+import { fromTauriError } from '@/lib/tauri/TauriException';
 
 export const basename = taskOption.tryCatchK(tauriPath.basename);
 /**
  * Note: passing '', '.', or '/' will result in either.left(PathError("Couldn't get the parent directory"))
  */
-export const dirname = taskEither.tryCatchK(tauriPath.dirname, messageFromThrown);
+export const dirname = taskEither.tryCatchK(tauriPath.dirname, fromTauriError);
 export const extname = taskOption.tryCatchK(tauriPath.extname);
 export const isAbsolute = task.fromPromiseK(tauriPath.isAbsolute);
 export const join = task.fromPromiseK(tauriPath.join);
