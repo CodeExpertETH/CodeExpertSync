@@ -1,8 +1,7 @@
 import { BaseDirectory } from '@tauri-apps/api/fs';
 import { Alert, Button } from 'antd';
 import React from 'react';
-import { iots, pipe, readonlyArray, task, taskOption } from '@code-expert/prelude';
-import { Project } from '@/domain/Project';
+import { iots, pipe, task, taskEither } from '@code-expert/prelude';
 import { globalSetupState, setupState } from '@/domain/Setup';
 import { fs } from '@/lib/tauri';
 import { useGlobalContextWithActions } from '@/ui/GlobalContext';
@@ -28,22 +27,18 @@ export function Developer() {
   const cleanConfig = () => {
     void pipe(
       projectRepository.projects.get(),
-      taskOption.fromPredicate(readonlyArray.isNonEmpty),
-      taskOption.chainFirstTaskK(
-        task.traverseSeqArray((project) =>
-          projectRepository.removeProject(project.value.projectId),
+      task.traverseSeqArray((project) => projectRepository.removeProject(project.value.projectId)),
+      task.chainFirst(() =>
+        pipe(
+          taskEither.sequenceT(
+            fs.removeFile('settings.json', { dir: BaseDirectory.AppLocalData }),
+            fs.removeFile('privateKey.pem', { dir: BaseDirectory.AppLocalData }),
+          ),
+          taskEither.fold(
+            (e) => notificationT.error(e.message),
+            () => notificationT.success('Deleted config data'),
+          ),
         ),
-      ),
-      taskOption.alt(() => taskOption.some(readonlyArray.zero<Project>())),
-      taskOption.chainFirst(() =>
-        taskOption.sequenceT(
-          fs.removeFile('settings.json', { dir: BaseDirectory.AppLocalData }),
-          fs.removeFile('privateKey.pem', { dir: BaseDirectory.AppLocalData }),
-        ),
-      ),
-      taskOption.fold(
-        () => notificationT.error('You are not authorized'),
-        () => notificationT.success('Deleted config data'),
       ),
       task.map(() => {
         dispatchContext({

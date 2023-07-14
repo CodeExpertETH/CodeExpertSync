@@ -75,10 +75,10 @@ export const api: Api = {
   logout: () =>
     pipe(
       os.appLocalDataDir,
-      taskOption.chainTaskK((dir) => path.join(dir, 'privateKey.pem')),
-      taskOption.chain(removeFile),
-      taskOption.match(() => {
-        console.debug(`[logout] The private key could not be removed cleanly`);
+      taskEither.chainTaskK((dir) => path.join(dir, 'privateKey.pem')),
+      taskEither.chain(removeFile),
+      taskEither.match((e) => {
+        console.debug(`[logout] The private key could not be removed cleanly: ${e.message}`);
       }, constVoid),
     ),
   getSystemInfo: async () => option.fromNullable<string>(await invoke('system_info')),

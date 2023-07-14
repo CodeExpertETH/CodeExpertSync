@@ -166,25 +166,32 @@ const getProjectFilesLocal = (
 ): taskEither.TaskEither<SyncException, ReadonlyArray<{ path: string; type: 'file' }>> =>
   pipe(
     libFs.readDirTree(projectDir),
-    taskOption.map(
+    taskEither.mapLeft((e) =>
+      syncExceptionADT.fileSystemCorrupted({
+        path: projectDir,
+        reason: e.message,
+      }),
+    ),
+    taskEither.map(
       flow(
         tree.foldMap(array.getMonoid<{ path: string; type: FileEntryType }>())(array.of),
         array.filter(isFile),
       ),
     ),
-    taskOption.chain(
-      taskOption.traverseArray(({ path, type }) =>
+    taskEither.chain(
+      taskEither.traverseArray(({ path, type }) =>
         pipe(
           libPath.stripAncestor(projectDir)(path),
-          taskOption.map((relative) => ({ path: relative, type })),
+          taskEither.bimap(
+            (e) =>
+              syncExceptionADT.fileSystemCorrupted({
+                path: projectDir,
+                reason: e.message,
+              }),
+            (relative) => ({ path: relative, type }),
+          ),
         ),
       ),
-    ),
-    taskEither.fromTaskOption(() =>
-      syncExceptionADT.fileSystemCorrupted({
-        path: projectDir,
-        reason: `Could not read project files`,
-      }),
     ),
   );
 
@@ -631,7 +638,9 @@ export const uploadChangedFiles = (
     taskEither.bindTaskK('archivePath', () =>
       pipe(
         libOs.tempDir,
-        taskOption.getOrElse(() => panic('No temp dir available')),
+        taskEither.getOrElse((e) => {
+          throw e;
+        }),
         task.chain((tempDir) => libPath.join(tempDir, fileName)),
       ),
     ),
@@ -655,9 +664,11 @@ export const uploadChangedFiles = (
     taskEither.bindTaskK('body', ({ uploadFiles, archivePath }) =>
       pipe(
         array.isEmpty(uploadFiles)
-          ? taskOption.of(new Uint8Array())
+          ? taskEither.of(new Uint8Array())
           : libFs.readBinaryFile(archivePath),
-        taskOption.getOrElse(() => panic('Could not read binary file')),
+        taskEither.getOrElse((e) => {
+          throw e;
+        }),
       ),
     ),
     taskEither.chain(({ body, tarHash, removeFiles, uploadFiles }) =>
