@@ -3,6 +3,7 @@ import { Alt1 } from 'fp-ts/Alt';
 import { Alternative1 } from 'fp-ts/Alternative';
 import { Applicative1, Applicative as ApplicativeHKT } from 'fp-ts/Applicative';
 import * as apply from 'fp-ts/Apply';
+import * as array from 'fp-ts/Array';
 import * as chainable from 'fp-ts/Chain';
 import * as e from 'fp-ts/Either';
 import { Eq } from 'fp-ts/Eq';
@@ -20,7 +21,6 @@ import { sign } from 'fp-ts/Ordering';
 import { Pointed1 } from 'fp-ts/Pointed';
 import * as predicate from 'fp-ts/Predicate';
 import { Predicate } from 'fp-ts/Predicate';
-import * as refinement from 'fp-ts/Refinement';
 import { Refinement } from 'fp-ts/Refinement';
 import { Semigroup } from 'fp-ts/Semigroup';
 import { Show } from 'fp-ts/Show';
@@ -152,14 +152,14 @@ export const isNone = remote.exists(o.isNone);
 export const isSome = remote.exists(o.isSome);
 
 /**
- * @category Destructors
+ * @category pattern matching
  */
 export const match: <A, B>(
   onInitial: () => B,
   onPending: () => B,
   onNone: () => B,
   onSome: (a: A) => B,
-) => (fa: RemoteOption<A>) => B = (i, p, l, r) => remote.fold(i, p, o.fold(l, r));
+) => (fa: RemoteOption<A>) => B = (i, p, l, r) => remote.match(i, p, o.fold(l, r));
 
 /**
  * Use {@link match}
@@ -395,17 +395,6 @@ export const apS = apply.apS(Apply);
 export const bind = chainable.bind(Chain);
 
 /**
- * @category filtering
- */
-export const filterOrElse: {
-  <A, B extends A>(refinement: Refinement<A, B>): (ma: RemoteOption<A>) => RemoteOption<B>;
-  <A>(predicate: Predicate<A>): (ma: RemoteOption<A>) => RemoteOption<A>;
-} =
-  <A, B extends A>(pred: refinement.Refinement<A, B> | predicate.Predicate<A>) =>
-  (rd: RemoteOption<A>) =>
-    isSome(rd) ? (pred(rd.value.value) ? rd : none) : rd;
-
-/**
  * @category conversions
  */
 export const fromOption: <A>(oa: o.Option<A>) => RemoteOption<A> = remote.of;
@@ -446,6 +435,18 @@ export const liftNullable = oT.fromNullableK(remote.Pointed);
 export const liftRemote = <A extends ReadonlyArray<unknown>, B>(
   f: (...a: A) => remote.Remote<B>,
 ): ((...a: A) => RemoteOption<B>) => flow(f, fromRemote);
+
+/**
+ * @category filtering
+ */
+export const filter: {
+  <A, B extends A>(refinement: Refinement<A, B>): (ma: RemoteOption<A>) => RemoteOption<B>;
+  <A>(predicate: Predicate<A>): <B extends A>(ma: RemoteOption<B>) => RemoteOption<B>;
+  <A>(predicate: Predicate<A>): (ma: RemoteOption<A>) => RemoteOption<A>;
+} =
+  <A, B extends A>(pred: Refinement<A, B> | predicate.Predicate<A>) =>
+  (rd: RemoteOption<A>) =>
+    isSome(rd) ? (pred(rd.value.value) ? rd : none) : rd;
 
 /**
  * @category sequencing
@@ -579,7 +580,7 @@ export const getOrElse =
     getOrElseW(onNone)(fa);
 
 /**
- * @category Destructors
+ * @category pattern matching
  */
 export const match3 = <A, R>(onUnresolved: LazyArg<R>, onNone: () => R, onSome: (a: A) => R) =>
   match(onUnresolved, onUnresolved, onNone, onSome);
@@ -599,7 +600,7 @@ export const toUndefined = <A>(ma: RemoteOption<A>): A | undefined =>
 /**
  * @category Destructors
  */
-export const toOption: <A>(fa: RemoteOption<A>) => o.Option<A> = remote.fold(
+export const toOption: <A>(fa: RemoteOption<A>) => o.Option<A> = remote.match(
   constant(o.none),
   constant(o.none),
   identity,
@@ -613,7 +614,7 @@ export const toEither = <E>(
   onPending: () => E,
   onNone: () => E,
 ): (<A>(fa: RemoteOption<A>) => e.Either<E, A>) =>
-  remote.fold(flow(onInitial, e.left), flow(onPending, e.left), e.fromOption(onNone));
+  remote.match(flow(onInitial, e.left), flow(onPending, e.left), e.fromOption(onNone));
 
 /**
  * @category utils
@@ -625,8 +626,12 @@ export const elem: <A>(E: Eq<A>) => (a: A) => (fa: RemoteOption<A>) => boolean =
 /**
  * @category utils
  */
-export const exists: <A>(predicate: Predicate<A>) => (fa: RemoteOption<A>) => boolean =
-  (predicate) => (fa) =>
+export const exists: {
+  <A, B extends A>(r: Refinement<A, B>): (fa: RemoteOption<A>) => fa is Some<B>;
+  <A>(p: Predicate<A>): (fa: RemoteOption<A>) => boolean;
+} =
+  <A, B extends A>(predicate: Predicate<A>) =>
+  (fa: RemoteOption<A>): fa is Some<B> =>
     isSome(fa) && predicate(fa.value.value);
 
 /**
@@ -652,6 +657,7 @@ export const getMonoid = <A>(SA: Semigroup<A>): Monoid<RemoteOption<A>> =>
 const constLt = constant(-1);
 const constEq = constant(0);
 const constGt = constant(1);
+
 /**
  * @category Instances
  */
@@ -692,9 +698,17 @@ export const sequenceS = apply.sequenceS(Apply);
 export const sequenceT = apply.sequenceT(Apply);
 
 /**
+ * @category traversing
+ */
+export const sequenceArray: <A>(rs: Array<RemoteOption<A>>) => RemoteOption<Array<A>> =
+  array.sequence(Applicative);
+
+/**
  * The order of parameters `next` and `current` comes from the fact that this is a similar operation
  * to `alt`. Additionally, doing it like this gives us an elegant way of building Dispatches/Reducers,
  * which is a pattern that sees a lot of use in React.
+ *
+ * @category Model
  */
 export type RefreshStrategy = <A>(
   next: RemoteOption<A>,

@@ -3,6 +3,7 @@ import { Alt2, Alt2C } from 'fp-ts/Alt';
 import { Alternative2 } from 'fp-ts/Alternative';
 import { Applicative2, Applicative2C, Applicative as ApplicativeHKT } from 'fp-ts/Applicative';
 import * as apply from 'fp-ts/Apply';
+import * as array from 'fp-ts/Array';
 import { Bifunctor2 } from 'fp-ts/Bifunctor';
 import * as chainable from 'fp-ts/Chain';
 import * as e from 'fp-ts/Either';
@@ -20,6 +21,7 @@ import { Ord } from 'fp-ts/Ord';
 import { sign } from 'fp-ts/Ordering';
 import { Pointed2 } from 'fp-ts/Pointed';
 import { Predicate } from 'fp-ts/Predicate';
+import { Refinement } from 'fp-ts/Refinement';
 import { Semigroup } from 'fp-ts/Semigroup';
 import { Show } from 'fp-ts/Show';
 import { Traversable2 } from 'fp-ts/Traversable';
@@ -29,8 +31,12 @@ import * as remote from '../remote';
 
 /**
  * TODO: regarding Wide-by-default, Either.ts currently does it as follows:
- * - flatMap (chain) and tap (chainFirst) are wide by default
- * - chain, chainFirst, alt, orElse (recover), match (fold), flatten aren't
+ *  - flatMap (chain) is wide by default
+ *  - chain, chainFirst, chainEK, alt, orElse (recover), getOrElse, match (fold), flatten aren't
+ *  While chain and it's variants (chainFirst, chainOptionK etc.) all were strict with a wide variant (chainW, chainFirstW, chainOptionKW),
+ *  flatMap and it's variants (tap, flatMapOption) are wide by default. NB: for chain and flatMap the strict/narrow discussion
+ *  is generally only about the `Left` part. Same for flatten. In the case of alt, orElse, getOrElse it's only about
+ *  the `Right` part.
  */
 
 /**
@@ -79,7 +85,7 @@ export const initial: RemoteEither<never, never> = remote.initial;
 /**
  * @category Constructors
  */
-export const constInital: <E, A>() => RemoteEither<E, A> = constant(initial);
+export const constInitial: <E, A>() => RemoteEither<E, A> = constant(initial);
 
 /**
  * @category Constructors
@@ -524,7 +530,7 @@ export const flatten: <E, A>(ffa: RemoteEither<E, RemoteEither<E, A>>) => Remote
 export const flatMapOption = fe.chainOptionK(FromEither, Chain);
 
 /**
- * FIXME Do we want Wide by default?
+ * FIXME See discussion RE: Wide variants at top of file
  *
  * @category sequencing
  */
@@ -560,7 +566,7 @@ export const chainNullableK = flatMapNullable;
 export const flatMapEither = fe.chainEitherK(FromEither, Chain);
 
 /**
- * FIXME Do we want Wide by default?
+ FIXME See discussion RE: Wide variants at top of file
  *
  * @category sequencing
  */
@@ -686,7 +692,7 @@ export const orElseW: <E1, E2, B>(
 // const orElseFirst = eT.orElseFirst(remote.Monad);
 
 /**
- * @category Destructors
+ * @category pattern matching
  */
 export const match3 = <E, A, R>(onNone: LazyArg<R>, onLeft: (e: E) => R, onRight: (a: A) => R) =>
   match(onNone, onNone, onLeft, onRight);
@@ -731,7 +737,7 @@ export const toEither = <E>(
   onInitial: () => E,
   onPending: () => E,
 ): (<A>(fa: RemoteEither<E, A>) => e.Either<E, A>) =>
-  remote.fold(flow(onInitial, e.left), flow(onPending, e.left), identity);
+  remote.match(flow(onInitial, e.left), flow(onPending, e.left), identity);
 
 /**
  * @category utils
@@ -743,8 +749,13 @@ export const elem: <A>(E: Eq<A>) => (a: A) => <E>(fa: RemoteEither<E, A>) => boo
 /**
  * @category utils
  */
-export const exists: <A>(predicate: Predicate<A>) => (fa: RemoteEither<unknown, A>) => boolean =
-  (predicate) => (fa) =>
+export const exists: {
+  <A, B extends A>(r: Refinement<A, B>): (fa: RemoteEither<unknown, A>) => fa is Right<B>;
+  <A>(p: Predicate<A>): <B extends A>(fa: RemoteEither<unknown, B>) => boolean;
+  <A>(p: Predicate<A>): (fa: RemoteEither<unknown, A>) => boolean;
+} =
+  <A, B extends A>(predicate: Predicate<A>) =>
+  (fa: RemoteEither<unknown, A>): fa is Right<B> =>
     isRight(fa) && predicate(fa.value.right);
 
 /**
@@ -820,6 +831,7 @@ export const getMonoid = <E, A>(SA: Semigroup<A>): Monoid<RemoteEither<E, A>> =>
 const constLt = constant(-1);
 const constEq = constant(0);
 const constGt = constant(1);
+
 /**
  * @category Instances
  */
@@ -860,9 +872,17 @@ export const sequenceS = apply.sequenceS(Apply);
 export const sequenceT = apply.sequenceT(Apply);
 
 /**
+ * @category traversing
+ */
+export const sequenceArray: <E, A>(rs: Array<RemoteEither<E, A>>) => RemoteEither<E, Array<A>> =
+  array.sequence(Applicative);
+
+/**
  * The order of parameters `next` and `current` comes from the fact that this is a similar operation
  * to `alt`. Additionally, doing it like this gives us an elegant way of building Dispatches/Reducers,
  * which is a pattern that sees a lot of use in React.
+ *
+ * @category Model
  */
 export type RefreshStrategy = <E, A>(
   next: RemoteEither<E, A>,

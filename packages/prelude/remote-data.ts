@@ -17,7 +17,7 @@ export {
   left as failure,
   right as success,
   pending,
-  // progress not supported - Pending has no progress
+  // TODO progress
   initial,
   isRight as isSuccess,
   isPending,
@@ -32,7 +32,7 @@ export {
   fromEither,
   toEither,
   fromPredicate,
-  // fromProgressEvent not supported - Pending has no progress
+  // TODO fromProgressEvent
   getEq,
   getOrd,
   getShow,
@@ -121,3 +121,6 @@ export const remoteData: Monad2<URI> &
   zero: remoteEither.Alternative.zero,
   extend: remoteEither.Extend.extend,
 };
+
+// TODO Compactable, Filterable, MonadThrow, Witherable
+// TODO move this into fp-ts-remote/remote-data
