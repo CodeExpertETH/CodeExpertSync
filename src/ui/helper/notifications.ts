@@ -12,7 +12,7 @@ import {
   task,
   taskEither,
 } from '@code-expert/prelude';
-import { messageFromThrown } from '@/utils/error';
+import { fromThrown } from '@/utils/error';
 
 antdNotification.config({
   placement: 'top',
@@ -50,7 +50,7 @@ export type Notification2<F extends URIS2, E> = Notification<Kind2<F, E, void>>;
 
 export const notificationIO: Notification1<io.URI> = {
   error: (e, duration) => () => {
-    const message = string.isString(e) || React.isValidElement(e) ? e : messageFromThrown(e);
+    const message = string.isString(e) || React.isValidElement(e) ? e : fromThrown(e).message;
     return antdMessage.error(message, duration);
   },
   info: (message, duration) => () => void antdNotification.info({ message, duration }),

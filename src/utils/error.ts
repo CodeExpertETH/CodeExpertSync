@@ -2,8 +2,6 @@ import normalizeException from 'normalize-exception';
 
 export const fromThrown: (e: unknown) => Error = normalizeException;
 
-export const messageFromThrown = (e: unknown): string => fromThrown(e).message;
-
 /**
  * Immediately halts the program with an error message and stack trace.
  */

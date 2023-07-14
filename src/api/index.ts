@@ -17,7 +17,7 @@ import {
 } from '@code-expert/prelude';
 import { os, path } from '@/lib/tauri';
 import { removeFile } from '@/lib/tauri/fs';
-import { messageFromThrown } from '@/utils/error';
+import { fromThrown } from '@/utils/error';
 
 const store = new TauriStore('settings.json');
 
@@ -66,7 +66,7 @@ export const api: Api = {
   removeDir: (filePath) =>
     taskEither.tryCatch(
       () => removeDir(filePath, { recursive: true }),
-      (reason) => `[removeDir]: ${messageFromThrown(reason)}`,
+      (reason) => `[removeDir]: ${fromThrown(reason).message}`,
     ),
   getFileHash: (path) => () => invoke('get_file_hash', { path }),
   createProjectPath: (path) =>
@@ -76,14 +76,14 @@ export const api: Api = {
       taskEither.chain((root) =>
         taskEither.tryCatch(
           () => invoke('create_project_path', { path, root }),
-          (reason) => `[createProjectPath]: ${messageFromThrown(reason)}`,
+          (reason) => `[createProjectPath]: ${fromThrown(reason).message}`,
         ),
       ),
     ),
   createProjectDir: (path, readOnly) =>
     taskEither.tryCatch(
       () => invoke('create_project_dir', { path, readOnly }),
-      (reason) => `[createProjectDir]: ${messageFromThrown(reason)}`,
+      (reason) => `[createProjectDir]: ${fromThrown(reason).message}`,
     ),
   writeProjectFile: (filePath, content, readOnly) =>
     taskEither.tryCatch(
@@ -93,7 +93,7 @@ export const api: Api = {
           contents: Array.from(new TextEncoder().encode(content)),
           readOnly,
         }),
-      (reason) => `[writeProjectFile]: ${messageFromThrown(reason)}`,
+      (reason) => `[writeProjectFile]: ${fromThrown(reason).message}`,
     ),
   logout: () =>
     pipe(
