@@ -21,6 +21,7 @@ import { ProjectRepository } from '@/domain/ProjectRepository';
 import { changesADT, syncStateADT } from '@/domain/SyncState';
 import { path } from '@/lib/tauri';
 import { apiErrorToMessage, apiGetSigned, apiPostSigned } from '@/utils/api';
+import { panic } from '@/utils/error';
 import { projectConfigStore } from './internal/ProjectConfigStore';
 import { projectMetadataStore } from './internal/ProjectMetadataStore';
 
@@ -83,11 +84,12 @@ export const mkProjectRepositoryTauri = (): task.Task<ProjectRepository> => {
             path: 'project/metadata',
             codec: iots.array(ProjectMetadata),
           }),
-          taskEither.chainFirstTaskK(persistMetadata),
-          taskEither.chainTaskK(projectsFromMetadata),
-          taskEither.chainFirstIOK(setProjects), // FIXME This overwrites existing sync state
-          taskEither.map(constVoid),
-          taskEither.run,
+          taskEither.getOrElse((e) => panic(`Failed to fetch changes: ${apiErrorToMessage(e)}`)),
+          task.chainFirst(persistMetadata),
+          task.chain(projectsFromMetadata),
+          task.chainFirstIOK(setProjects), // FIXME This overwrites existing sync state
+          task.map(constVoid),
+          task.run,
         );
       },
 
