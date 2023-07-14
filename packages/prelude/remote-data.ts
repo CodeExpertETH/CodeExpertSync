@@ -1,62 +1,121 @@
-import * as RD from '@devexperts/remote-data-ts';
-import * as Ap from 'fp-ts/Apply';
-import * as predicate from 'fp-ts/Predicate';
-import * as refinement from 'fp-ts/Refinement';
-import { FunctionN } from 'fp-ts/function';
+import { remoteEither } from '@code-expert/fp-ts-remote';
+import { $Unexpressable } from '@code-expert/type-utils';
+import { Alt2 } from 'fp-ts/Alt';
+import { Alternative2 } from 'fp-ts/Alternative';
+import { getApplySemigroup } from 'fp-ts/Apply';
+import { Bifunctor2 } from 'fp-ts/Bifunctor';
+import { Extend2 } from 'fp-ts/Extend';
+import { Foldable2 } from 'fp-ts/Foldable';
+import { Monad2 } from 'fp-ts/Monad';
+import { Monoid } from 'fp-ts/Monoid';
+import { Option, fold as foldOption } from 'fp-ts/Option';
+import { Semigroup } from 'fp-ts/Semigroup';
+import { Traversable2 } from 'fp-ts/Traversable';
+import { pipe } from 'fp-ts/function';
 
-export * from '@devexperts/remote-data-ts';
-export * from './refresh-remote-data';
+export {
+  left as failure,
+  pending,
+  // progress not supported - Pending has no progress
+  initial,
+  isRight as isSuccess,
+  isPending,
+  isInitial,
+  getOrElse,
+  match as fold,
+  fold3,
+  toNullable,
+  toUndefined,
+  fromOption,
+  toOption,
+  fromEither,
+  toEither,
+  fromPredicate,
+  // fromProgressEvent not supported - Pending has no progress
+  getEq,
+  getOrd,
+  getShow,
+  sequenceT as combine,
 
-export type Remote<A> = RD.RemoteData<never, A>;
+  // extra
+  chainW,
+  fromNullable,
+  filterOrElse,
+  staleWhileRevalidate,
+  staleIfError,
+  sequenceT,
+  sequenceS,
+} from '@code-expert/fp-ts-remote/remote-either';
 
-export type RemoteOption<A> = RD.RemoteData<undefined, A>;
+export type {
+  Initial as RemoteInitial,
+  Pending as RemotePending,
+  Left as RemoteFailure,
+  Right as RemoteSuccess,
+  RefreshStrategy,
+} from '@code-expert/fp-ts-remote/remote-either';
 
-export type RemoteEither<E, A> = RD.RemoteData<E, A>;
+export const URI = remoteEither.URI;
+export type URI = remoteEither.URI;
 
-export const chainW =
-  <D, A, B>(f: (a: A) => RD.RemoteData<D, B>) =>
-  <E>(ma: RD.RemoteData<E, A>): RD.RemoteData<D | E, B> => {
-    if (RD.isFailure(ma)) return ma;
-    if (RD.isSuccess(ma)) return f(ma.value);
-    return ma;
-  };
+export type RemoteData<E, A> = remoteEither.RemoteEither<E, A>;
 
-export const fromNullable =
-  <L, A>(whenFalse: FunctionN<[A], L>): FunctionN<[A], RD.RemoteData<L, NonNullable<A>>> =>
-  (a) =>
-    a != null ? RD.success(a as NonNullable<A>) : RD.failure(whenFalse(a));
+export const recover =
+  <E, A>(onLeft: (e: E) => Option<A>) =>
+  (fa: RemoteData<E, A>): RemoteData<E, A> =>
+    remoteEither.isLeft(fa)
+      ? pipe(
+          onLeft(fa.value.left),
+          foldOption(() => fa, remoteEither.right<A, E>),
+        )
+      : fa;
+export const recoverMap =
+  <E, A, B>(onLeft: (e: E) => Option<B>, fab: (a: A) => B) =>
+  (fa: RemoteData<E, A>): RemoteData<E, B> =>
+    pipe(
+      fa,
+      remoteEither.match(
+        () => remoteEither.initial,
+        () => remoteEither.pending,
+        (e) =>
+          pipe(
+            onLeft(e),
+            foldOption(() => fa as $Unexpressable, remoteEither.right<B, E>),
+          ),
+        (a) => remoteEither.right(fab(a)),
+      ),
+    );
 
-export const filterOrElse: {
-  <E, A, B extends A>(refinement: refinement.Refinement<A, B>, onFalse: (a: A) => E): (
-    ma: RD.RemoteData<E, A>,
-  ) => RD.RemoteData<E, B>;
-  <E, A>(predicate: predicate.Predicate<A>, onFalse: (a: A) => E): (
-    ma: RD.RemoteData<E, A>,
-  ) => RD.RemoteData<E, A>;
-} =
-  <E, A, B extends A>(
-    pred: refinement.Refinement<A, B> | predicate.Predicate<A>,
-    onFalse: (a: A) => E,
-  ) =>
-  (rd: RD.RemoteData<E, A>) => {
-    if (RD.isSuccess(rd)) return pred(rd.value) ? rd : RD.failure(onFalse(rd.value));
-    return rd;
-  };
+export const getSemigroup = <E, A>(
+  SE: Semigroup<E>,
+  SA: Semigroup<A>,
+): Semigroup<RemoteData<E, A>> => getApplySemigroup(remoteEither.getApplicativeValidation(SE))(SA);
 
-export const filterOrPending: {
-  <E, A, B extends A>(refinement: refinement.Refinement<A, B>): (
-    ma: RD.RemoteData<E, A>,
-  ) => RD.RemoteData<E, B>;
-  <E, A>(predicate: predicate.Predicate<A>): (ma: RD.RemoteData<E, A>) => RD.RemoteData<E, A>;
-} =
-  <E, A, B extends A>(pred: refinement.Refinement<A, B> | predicate.Predicate<A>) =>
-  (rd: RD.RemoteData<E, A>) => {
-    if (RD.isSuccess(rd)) return pred(rd.value) ? rd : RD.pending;
-    return rd;
-  };
+export const getMonoid = <E, A>(SE: Semigroup<E>, SA: Semigroup<A>): Monoid<RemoteData<E, A>> => ({
+  ...getSemigroup(SE, SA),
+  empty: remoteEither.initial,
+});
 
-export const sequenceS = Ap.sequenceS(RD.remoteData);
-
-export const sequenceT = Ap.sequenceT(RD.remoteData);
-
-export const of = RD.success;
+export const remoteData: Monad2<URI> &
+  Foldable2<URI> &
+  Traversable2<URI> &
+  Bifunctor2<URI> &
+  Alt2<URI> &
+  Extend2<URI> &
+  Alternative2<URI> = {
+  URI,
+  of: remoteEither.of,
+  ap: remoteEither.Monad.ap,
+  map: remoteEither.Functor.map,
+  chain: remoteEither.Monad.chain,
+  reduce: remoteEither.Foldable.reduce,
+  reduceRight: remoteEither.Foldable.reduceRight,
+  foldMap: remoteEither.Foldable.foldMap,
+  traverse: remoteEither.Traversable.traverse,
+  sequence: remoteEither.Traversable.sequence,
+  bimap: remoteEither.Bifunctor.bimap,
+  mapLeft: remoteEither.Bifunctor.mapLeft,
+  alt: remoteEither.Alt.alt,
+  zero: remoteEither.Alternative.zero,
+  extend: remoteEither.Extend.extend,
+};

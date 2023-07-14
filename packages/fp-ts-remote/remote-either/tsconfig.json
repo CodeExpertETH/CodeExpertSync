@@ -1,0 +1,11 @@
+{
+  "extends": "../../../tsconfig.options.json",
+  "compilerOptions": {
+    "outDir": "./build",
+  },
+  "include": ["**/*"],
+  "exclude": ["build"],
+  "references": [
+    { "path": "../remote" },
+  ]
+}

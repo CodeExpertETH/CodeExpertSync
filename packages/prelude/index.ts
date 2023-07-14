@@ -1,3 +1,6 @@
+import * as remote from '@code-expert/fp-ts-remote/remote';
+import * as remoteEither from '@code-expert/fp-ts-remote/remote-either';
+import * as remoteOption from '@code-expert/fp-ts-remote/remote-option';
 import * as applicative from 'fp-ts/Applicative';
 import * as chain from 'fp-ts/Chain';
 import * as ioRef from 'fp-ts/IORef';
@@ -17,7 +20,6 @@ import * as state from 'fp-ts/State';
 import * as these from 'fp-ts/These';
 import * as tree from 'fp-ts/Tree';
 import * as pipeable from 'fp-ts/pipeable';
-
 import * as adt from './adt';
 import * as apply from './apply';
 import * as array from './array';
@@ -92,7 +94,10 @@ export {
   pipeable,
   predicate,
   profiling,
+  remote,
   remoteData,
+  remoteEither,
+  remoteOption,
   readonlyArray,
   readonlySet,
   readonlyTuple,

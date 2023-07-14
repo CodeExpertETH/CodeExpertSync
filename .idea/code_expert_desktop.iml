@@ -14,6 +14,10 @@
       <excludeFolder url="file://$MODULE_DIR$/.idea/jsLinters" />
       <excludeFolder url="file://$MODULE_DIR$/.yarn" />
       <excludeFolder url="file://$MODULE_DIR$/src/build" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/fp-ts-remote/build" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/fp-ts-remote/remote-either/build" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/fp-ts-remote/remote-option/build" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/fp-ts-remote/remote/build" />
       <excludePattern pattern=".eslintcache" />
       <excludePattern pattern="yarn.lock" />
       <excludePattern pattern="tsconfig.tsbuildinfo" />

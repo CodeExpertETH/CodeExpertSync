@@ -1,7 +1,7 @@
 /* eslint-env mocha */
 import { pipe } from 'fp-ts/function';
 import { describe, expect, it } from 'vitest';
-import * as re from './remote-either';
+import * as re from './index';
 
 describe('RemoteEither', () => {
   describe('ap', () => {

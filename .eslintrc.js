@@ -1,4 +1,4 @@
-const project = ['./tsconfig.json', './src/tsconfig.json', './packages/*/tsconfig.json'];
+const project = ['./tsconfig.json', './src/tsconfig.json', './packages/*/tsconfig.json', "./packages/*/*/tsconfig.json"];
 
 module.exports = {
   parserOptions: {
