@@ -10,6 +10,7 @@
       "@/*": ["./*"],
       "api": ["./api/index.ts"],
       "@code-expert/prelude": ["../packages/prelude"],
+      "@code-expert/fp-ts-remote": ["../packages/fp-ts-remote"],
       "@code-expert/test-utils": ["../packages/test-utils"],
       "@code-expert/type-utils": ["../packages/type-utils"]
     }
@@ -17,6 +18,7 @@
   "include": ["**/*"],
   "references": [
     { "path": "../packages/prelude" },
+    { "path": "../packages/fp-ts-remote" },
     { "path": "../packages/test-utils" },
     { "path": "../packages/type-utils" }
   ]

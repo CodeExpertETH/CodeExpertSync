@@ -2,10 +2,11 @@
   "extends": "./tsconfig.options.json",
   "references": [
     { "path": "./packages/prelude" },
+    { "path": "./packages/fp-ts-remote" },
     { "path": "./packages/test-utils" },
     { "path": "./packages/type-utils" },
     { "path": "./src" },
-    { "path": "./.storybook" },
+    { "path": "./.storybook" }
   ],
   "files": ["vite.config.ts"]
 }

@@ -3,16 +3,16 @@
   "compilerOptions": {
     "outDir": "./build",
     "paths": {
+      "@code-expert/fp-ts-remote": ["../fp-ts-remote"],
       "@code-expert/test-utils": ["../test-utils"],
       "@code-expert/type-utils": ["../type-utils"],
-      "@code-expert/remote-ts": ["../remote"]
     }
   },
   "include": ["**/*"],
   "exclude": ["build"],
   "references": [
+    { "path": "../fp-ts-remote" },
     { "path": "../test-utils" },
     { "path": "../type-utils" },
-    { "path": "../remote" }
   ]
 }
