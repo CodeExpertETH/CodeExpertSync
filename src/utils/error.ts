@@ -4,17 +4,13 @@ export const fromThrown: (e: unknown) => Error = normalizeException;
 
 export const messageFromThrown = (e: unknown): string => fromThrown(e).message;
 
-export const toFatalError = (message: string): Error => {
-  const error = new Error(message);
-  error.name = 'Fatal error';
-  return error;
-};
-
 /**
  * Immediately halts the program with an error message and stack trace.
  */
 export function panic(message: string): never {
-  throw toFatalError(message);
+  const error = new Error(message);
+  error.name = 'Fatal error';
+  throw error;
 }
 
 /**

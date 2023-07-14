@@ -28,18 +28,6 @@ export const sequenceArrayValidation: <A, E>(
 
 export const run = <E, A>(t: TE.TaskEither<E, A>): Promise<Ei.Either<E, A>> => t();
 
-export const getOrThrow =
-  <E>(toThrowable: (e: E) => Error) =>
-  <A>(t: TE.TaskEither<E, A>): task.Task<A> =>
-    pipe(
-      t,
-      task.map(
-        either.fold((err) => {
-          throw toThrowable(err);
-        }, identity),
-      ),
-    );
-
 export const runUnion: <E, A, B>(
   f: (e: E) => B,
   g: (a: A) => B,

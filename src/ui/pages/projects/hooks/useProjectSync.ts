@@ -43,7 +43,7 @@ import { removeFile } from '@/lib/tauri/fs';
 import { useGlobalContext } from '@/ui/GlobalContext';
 import { useTimeContext } from '@/ui/contexts/TimeContext';
 import { apiError, apiGetSigned, apiPostSigned, requestBody } from '@/utils/api';
-import { panic, toFatalError } from '@/utils/error';
+import { panic } from '@/utils/error';
 
 function updateDir({
   projectDirPath,
@@ -153,7 +153,7 @@ const addHash =
       task.chain(
         flow(
           api.getFileHash,
-          taskEither.getOrThrow((e) => panic(`Could not get file hash: ${e}`)),
+          taskEither.getOrElse((e) => panic(`Could not get file hash: ${e}`)),
         ),
       ),
       task.map((hash) => ({ path, type, hash })),
@@ -626,7 +626,7 @@ export const uploadChangedFiles = (
     taskEither.bindTaskK('archivePath', () =>
       pipe(
         libOs.tempDir,
-        task.map(option.getOrThrow(() => toFatalError('No temp dir available'))),
+        taskOption.getOrElse(() => panic('No temp dir available')),
         task.chain((tempDir) => libPath.join(tempDir, fileName)),
       ),
     ),
@@ -652,7 +652,7 @@ export const uploadChangedFiles = (
         array.isEmpty(uploadFiles)
           ? taskOption.of(new Uint8Array())
           : libFs.readBinaryFile(archivePath),
-        task.map(option.getOrThrow(() => toFatalError('Could not read binary file'))),
+        taskOption.getOrElse(() => panic('Could not read binary file')),
       ),
     ),
     taskEither.chain(({ body, tarHash, removeFiles, uploadFiles }) =>

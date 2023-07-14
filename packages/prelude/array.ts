@@ -5,6 +5,7 @@ import {
   monoid,
   nonEmptyArray,
   number,
+  option,
   ord,
   pipeable,
   record,
@@ -20,7 +21,6 @@ import { Kind, Kind2, URIS, URIS2 } from 'fp-ts/HKT';
 import { NonEmptyArray } from 'fp-ts/NonEmptyArray';
 import { Refinement } from 'fp-ts/Refinement';
 import { flow, tuple } from 'fp-ts/function';
-import * as option from './option';
 
 export * from 'fp-ts/Array';
 
@@ -83,7 +83,9 @@ export function flatTraverse<F extends URIS>(
 export const lookupOrThrow = (i: number) =>
   flow(
     array.lookup(i),
-    option.getOrThrow(() => new Error(`Array index ${i} out of bounds`)),
+    option.getOrElseW(() => {
+      throw new Error(`Array index ${i} out of bounds`);
+    }),
   );
 
 /**

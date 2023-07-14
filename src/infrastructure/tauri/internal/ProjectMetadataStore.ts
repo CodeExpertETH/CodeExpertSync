@@ -12,7 +12,7 @@ import {
 } from '@code-expert/prelude';
 import { ProjectId } from '@/domain/Project';
 import { ProjectMetadata } from '@/domain/ProjectMetadata';
-import { fromThrown } from '@/utils/error';
+import { panic } from '@/utils/error';
 
 const store = new TauriStore('project_metadata.json');
 
@@ -39,7 +39,9 @@ export const projectMetadataStore = {
       taskOption.tryCatch(() =>
         pipe(
           iots.array(ProjectMetadata).decode(projects),
-          either.getOrThrow(fromThrown),
+          either.getOrElseW((errs) =>
+            panic(`Project metadata is incorrect: ${iots.formatValidationErrors(errs).join('; ')}`),
+          ),
           array.map((x) => store.set(x.projectId, x)),
           (xs) => Promise.allSettled(xs),
         ),

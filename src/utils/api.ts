@@ -1,10 +1,10 @@
 import * as http from '@tauri-apps/api/http';
 import { api } from 'api';
-import { either, iots, option, pipe, tagged, task, taskEither } from '@code-expert/prelude';
+import { either, iots, pipe, tagged, task, taskEither, taskOption } from '@code-expert/prelude';
 import { config } from '@/config';
 import { ClientId } from '@/domain/ClientId';
 import { HttpError, RequestBody, httpError, httpGet, httpPost } from '@/lib/tauri/http';
-import { toFatalError } from '@/utils/error';
+import { panic } from '@/utils/error';
 import { JwtPayload, createToken } from '@/utils/jwt';
 
 export { requestBody } from '@/lib/tauri/http';
@@ -129,7 +129,5 @@ const fromResponseError = ({ statusCode, message }: ResponseError): ApiError => 
 
 const readClientId: task.Task<ClientId> = pipe(
   api.settingRead('clientId', ClientId),
-  task.map(
-    option.getOrThrow(() => toFatalError('No client id was found. Please contact the developers.')),
-  ),
+  taskOption.getOrElse(() => panic('No client id was found. Please contact the developers.')),
 );

@@ -9,19 +9,6 @@ import { Lazy, constUndefined, flow, identity, pipe } from 'fp-ts/function';
 // eslint-disable-next-line import/export
 export * from 'fp-ts/Either';
 
-export const getOrThrow =
-  <E>(toThrowable: (e: E) => Error) =>
-  <A>(e: either.Either<E, A>) =>
-    pipe(
-      e,
-      either.fold(
-        (err) => {
-          throw toThrowable(err);
-        },
-        (a) => a,
-      ),
-    );
-
 export const sequenceS = apply.sequenceS(either.Applicative);
 
 /**
