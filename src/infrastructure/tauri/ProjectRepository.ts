@@ -110,7 +110,12 @@ export const mkProjectRepositoryTauri = (): task.Task<ProjectRepository> => {
         const removeProjectDir: taskEither.TaskEither<Array<string>, void> = pipe(
           getProjectDir,
           taskEither.fromTaskOption(() => ['Could not get project dir']),
-          taskEither.chain(flow(api.removeDir, taskEither.mapLeft(array.of))),
+          taskEither.chain(
+            flow(
+              api.removeDir,
+              taskEither.mapLeft((e) => [e.message]),
+            ),
+          ),
         );
 
         const removeProjectAccess: taskEither.TaskEither<Array<string>, void> = pipe(

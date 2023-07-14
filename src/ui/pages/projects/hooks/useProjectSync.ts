@@ -60,7 +60,7 @@ function updateDir({
     taskEither.chainW(({ systemFilePath }) =>
       pipe(
         api.createProjectDir(systemFilePath, permissions === 'r'),
-        taskEither.mapLeft((reason) =>
+        taskEither.mapLeft(({ message: reason }) =>
           syncExceptionADT.fileSystemCorrupted({ path: projectDir, reason }),
         ),
       ),
@@ -89,7 +89,7 @@ const writeSingeFile = ({
     taskEither.chainFirst(({ systemFilePath }) =>
       pipe(
         api.createProjectPath(projectDir),
-        taskEither.mapLeft((reason) =>
+        taskEither.mapLeft(({ message: reason }) =>
           syncExceptionADT.wide.fileSystemCorrupted({ path: projectDir, reason }),
         ),
         taskEither.chain(() =>
@@ -106,7 +106,7 @@ const writeSingeFile = ({
         taskEither.chain((fileContent) =>
           pipe(
             api.writeProjectFile(systemFilePath, fileContent, permissions === 'r'),
-            taskEither.mapLeft((reason) =>
+            taskEither.mapLeft(({ message: reason }) =>
               syncExceptionADT.wide.fileSystemCorrupted({ path: projectDir, reason }),
             ),
           ),
@@ -116,7 +116,7 @@ const writeSingeFile = ({
     taskEither.bind('hash', ({ systemFilePath }) =>
       pipe(
         api.getFileHash(systemFilePath),
-        taskEither.mapLeft((reason) =>
+        taskEither.mapLeft(({ message: reason }) =>
           syncExceptionADT.wide.fileSystemCorrupted({ path: projectDir, reason }),
         ),
       ),
@@ -153,7 +153,9 @@ const addHash =
       task.chain(
         flow(
           api.getFileHash,
-          taskEither.getOrElse((e) => panic(`Could not get file hash: ${e}`)),
+          taskEither.getOrElse((e) => {
+            throw e;
+          }),
         ),
       ),
       task.map((hash) => ({ path, type, hash })),
@@ -403,10 +405,10 @@ const findClosest =
               )
             : pipe(
                 libPath.dirname(relPath),
-                taskEither.mapLeft((exception) =>
+                taskEither.mapLeft(({ message: reason }) =>
                   syncExceptionADT.fileSystemCorrupted({
                     path: relPath,
-                    reason: exception.message,
+                    reason,
                   }),
                 ),
                 taskEither.chain(findClosest(map)),
@@ -474,8 +476,8 @@ const checkEveryNewAncestorIsValidDirName =
           taskOption.chain((p) =>
             pipe(
               libPath.dirname(p),
-              taskEither.mapLeft((exception) =>
-                syncExceptionADT.fileSystemCorrupted({ path: p, reason: exception.message }),
+              taskEither.mapLeft(({ message: reason }) =>
+                syncExceptionADT.fileSystemCorrupted({ path: p, reason }),
               ),
               task.map((x) => option.of([x, x])),
             ),

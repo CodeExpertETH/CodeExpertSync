@@ -3,21 +3,11 @@ import { getVersion } from '@tauri-apps/api/app';
 import { exists as fsExists, removeDir } from '@tauri-apps/api/fs';
 import { relaunch } from '@tauri-apps/api/process';
 import { Store as TauriStore } from 'tauri-plugin-store-api';
-import {
-  constFalse,
-  constVoid,
-  flow,
-  identity,
-  iots,
-  option,
-  pipe,
-  task,
-  taskEither,
-  taskOption,
-} from '@code-expert/prelude';
+import { constVoid, iots, option, pipe, task, taskEither, taskOption } from '@code-expert/prelude';
 import { os, path } from '@/lib/tauri';
+import { TauriException, fromTauriError } from '@/lib/tauri/TauriException';
 import { removeFile } from '@/lib/tauri/fs';
-import { fromThrown } from '@/utils/error';
+import { panic } from '@/utils/error';
 
 const store = new TauriStore('settings.json');
 
@@ -32,11 +22,14 @@ export interface Api {
     filePath: string,
     content: string,
     readOnly: boolean,
-  ): taskEither.TaskEither<string, void>;
-  removeDir(filePath: string): taskEither.TaskEither<string, void>;
-  getFileHash(filePath: string): taskEither.TaskEither<string, string>;
-  createProjectDir(filePath: string, readOnly: boolean): taskEither.TaskEither<string, void>;
-  createProjectPath(filePath: string): taskEither.TaskEither<string, void>;
+  ): taskEither.TaskEither<TauriException, void>;
+  removeDir(filePath: string): taskEither.TaskEither<TauriException, void>;
+  getFileHash(filePath: string): taskEither.TaskEither<TauriException, string>;
+  createProjectDir(
+    filePath: string,
+    readOnly: boolean,
+  ): taskEither.TaskEither<TauriException, void>;
+  createProjectPath(filePath: string): taskEither.TaskEither<TauriException, void>;
   exists(path: string): task.Task<boolean>;
   logout(): task.Task<void>;
   getSystemInfo: taskOption.TaskOption<string>;
@@ -54,34 +47,21 @@ export const api: Api = {
     value != null
       ? store.set(key, value).then(() => store.save())
       : store.delete(key).then(() => store.save()),
-  exists(path: string) {
-    return pipe(
-      taskOption.tryCatch(() => fsExists(path)),
-      taskOption.match(constFalse, identity),
-    );
-  },
+  exists: (path: string) => () => fsExists(path),
   removeDir: (filePath) =>
-    taskEither.tryCatch(
-      () => removeDir(filePath, { recursive: true }),
-      (reason) => `[removeDir]: ${fromThrown(reason).message}`,
-    ),
-  getFileHash: (path) => () => invoke('get_file_hash', { path }),
+    taskEither.tryCatch(() => removeDir(filePath, { recursive: true }), fromTauriError),
+  getFileHash: (path) =>
+    taskEither.tryCatch(() => invoke('get_file_hash', { path }), fromTauriError),
   createProjectPath: (path) =>
     pipe(
       api.settingRead('projectDir', iots.string),
-      taskEither.fromTaskOption(() => 'Could not find project dir'),
-      taskEither.chain((root) =>
-        taskEither.tryCatch(
-          () => invoke('create_project_path', { path, root }),
-          (reason) => `[createProjectPath]: ${fromThrown(reason).message}`,
-        ),
+      taskOption.getOrElse(() => panic('Could not find project dir')),
+      task.chain((root) =>
+        taskEither.tryCatch(() => invoke('create_project_path', { path, root }), fromTauriError),
       ),
     ),
   createProjectDir: (path, readOnly) =>
-    taskEither.tryCatch(
-      () => invoke('create_project_dir', { path, readOnly }),
-      (reason) => `[createProjectDir]: ${fromThrown(reason).message}`,
-    ),
+    taskEither.tryCatch(() => invoke('create_project_dir', { path, readOnly }), fromTauriError),
   writeProjectFile: (filePath, content, readOnly) =>
     taskEither.tryCatch(
       () =>
@@ -90,7 +70,7 @@ export const api: Api = {
           contents: Array.from(new TextEncoder().encode(content)),
           readOnly,
         }),
-      (reason) => `[writeProjectFile]: ${fromThrown(reason).message}`,
+      fromTauriError,
     ),
   logout: () =>
     pipe(

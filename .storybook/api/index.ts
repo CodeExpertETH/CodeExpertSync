@@ -1,5 +1,6 @@
 import { task, taskOption } from '@code-expert/prelude';
 import type { Api } from '../../src/api';
+import { panic } from '../../src/utils/error';
 
 const settingsStore = new Map();
 
@@ -15,19 +16,19 @@ export const api: Api = {
   },
   exists: () => task.of(true) /* FIXME Correct implementation */,
   writeProjectFile: () => {
-    throw new Error('[Storybook] Not implemented');
+    panic('[Storybook] Not implemented');
   },
   removeDir: () => {
-    throw new Error('[Storybook] Not implemented');
+    panic('[Storybook] Not implemented');
   },
   getFileHash: () => {
-    throw new Error('[Storybook] Not implemented');
+    panic('[Storybook] Not implemented');
   },
   createProjectDir: () => {
-    throw new Error('[Storybook] Not implemented');
+    panic('[Storybook] Not implemented');
   },
   createProjectPath: () => {
-    throw new Error('[Storybook] Not implemented');
+    panic('[Storybook] Not implemented');
   },
   logout: () => task.of(undefined),
   getSystemInfo: taskOption.of('Storybook'),
