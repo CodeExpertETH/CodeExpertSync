@@ -47,6 +47,7 @@ export default defineConfig(({ mode }) => ({
       '@code-expert/prelude': Path.join(__dirname, 'packages', 'prelude'),
       '@code-expert/test-utils': Path.join(__dirname, 'packages', 'test-utils'),
       '@code-expert/type-utils': Path.join(__dirname, 'packages', 'type-utils'),
+      '@code-expert/fp-ts-remote': Path.join(__dirname, 'packages', 'fp-ts-remote'),
     },
   },
   test: {
