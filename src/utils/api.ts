@@ -106,9 +106,7 @@ const fromHttpError = <A>(
     either.mapLeft(
       httpError.fold({
         noNetwork: () => apiError.wide.noNetwork(),
-        invalidPayload: (errs) => {
-          throw new Error(`Payload did not match specification: ${errs.join('; ')}`);
-        },
+        invalidPayload: (errs) => panic(`Payload did not match specification: ${errs.join('; ')}`),
       }),
     ),
     either.chain(
@@ -122,7 +120,7 @@ const fromHttpError = <A>(
 const fromResponseError = ({ statusCode, message }: ResponseError): ApiError => {
   if (statusCode >= 500 && statusCode < 600) return apiError.serverError({ statusCode, message });
   if (statusCode >= 400 && statusCode < 500) return apiError.clientError({ statusCode, message });
-  throw new Error(`Request failed with unsupported status code (${statusCode}: ${message})`);
+  panic(`Request failed with unsupported status code (${statusCode}: ${message})`);
 };
 
 // -------------------------------------------------------------------------------------------------

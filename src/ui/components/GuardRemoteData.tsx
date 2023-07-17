@@ -1,5 +1,6 @@
 import React from 'react';
 import { pipe, remoteData } from '@code-expert/prelude';
+import { panic } from '@/utils/error';
 import Loading from './Loading';
 
 const renderLoading = () => <Loading delayTime={200} />;
@@ -19,12 +20,7 @@ export interface GuardRemoteProps<A> {
  */
 export function GuardRemote<A>(props: GuardRemoteProps<A>) {
   return (
-    <GuardRemoteEither
-      {...props}
-      failure={() => {
-        throw new Error('Unexpected failure case in Remote');
-      }}
-    />
+    <GuardRemoteEither {...props} failure={() => panic('Unexpected failure case in Remote')} />
   );
 }
 

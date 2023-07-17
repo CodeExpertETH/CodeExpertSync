@@ -5,6 +5,7 @@ import { getAccess } from '@/api/oauth/getAccess';
 import { config } from '@/config';
 import useTimeout from '@/ui/hooks/useTimeout';
 import { pkceChallenge } from '@/utils/crypto';
+import { panic } from '@/utils/error';
 import { ClientId } from './ClientId';
 
 export type AuthState =
@@ -65,7 +66,7 @@ export const useAuthState = (
         sse.current = null;
         onAuthorize();
       } else {
-        throw new Error('Invalid state. Please try again.');
+        panic('Invalid state. Please try again.');
       }
     };
 
@@ -73,7 +74,7 @@ export const useAuthState = (
       if (authState.is.waitingForAuthorization(state)) {
         setState(authState.deniedAuthorization());
       } else {
-        throw new Error('Invalid state. Please try again.');
+        panic('Invalid state. Please try again.');
       }
     };
     const onError = (e: Event) => {
