@@ -1,6 +1,6 @@
 import normalizeException from 'normalize-exception';
 
-export const fromThrown: (e: unknown) => Error = normalizeException;
+export const fromThrown: <E>(e: unknown extends E ? E : never) => Error = normalizeException;
 
 /**
  * Immediately halts the program with an error message and stack trace.
