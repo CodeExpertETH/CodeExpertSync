@@ -2,22 +2,32 @@
 
 Code Expert Sync allows syncing projects to a local file system. This allows students and lecturers to edit code with their own IDE and create local backups.
 
-## Installation
+# Documentation
 
-### Linux
+The documentation for Code Expert Sync can be found in the Code Expert Documentation: [Code Expert Documentation](https://docs.expert.ethz.ch/)
+
+# Thanks
+
+Without the following projects, Code Expert Sync would not be possible:
+
+- AppSignal for their Application performance monitoring service: [AppSignal](https://appsignal.com/)
+- Tauri for their awesome framework: [Tauri](https://tauri.app/)
+- The Rust programming language: [Rust](https://www.rust-lang.org/)
+
+# Installation
+
+## Linux
+
 - Gnome requires the [Tray Icons: Reloaded](https://extensions.gnome.org/extension/2890/tray-icons-reloaded/) extension to show system trays.
 
-## Development
+# Development
 
-### Prerequisites
+## Prerequisites
 
 - [Tauri environment](https://tauri.app/v1/guides/getting-started/prerequisites)
 - [Node.js](https://nodejs.org/en)
 - [Yarn](https://yarnpkg.com/getting-started/install)
 
-### Recommended IDE Setup
-
-- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
 
 ### Run locally
 
