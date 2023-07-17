@@ -6,7 +6,8 @@ export type SyncException =
   | tagged.Tagged<'invalidFilename', string>
   // | tagged.Tagged<'fileSizeExceeded'>
   | tagged.Tagged<'fileSystemCorrupted', { path: string; reason: string }>
-  | tagged.Tagged<'projectDirMissing'>;
+  | tagged.Tagged<'projectDirMissing'>
+  | tagged.Tagged<'networkError', { reason: string }>;
 
 export const syncExceptionADT = tagged.build<SyncException>();
 

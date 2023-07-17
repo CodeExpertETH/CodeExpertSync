@@ -1,10 +1,10 @@
 import * as http from '@tauri-apps/api/http';
 import { api } from 'api';
-import { either, iots, pipe, tagged, task, taskEither } from '@code-expert/prelude';
+import { either, iots, pipe, tagged, task, taskEither, taskOption } from '@code-expert/prelude';
 import { config } from '@/config';
 import { ClientId } from '@/domain/ClientId';
-import { EntityNotFoundException, Exception, invariantViolated } from '@/domain/exception';
 import { HttpError, RequestBody, httpError, httpGet, httpPost } from '@/lib/tauri/http';
+import { panic } from '@/utils/error';
 import { JwtPayload, createToken } from '@/utils/jwt';
 
 export { requestBody } from '@/lib/tauri/http';
@@ -54,31 +54,23 @@ export const apiPost = <A>({
 export const apiGetSigned = <A>({
   jwtPayload = {},
   ...options
-}: ApiGetSignedOptions<A>): taskEither.TaskEither<Exception, A> =>
+}: ApiGetSignedOptions<A>): taskEither.TaskEither<ApiError, A> =>
   pipe(
     readClientId,
-    taskEither.chain((clientId) => createToken(clientId)(jwtPayload)),
-    taskEither.chainW((token) =>
-      pipe(
-        apiGet({ ...options, token }),
-        taskEither.mapLeft((e) => invariantViolated(e._tag)),
-      ),
-    ),
+    task.chain((clientId) => createToken(clientId)(jwtPayload)),
+    taskEither.fromTask,
+    taskEither.chainW((token) => apiGet({ ...options, token })),
   );
 
 export const apiPostSigned = <A>({
   jwtPayload = {},
   ...options
-}: ApiPostSignedOptions<A>): taskEither.TaskEither<Exception, A> =>
+}: ApiPostSignedOptions<A>): taskEither.TaskEither<ApiError, A> =>
   pipe(
     readClientId,
-    taskEither.chain((clientId) => createToken(clientId)(jwtPayload)),
-    taskEither.chainW((token) =>
-      pipe(
-        apiPost({ ...options, token }),
-        taskEither.mapLeft((e) => invariantViolated(e._tag)),
-      ),
-    ),
+    task.chain((clientId) => createToken(clientId)(jwtPayload)),
+    taskEither.fromTask,
+    taskEither.chainW((token) => apiPost({ ...options, token })),
   );
 
 // -------------------------------------------------------------------------------------------------
@@ -89,6 +81,14 @@ export type ApiError =
   | tagged.Tagged<'serverError', { statusCode: number; message: string }>;
 
 export const apiError = tagged.build<ApiError>();
+
+export const apiErrorToMessage: (err: ApiError) => string = apiError.fold({
+  noNetwork: () => 'Network is not available',
+  clientError: (e) => `Client error (${e.statusCode}): ${e.message}`,
+  serverError: (e) => `Server error (${e.statusCode}): ${e.message}`,
+});
+
+// -------------------------------------------------------------------------------------------------
 
 const ResponseError = iots.strict({
   statusCode: iots.number,
@@ -106,9 +106,7 @@ const fromHttpError = <A>(
     either.mapLeft(
       httpError.fold({
         noNetwork: () => apiError.wide.noNetwork(),
-        invalidPayload: (errs) => {
-          throw new Error(`Payload did not match specification: ${errs.join('; ')}`);
-        },
+        invalidPayload: (errs) => panic(`Payload did not match specification: ${errs.join('; ')}`),
       }),
     ),
     either.chain(
@@ -122,14 +120,12 @@ const fromHttpError = <A>(
 const fromResponseError = ({ statusCode, message }: ResponseError): ApiError => {
   if (statusCode >= 500 && statusCode < 600) return apiError.serverError({ statusCode, message });
   if (statusCode >= 400 && statusCode < 500) return apiError.clientError({ statusCode, message });
-  throw new Error(`Request failed with unsupported status code (${statusCode}: ${message})`);
+  panic(`Request failed with unsupported status code (${statusCode}: ${message})`);
 };
 
 // -------------------------------------------------------------------------------------------------
 
-const readClientId: taskEither.TaskEither<Exception, ClientId> = pipe(
+const readClientId: task.Task<ClientId> = pipe(
   api.settingRead('clientId', ClientId),
-  taskEither.fromTaskOption(
-    () => new EntityNotFoundException({}, 'No client id was found. Please contact the developers.'),
-  ),
+  taskOption.getOrElse(() => panic('No client id was found. Please contact the developers.')),
 );

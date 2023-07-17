@@ -1,10 +1,9 @@
 import { Result, Steps, Typography } from 'antd';
 import { api } from 'api';
 import React from 'react';
-import { boolean, option, pipe, task } from '@code-expert/prelude';
+import { boolean, pipe, task, taskOption } from '@code-expert/prelude';
 import { ClientId } from '@/domain/ClientId';
 import { SetupState, setupState } from '@/domain/Setup';
-import { EntityNotFoundException } from '@/domain/exception';
 import { useGlobalContextWithActions } from '@/ui/GlobalContext';
 import { GuardRemote } from '@/ui/components/GuardRemoteData';
 import { VStack } from '@/ui/foundation/Layout';
@@ -12,6 +11,7 @@ import { useAsync } from '@/ui/hooks/useAsync';
 import { LoginStep } from '@/ui/pages/setup/LoginStep';
 import { ProjectDirStep } from '@/ui/pages/setup/ProjectDirStep';
 import { SyncStep } from '@/ui/pages/setup/SyncStep';
+import { panic } from '@/utils/error';
 
 export function Setup(props: { state: SetupState }) {
   const [{ online }] = useGlobalContextWithActions();
@@ -20,16 +20,8 @@ export function Setup(props: { state: SetupState }) {
     () =>
       pipe(
         api.settingRead('clientId', ClientId),
-        task.map(
-          option.getOrThrow(
-            () =>
-              new EntityNotFoundException(
-                {},
-                'No client id was found. Please contact the developers.',
-              ),
-          ),
-        ),
-        task.run,
+        taskOption.getOrElse(() => panic('No client ID was found. Please contact the developers.')),
+        task.toPromise,
       ),
     [],
   );

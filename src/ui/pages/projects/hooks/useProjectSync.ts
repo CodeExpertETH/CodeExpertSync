@@ -38,19 +38,12 @@ import {
 import { LocalProject, Project, ProjectId, projectADT, projectPrism } from '@/domain/Project';
 import { ProjectMetadata } from '@/domain/ProjectMetadata';
 import { SyncException, changesADT, syncExceptionADT, syncStateADT } from '@/domain/SyncState';
-import { Exception, fromError, invariantViolated } from '@/domain/exception';
 import { fs as libFs, os as libOs, path as libPath } from '@/lib/tauri';
 import { removeFile } from '@/lib/tauri/fs';
 import { useGlobalContext } from '@/ui/GlobalContext';
 import { useTimeContext } from '@/ui/contexts/TimeContext';
-import { apiGetSigned, apiPostSigned, requestBody } from '@/utils/api';
-
-const fromException = <A>(
-  te: taskEither.TaskEither<Exception, A>,
-): taskEither.TaskEither<SyncException, A> =>
-  pipe(te, taskEither.getOrThrow(fromError), task.map(either.of));
-
-// -------------------------------------------------------------------------------------------------
+import { apiError, apiGetSigned, apiPostSigned, requestBody } from '@/utils/api';
+import { panic } from '@/utils/error';
 
 function updateDir({
   projectDirPath,
@@ -63,17 +56,12 @@ function updateDir({
 }): taskEither.TaskEither<SyncException, void> {
   return pipe(
     taskEither.Do,
-    taskEither.bind('systemFilePath', () =>
-      fromException(libPath.join(projectDir, projectDirPath)),
-    ),
+    taskEither.bindTaskK('systemFilePath', () => libPath.join(projectDir, projectDirPath)),
     taskEither.chainW(({ systemFilePath }) =>
       pipe(
         api.createProjectDir(systemFilePath, permissions === 'r'),
-        taskEither.fromTaskOption(() =>
-          syncExceptionADT.fileSystemCorrupted({
-            path: projectDir,
-            reason: 'Project dir could not be created',
-          }),
+        taskEither.mapLeft(({ message: reason }) =>
+          syncExceptionADT.fileSystemCorrupted({ path: projectDir, reason }),
         ),
       ),
     ),
@@ -97,35 +85,41 @@ const writeSingeFile = ({
 }): taskEither.TaskEither<SyncException, File> =>
   pipe(
     taskEither.Do,
-    taskEither.bind('systemFilePath', () =>
-      fromException(libPath.join(projectDir, projectFilePath)),
-    ),
+    taskEither.bindTaskK('systemFilePath', () => libPath.join(projectDir, projectFilePath)),
     taskEither.chainFirst(({ systemFilePath }) =>
       pipe(
         api.createProjectPath(projectDir),
-        taskEither.fromTaskOption(() =>
-          syncExceptionADT.fileSystemCorrupted({
-            path: projectDir,
-            reason: 'Project dir could not be created',
-          }),
+        taskEither.mapLeft(({ message: reason }) =>
+          syncExceptionADT.wide.fileSystemCorrupted({ path: projectDir, reason }),
         ),
         taskEither.chain(() =>
-          fromException(
+          pipe(
             apiGetSigned({
               path: `project/${projectId}/file`,
               jwtPayload: { path: projectFilePath },
               codec: iots.string,
               responseType: ResponseType.Text,
             }),
+            taskEither.mapLeft(syncExceptionFromHttpError),
           ),
         ),
-        taskEither.chainW((fileContent) =>
-          fromException(api.writeProjectFile(systemFilePath, fileContent, permissions === 'r')),
+        taskEither.chain((fileContent) =>
+          pipe(
+            api.writeProjectFile(systemFilePath, fileContent, permissions === 'r'),
+            taskEither.mapLeft(({ message: reason }) =>
+              syncExceptionADT.wide.fileSystemCorrupted({ path: projectDir, reason }),
+            ),
+          ),
         ),
       ),
     ),
-    taskEither.bindW('hash', ({ systemFilePath }) =>
-      fromException(api.getFileHash(systemFilePath)),
+    taskEither.bind('hash', ({ systemFilePath }) =>
+      pipe(
+        api.getFileHash(systemFilePath),
+        taskEither.mapLeft(({ message: reason }) =>
+          syncExceptionADT.wide.fileSystemCorrupted({ path: projectDir, reason }),
+        ),
+      ),
     ),
     taskEither.map(({ hash }) => ({
       path: projectFilePath,
@@ -143,11 +137,7 @@ const deleteSingeFile = ({
   projectFilePath: string;
   projectDir: string;
 }): task.Task<void> =>
-  pipe(
-    libPath.join(projectDir, projectFilePath),
-    taskEither.chain(removeFile),
-    taskEither.getOrThrow(fromError),
-  );
+  pipe(libPath.join(projectDir, projectFilePath), task.chainFirst(removeFile), task.map(constVoid));
 
 const addHash =
   (projectDir: string) =>
@@ -160,8 +150,14 @@ const addHash =
   }): task.Task<{ path: string; type: 'file'; hash: string }> =>
     pipe(
       libPath.join(projectDir, path),
-      taskEither.chain(api.getFileHash),
-      taskEither.getOrThrow(fromError),
+      task.chain(
+        flow(
+          api.getFileHash,
+          taskEither.getOrElse((e) => {
+            throw e;
+          }),
+        ),
+      ),
       task.map((hash) => ({ path, type, hash })),
     );
 
@@ -170,6 +166,12 @@ const getProjectFilesLocal = (
 ): taskEither.TaskEither<SyncException, ReadonlyArray<{ path: string; type: 'file' }>> =>
   pipe(
     libFs.readDirTree(projectDir),
+    taskEither.mapLeft((e) =>
+      syncExceptionADT.fileSystemCorrupted({
+        path: projectDir,
+        reason: e.message,
+      }),
+    ),
     taskEither.map(
       flow(
         tree.foldMap(array.getMonoid<{ path: string; type: FileEntryType }>())(array.of),
@@ -180,15 +182,16 @@ const getProjectFilesLocal = (
       taskEither.traverseArray(({ path, type }) =>
         pipe(
           libPath.stripAncestor(projectDir)(path),
-          taskEither.map((relative) => ({ path: relative, type })),
+          taskEither.bimap(
+            (e) =>
+              syncExceptionADT.fileSystemCorrupted({
+                path: projectDir,
+                reason: e.message,
+              }),
+            (relative) => ({ path: relative, type }),
+          ),
         ),
       ),
-    ),
-    taskEither.mapLeft((e) =>
-      syncExceptionADT.fileSystemCorrupted({
-        path: projectDir,
-        reason: `Could not read project files (${e.reason})`,
-      }),
     ),
   );
 
@@ -368,7 +371,7 @@ type RemoteFileInfo = iots.TypeOf<typeof RemoteFileInfoC>;
 
 const getProjectInfoRemote = (
   projectId: ProjectId,
-): task.Task<{ _id: ProjectId; files: Array<RemoteFileInfo> }> =>
+): taskEither.TaskEither<SyncException, { _id: ProjectId; files: Array<RemoteFileInfo> }> =>
   pipe(
     apiGetSigned({
       path: `project/${projectId}/info`,
@@ -377,7 +380,7 @@ const getProjectInfoRemote = (
         files: iots.array(RemoteFileInfoC),
       }),
     }),
-    taskEither.getOrThrow(fromError),
+    taskEither.mapLeft(syncExceptionFromHttpError),
   );
 
 const getProjectDirRelative = ({
@@ -386,14 +389,11 @@ const getProjectDirRelative = ({
   exerciseName,
   taskName,
 }: ProjectMetadata): task.Task<string> =>
-  pipe(
-    libPath.join(
-      libPath.escape(semester),
-      libPath.escape(courseName),
-      libPath.escape(exerciseName),
-      libPath.escape(taskName),
-    ),
-    taskEither.getOrThrow(fromError),
+  libPath.join(
+    libPath.escape(semester),
+    libPath.escape(courseName),
+    libPath.escape(exerciseName),
+    libPath.escape(taskName),
   );
 
 const findClosest =
@@ -410,7 +410,16 @@ const findClosest =
                   reason: 'Root directory must exist',
                 }),
               )
-            : pipe(libPath.dirname(relPath), fromException, taskEither.chain(findClosest(map))),
+            : pipe(
+                libPath.dirname(relPath),
+                taskEither.mapLeft(({ message: reason }) =>
+                  syncExceptionADT.fileSystemCorrupted({
+                    path: relPath,
+                    reason,
+                  }),
+                ),
+                taskEither.chain(findClosest(map)),
+              ),
         taskEither.of,
       ),
     );
@@ -446,7 +455,13 @@ const checkValidFileName: (
   taskEither.of,
   taskEither.chainFirst(({ path }) =>
     pipe(
-      fromException(libPath.basename(path)),
+      libPath.basename(path),
+      taskEither.fromTaskOption(() =>
+        syncExceptionADT.wide.fileSystemCorrupted({
+          path,
+          reason: 'Could not determine basename of path',
+        }),
+      ),
       taskEither.filterOrElse(isValidFileName, (filename) =>
         syncExceptionADT.wide.invalidFilename(filename),
       ),
@@ -465,10 +480,12 @@ const checkEveryNewAncestorIsValidDirName =
           taskOption.fromEither<string>,
           // tauri.path.dirname is silly and returns an error if passing '.' or '/', so we need to abort before that
           taskOption.filter((path) => path !== '.'),
-          taskOption.chain(
-            flow(
-              libPath.dirname,
-              fromException,
+          taskOption.chain((p) =>
+            pipe(
+              libPath.dirname(p),
+              taskEither.mapLeft(({ message: reason }) =>
+                syncExceptionADT.fileSystemCorrupted({ path: p, reason }),
+              ),
               task.map((x) => option.of([x, x])),
             ),
           ),
@@ -480,11 +497,13 @@ const checkEveryNewAncestorIsValidDirName =
     return pipe(
       ancestors(change.path),
       task.map(either.sequenceArray),
-      taskEither.chain(
-        flow(
+      taskEither.chain((paths) =>
+        pipe(
+          paths,
           array.filter(isNew),
-          array.traverse(taskEither.ApplicativePar)(flow(libPath.basename, fromException)),
-          taskEither.filterOrElse(array.every(isValidDirName), (paths) =>
+          array.traverse(taskOption.ApplicativePar)(libPath.basename),
+          taskOption.filter(array.every(isValidDirName)),
+          taskEither.fromTaskOption(() =>
             syncExceptionADT.wide.fileSystemCorrupted({
               path: paths.join('/'),
               reason: 'Parent directory has invalid name',
@@ -535,7 +554,7 @@ const getFilesToUpload = (
           (c: LocalFileChange) => taskEither.TaskEither<SyncException, LocalFileChange>
         >(x.change, {
           noChange: () => () => {
-            throw invariantViolated('File has no changes');
+            panic('File has no changes');
           },
           added: () =>
             flow(
@@ -599,7 +618,7 @@ export const uploadChangedFiles = (
   projectId: ProjectId,
   projectDir: string,
   localChanges: Array<LocalFileChange>,
-): task.Task<void> =>
+): taskEither.TaskEither<SyncException, void> =>
   pipe(
     taskEither.Do,
     taskEither.let('uploadFiles', () =>
@@ -616,17 +635,16 @@ export const uploadChangedFiles = (
         array.map(({ path }) => path),
       ),
     ),
-    taskEither.bind('archivePath', () =>
+    taskEither.bindTaskK('archivePath', () =>
       pipe(
-        libOs.tempDir(),
-        taskEither.chain((tempDir) => libPath.join(tempDir, fileName)),
-        taskEither.map((e) => {
-          console.log(e);
-          return e;
+        libOs.tempDir,
+        taskEither.getOrElse((e) => {
+          throw e;
         }),
+        task.chain((tempDir) => libPath.join(tempDir, fileName)),
       ),
     ),
-    taskEither.bind('tarHash', ({ uploadFiles, archivePath }) =>
+    taskEither.bindTaskK('tarHash', ({ uploadFiles, archivePath }) =>
       api.buildTar(archivePath, projectDir, uploadFiles),
     ),
     taskEither.let('removeFiles', () =>
@@ -643,28 +661,35 @@ export const uploadChangedFiles = (
         array.map(({ path }) => path),
       ),
     ),
-    taskEither.bind('body', ({ uploadFiles, archivePath }) =>
-      array.isEmpty(uploadFiles)
-        ? taskEither.of(new Uint8Array())
-        : libFs.readBinaryFile(archivePath),
+    taskEither.bindTaskK('body', ({ uploadFiles, archivePath }) =>
+      pipe(
+        array.isEmpty(uploadFiles)
+          ? taskEither.of(new Uint8Array())
+          : libFs.readBinaryFile(archivePath),
+        taskEither.getOrElse((e) => {
+          throw e;
+        }),
+      ),
     ),
     taskEither.chain(({ body, tarHash, removeFiles, uploadFiles }) =>
-      apiPostSigned({
-        path: `project/${projectId}/files`,
-        jwtPayload: array.isEmpty(uploadFiles) ? { removeFiles } : { tarHash, removeFiles },
-        body: requestBody.binary({
-          body,
-          type: 'application/x-tar',
-          encoding: option.some('br'),
+      pipe(
+        apiPostSigned({
+          path: `project/${projectId}/files`,
+          jwtPayload: array.isEmpty(uploadFiles) ? { removeFiles } : { tarHash, removeFiles },
+          body: requestBody.binary({
+            body,
+            type: 'application/x-tar',
+            encoding: option.some('br'),
+          }),
+          codec: iots.strict({
+            _id: ProjectId,
+            files: iots.array(RemoteFileInfoC),
+          }),
         }),
-        codec: iots.strict({
-          _id: ProjectId,
-          files: iots.array(RemoteFileInfoC),
-        }),
-      }),
+        taskEither.mapLeft(syncExceptionFromHttpError),
+      ),
     ),
-    taskEither.getOrThrow(fromError),
-    task.map(constVoid),
+    taskEither.map(constVoid),
   );
 
 const checkConflicts = <R>({
@@ -719,8 +744,8 @@ export const useProjectSync = () => {
             taskEither.fromTask,
           ),
         ),
-        taskEither.bind('projectDir', ({ rootDir, projectDirRelative }) =>
-          fromException(libPath.join(rootDir, projectDirRelative)),
+        taskEither.bindW('projectDir', ({ rootDir, projectDirRelative }) =>
+          pipe(libPath.join(rootDir, projectDirRelative), taskEither.fromTask),
         ),
         // change detection
         taskEither.let('projectInfoPrevious', () =>
@@ -729,9 +754,7 @@ export const useProjectSync = () => {
             option.map(({ value: { files } }) => files),
           ),
         ),
-        taskEither.bindW('projectInfoRemote', () =>
-          pipe(getProjectInfoRemote(project.value.projectId), taskEither.fromTask),
-        ),
+        taskEither.bindW('projectInfoRemote', () => getProjectInfoRemote(project.value.projectId)),
         taskEither.bind('projectInfoLocal', ({ projectDir }) =>
           pipe(
             projectPrism.local.getOption(project),
@@ -774,11 +797,11 @@ export const useProjectSync = () => {
           pipe(remoteChanges, option.map(getFilesToDelete)),
         ),
         // upload local changed files
-        taskEither.chainFirstTaskK(({ projectDir, filesToUpload }) =>
+        taskEither.chainFirst(({ projectDir, filesToUpload }) =>
           pipe(
             filesToUpload,
             option.fold(
-              () => task.of(undefined),
+              () => taskEither.of(undefined),
               (filesToUpload) =>
                 uploadChangedFiles(
                   `project_${project.value.projectId}_${time.now().getTime()}.tar.br`,
@@ -853,7 +876,7 @@ export const useProjectSync = () => {
           const hashF = addHash(projectDir);
           return pipe(
             getProjectInfoRemote(project.value.projectId),
-            task.chain((projectInfoRemote) =>
+            taskEither.chainW((projectInfoRemote) =>
               pipe(
                 projectInfoRemote.files,
                 array.filter(isFile),
@@ -867,9 +890,9 @@ export const useProjectSync = () => {
                   ...projectInfoRemote,
                   files,
                 })),
+                taskEither.fromTask,
               ),
             ),
-            taskEither.fromTask,
           );
         }),
         // store new state
@@ -892,3 +915,11 @@ export const useProjectSync = () => {
     [projectRepository, time],
   );
 };
+
+// -------------------------------------------------------------------------------------------------
+
+const syncExceptionFromHttpError = apiError.fold({
+  noNetwork: () => syncExceptionADT.wide.networkError({ reason: 'No network' }),
+  clientError: ({ message }) => syncExceptionADT.networkError({ reason: message }),
+  serverError: ({ message }) => syncExceptionADT.networkError({ reason: message }),
+});

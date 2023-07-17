@@ -3,7 +3,7 @@ import * as E from 'fp-ts/Either';
 import * as IO from 'fp-ts/IO';
 import * as IOe from 'fp-ts/IOEither';
 import * as IOo from 'fp-ts/IOOption';
-import { Lazy, constFalse, constTrue, flow, pipe } from 'fp-ts/function';
+import { Lazy, constFalse, constTrue, flow } from 'fp-ts/function';
 
 export * from 'fp-ts/IOEither';
 
@@ -23,16 +23,6 @@ export const runUnion: <E, A, B>(
 ) => (fa: IOe.IOEither<E, A>) => B = (f, g) => flow(IOe.bimap(f, g), IOe.toUnion, (t) => t());
 
 export const sequenceS = Ap.sequenceS(IOe.ApplicativePar);
-
-export const getOrThrow =
-  <E>(toThrowable: (e: E) => Error) =>
-  <A>(fa: IOe.IOEither<E, A>): A =>
-    pipe(
-      run(fa),
-      E.getOrElse<E, A>((e) => {
-        throw toThrowable(e);
-      }),
-    );
 
 export const exists: <E, A>(f: (a: A) => boolean) => (fa: IOe.IOEither<E, A>) => boolean = (f) =>
   runUnion(constFalse, f);

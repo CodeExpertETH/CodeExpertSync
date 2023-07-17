@@ -1,17 +1,17 @@
 import { tauri, path as tauriPath } from '@tauri-apps/api';
-import { taskEither } from '@code-expert/prelude';
-import { fromError } from '@/domain/exception';
+import { task, taskEither, taskOption } from '@code-expert/prelude';
+import { fromTauriError } from '@/lib/tauri/TauriException';
 
-export const basename = taskEither.tryCatchK(tauriPath.basename, fromError);
+export const basename = taskOption.tryCatchK(tauriPath.basename);
 /**
- * Note: passing '.' or '/' will result in either.left(PathError("Couldn't get the parent directory"))
+ * Note: passing '', '.', or '/' will result in either.left(PathError("Couldn't get the parent directory"))
  */
-export const dirname = taskEither.tryCatchK(tauriPath.dirname, fromError);
-export const extname = taskEither.tryCatchK(tauriPath.extname, fromError);
-export const isAbsolute = taskEither.tryCatchK(tauriPath.isAbsolute, fromError);
-export const join = taskEither.tryCatchK(tauriPath.join, fromError);
-export const normalize = taskEither.tryCatchK(tauriPath.normalize, fromError);
-export const resolve = taskEither.tryCatchK(tauriPath.resolve, fromError);
+export const dirname = taskEither.tryCatchK(tauriPath.dirname, fromTauriError);
+export const extname = taskEither.tryCatchK(tauriPath.extname, fromTauriError);
+export const isAbsolute = task.fromPromiseK(tauriPath.isAbsolute);
+export const join = task.fromPromiseK(tauriPath.join);
+export const normalize = task.fromPromiseK(tauriPath.normalize);
+export const resolve = task.fromPromiseK(tauriPath.resolve);
 
 // export const relative = taskEither.tryCatchK(
 //   (from: string, to: string) => tauri.invoke<string>('path_relative', { from, to }),
@@ -25,7 +25,7 @@ export const stripAncestor = (ancestor: string) =>
         ancestor,
         to,
       }),
-    fromError,
+    fromTauriError,
   );
 
-export const escape = (path: string) => path.replace(/[^a-z0-9_-]/gi, '_');
+export const escape = (path: string): string => path.replace(/[^a-z0-9_-]/gi, '_');

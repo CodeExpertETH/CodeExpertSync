@@ -11,10 +11,8 @@ pub fn build_tar(
     root_dir: String,
     files: Vec<String>,
 ) -> Result<String, String> {
-    let file = File::create(file_name).map_err(|e| {
-        eprintln!("{e}");
-        "Could not create archive file".to_string()
-    })?;
+    let file =
+        File::create(file_name).map_err(|e| format!("Could not create archive file: {e}"))?;
 
     let brotli = CompressorWriter::new(file, 4096, 11, 20);
     let hasher = Sha256::new();
@@ -27,16 +25,14 @@ pub fn build_tar(
     for x in files {
         let abs_path = root_dir.join(&x);
         eprintln!("adding file '{}' with name '{}'", abs_path.display(), &x);
-        archive.append_path_with_name(&abs_path, &x).map_err(|e| {
-            eprintln!("{}", e);
-            "Could not add file to archive".to_string()
-        })?;
+        archive
+            .append_path_with_name(&abs_path, &x)
+            .map_err(|e| format!("Could not add file to archive: {e}"))?;
     }
 
-    let tee = archive.into_inner().map_err(|e| {
-        eprintln!("{e}");
-        "Could not close archive".to_string()
-    })?;
+    let tee = archive
+        .into_inner()
+        .map_err(|e| format!("Could not close archive: {e}"))?;
     let (_, hasher) = tee.into_inner();
     Ok(HEXLOWER.encode(hasher.finalize().as_ref()))
 }

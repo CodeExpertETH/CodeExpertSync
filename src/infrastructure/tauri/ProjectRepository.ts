@@ -4,7 +4,6 @@ import {
   array,
   constVoid,
   constant,
-  either,
   flow,
   io,
   ioOption,
@@ -20,9 +19,9 @@ import { ProjectFiles } from '@/domain/ProjectFiles';
 import { ProjectMetadata } from '@/domain/ProjectMetadata';
 import { ProjectRepository } from '@/domain/ProjectRepository';
 import { changesADT, syncStateADT } from '@/domain/SyncState';
-import { fromError } from '@/domain/exception';
 import { path } from '@/lib/tauri';
-import { apiGetSigned, apiPostSigned } from '@/utils/api';
+import { apiErrorToMessage, apiGetSigned, apiPostSigned } from '@/utils/api';
+import { panic } from '@/utils/error';
 import { projectConfigStore } from './internal/ProjectConfigStore';
 import { projectMetadataStore } from './internal/ProjectMetadataStore';
 
@@ -79,19 +78,18 @@ export const mkProjectRepositoryTauri = (): task.Task<ProjectRepository> => {
     task.map(() => ({
       projects: property.newProperty<Array<Project>>(projectsDb.get, projectsDb.subscribe),
 
-      fetchChanges: () => {
-        void pipe(
+      fetchChanges: () =>
+        pipe(
           apiGetSigned({
             path: 'project/metadata',
             codec: iots.array(ProjectMetadata),
           }),
-          taskEither.chainFirstTaskK(persistMetadata),
-          taskEither.chainTaskK(projectsFromMetadata),
-          taskEither.chainFirstIOK(setProjects), // FIXME This overwrites existing sync state
-          task.map(flow(either.getOrThrow(fromError), constVoid)), // FIXME Don't throw network errors
+          taskEither.getOrElse((e) => panic(`Failed to fetch changes: ${apiErrorToMessage(e)}`)),
+          task.chainFirst(persistMetadata),
+          task.chain(projectsFromMetadata),
+          task.chainIOK(setProjects), // FIXME This overwrites existing sync state
           task.run,
-        );
-      },
+        ),
 
       getProject,
 
@@ -104,15 +102,20 @@ export const mkProjectRepositoryTauri = (): task.Task<ProjectRepository> => {
               taskOption.chainOptionK(projectPrism.local.getOption),
             ),
           }),
-          taskOption.chainTaskEitherK(({ rootDir, project }) =>
+          taskOption.chainTaskK(({ rootDir, project }) =>
             path.join(rootDir, project.value.basePath),
           ),
         );
 
         const removeProjectDir: taskEither.TaskEither<Array<string>, void> = pipe(
           getProjectDir,
-          taskOption.chainTaskEitherK(api.removeDir),
-          taskEither.fromTaskOption(() => ['Could not remove project dir']),
+          taskEither.fromTaskOption(() => ['Could not get project dir']),
+          taskEither.chain(
+            flow(
+              api.removeDir,
+              taskEither.mapLeft((e) => [e.message]),
+            ),
+          ),
         );
 
         const removeProjectAccess: taskEither.TaskEither<Array<string>, void> = pipe(
@@ -121,7 +124,12 @@ export const mkProjectRepositoryTauri = (): task.Task<ProjectRepository> => {
             jwtPayload: { projectId },
             codec: iots.strict({ removed: iots.boolean }),
           }),
-          taskEither.bimap(() => ['Could not remove project access'], constVoid),
+          taskEither.mapLeft(flow(apiErrorToMessage, array.of)),
+          taskEither.filterOrElse(
+            ({ removed }) => removed,
+            () => ['Could not remove project access'],
+          ),
+          taskEither.map(constVoid),
         );
 
         const removeMetadata: taskEither.TaskEither<Array<string>, void> = pipe(

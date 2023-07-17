@@ -18,9 +18,7 @@ export const useProjectOpen = () => {
             taskOption.chainOptionK(projectPrism.local.getOption),
           ),
         }),
-        taskOption.chain(({ rootDir, project }) =>
-          taskOption.fromTaskEither(path.join(rootDir, project.value.basePath)),
-        ),
+        taskOption.chainTaskK(({ rootDir, project }) => path.join(rootDir, project.value.basePath)),
         taskOption.chainTaskK((dir) => () => open(dir)),
       ),
     [projectRepository],

@@ -26,8 +26,5 @@ pub fn create_jwt_token(app_handle: tauri::AppHandle, claims: Value) -> Result<S
             )
             .map_err(|_| "Unable to encode JWT token".to_string())
         })
-        .map_err(|e| {
-            eprintln!("Error: {e}");
-            "Could not create JWT token".to_string()
-        })
+        .map_err(|e| format!("Could not create JWT token: {e}"))
 }

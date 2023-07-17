@@ -1,4 +1,4 @@
-import { notification as antdNotification } from 'antd';
+import { message as antdMessage, notification as antdNotification } from 'antd';
 import * as React from 'react';
 import {
   Identity,
@@ -12,7 +12,7 @@ import {
   task,
   taskEither,
 } from '@code-expert/prelude';
-import { Exception, fromError, isException } from '@/domain/exception';
+import { fromThrown } from '@/utils/error';
 
 antdNotification.config({
   placement: 'top',
@@ -48,16 +48,11 @@ export type Content = React.ReactNode | string;
 export type Notification1<F extends URIS> = Notification<Kind<F, void>>;
 export type Notification2<F extends URIS2, E> = Notification<Kind2<F, E, void>>;
 
-const exception = (e: Exception, duration?: number) =>
-  void antdNotification.error({ message: e.message, duration });
-
 export const notificationIO: Notification1<io.URI> = {
-  error: (e, duration) => () =>
-    string.isString(e) || React.isValidElement(e)
-      ? void antdNotification.error({ message: e, duration })
-      : isException(e)
-      ? exception(e, duration)
-      : exception(fromError(e), duration),
+  error: (e, duration) => () => {
+    const message = string.isString(e) || React.isValidElement(e) ? e : fromThrown(e).message;
+    return antdMessage.error(message, duration);
+  },
   info: (message, duration) => () => void antdNotification.info({ message, duration }),
   success: (message, duration) => () => void antdNotification.success({ message, duration }),
   warning: (message, duration) => () => void antdNotification.warning({ message, duration }),

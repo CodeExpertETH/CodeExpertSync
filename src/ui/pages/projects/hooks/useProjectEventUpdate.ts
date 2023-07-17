@@ -1,5 +1,5 @@
 import React from 'react';
-import { pipe, remoteData, tagged, task, taskEither } from '@code-expert/prelude';
+import { pipe, remoteData, tagged, task } from '@code-expert/prelude';
 import { config } from '@/config';
 import { ClientId } from '@/domain/ClientId';
 import { createToken } from '@/utils/jwt';
@@ -28,9 +28,9 @@ export const useProjectEventUpdate = (
     let timeout: NodeJS.Timeout | null = null;
     const registerEventSource = () => {
       if (sse.current == null) {
-        void pipe(
+        pipe(
           createToken(clientId)(),
-          taskEither.map((token) => {
+          task.map((token) => {
             if (sse.current == null) {
               setSseStatus(remoteData.pending);
               sse.current = new EventSource(

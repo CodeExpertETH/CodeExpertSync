@@ -11,7 +11,8 @@ import {
   taskOption,
 } from '@code-expert/prelude';
 import { ProjectRepository } from '@/domain/ProjectRepository';
-import { apiGetSigned } from '@/utils/api';
+import { apiError, apiGetSigned } from '@/utils/api';
+import { panic } from '@/utils/error';
 
 export type SetupState =
   | tagged.Tagged<'notAuthorized'>
@@ -48,8 +49,18 @@ export const getSetupState = (projectRepository: ProjectRepository): task.Task<G
       path: 'app/assertAccess',
       codec: iots.strict({ status: iots.string }),
     }),
-    taskEither.fold<Error, { status: string }, GlobalSetupState>(
-      () => task.fromIO(() => globalSetupState.setup({ state: setupState.notAuthorized() })),
+    taskEither.matchE(
+      (err) =>
+        task.fromIO(() =>
+          apiError.fold(err, {
+            noNetwork: () => panic('No network'),
+            clientError: ({ statusCode, message }) =>
+              [401, 403].includes(statusCode)
+                ? globalSetupState.setup({ state: setupState.notAuthorized() })
+                : panic(message),
+            serverError: ({ message }) => panic(`Server error: ${message}`),
+          }),
+        ),
       ({ status }) =>
         status === 'Success'
           ? getSetupNoProjectDir(projectRepository)

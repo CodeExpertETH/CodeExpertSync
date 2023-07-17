@@ -1,7 +1,6 @@
 import { $Unexpressable } from '@code-expert/type-utils';
 import { either, io } from 'fp-ts';
 import * as Ap from 'fp-ts/Apply';
-import * as Ei from 'fp-ts/Either';
 import * as RA from 'fp-ts/ReadonlyArray';
 import * as TE from 'fp-ts/TaskEither';
 import { TaskEither } from 'fp-ts/TaskEither';
@@ -26,19 +25,8 @@ export const sequenceArrayValidation: <A, E>(
   arr: Array<TE.TaskEither<ReadonlyArray<E>, A>>,
 ) => TE.TaskEither<ReadonlyArray<E>, ReadonlyArray<A>> = traverseArrayValidation(identity);
 
-export const run = <E, A>(t: TE.TaskEither<E, A>): Promise<Ei.Either<E, A>> => t();
-
-export const getOrThrow =
-  <E>(toThrowable: (e: E) => Error) =>
-  <A>(t: TE.TaskEither<E, A>): task.Task<A> =>
-    pipe(
-      t,
-      task.map(
-        either.fold((err) => {
-          throw toThrowable(err);
-        }, identity),
-      ),
-    );
+export const run: <E>(onLeft: (e: E) => void) => (fa: TE.TaskEither<E, void>) => void = (onLeft) =>
+  flow(TE.matchW(onLeft, identity), (t) => void t());
 
 export const runUnion: <E, A, B>(
   f: (e: E) => B,

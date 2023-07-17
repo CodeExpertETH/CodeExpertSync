@@ -1,27 +1,17 @@
 import { getName, getVersion } from '@tauri-apps/api/app';
 import { api } from 'api';
-import {
-  either,
-  flow,
-  iots,
-  option,
-  pipe,
-  task,
-  taskEither,
-  taskOption,
-} from '@code-expert/prelude';
+import { flow, iots, pipe, task, taskEither, taskOption } from '@code-expert/prelude';
 import { ClientId } from '@/domain/ClientId';
-import { fromError, invariantViolated } from '@/domain/exception';
-import { apiGet, apiPost, requestBody } from '@/utils/api';
+import { apiErrorToMessage, apiGet, apiPost, requestBody } from '@/utils/api';
+import { panic } from '@/utils/error';
 
 const getClientToken: task.Task<string> = pipe(
   apiGet({
     path: 'app/clientId',
     codec: iots.strict({ token: iots.string }),
   }),
-  taskEither.mapLeft((e) => invariantViolated(e._tag)),
-  taskEither.map(({ token }) => token),
-  task.map(either.getOrThrow(fromError)),
+  taskEither.getOrElse(flow(apiErrorToMessage, panic)),
+  task.map(({ token }) => token),
 );
 
 const getSystemInfo: task.Task<{ os: string; name: string; version: string }> = task.sequenceS({
@@ -36,7 +26,8 @@ const getSystemInfo: task.Task<{ os: string; name: string; version: string }> = 
 export const registerApp = (): task.Task<ClientId> =>
   pipe(
     api.settingRead('clientId', ClientId),
-    taskOption.altW(() =>
+    taskOption.getOrElse(() => panic('No client id was found. Please contact the developers.')),
+    task.chain(() =>
       pipe(
         getSystemInfo,
         task.bind('token', () => getClientToken),
@@ -50,15 +41,11 @@ export const registerApp = (): task.Task<ClientId> =>
               }),
               codec: iots.strict({ clientId: ClientId }),
             }),
-            taskEither.mapLeft((e) => invariantViolated(e._tag)),
-            taskEither.map(({ clientId }) => clientId),
-            taskEither.chainFirstTaskK((clientId) => api.settingWrite('clientId', clientId)),
-            task.map(flow(either.getOrThrow(fromError), option.some)),
+            taskEither.getOrElse(flow(apiErrorToMessage, panic)),
+            task.map(({ clientId }) => clientId),
+            task.chainFirst((clientId) => api.settingWrite('clientId', clientId)),
           ),
         ),
       ),
-    ),
-    task.map(
-      option.getOrThrow(() => new Error('No client id was found. Please contact the developers.')),
     ),
   );

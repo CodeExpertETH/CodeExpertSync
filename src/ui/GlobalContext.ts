@@ -6,6 +6,7 @@ import { ProjectRepository } from '@/domain/ProjectRepository';
 import { GlobalSetupState, getSetupState, globalSetupState } from '@/domain/Setup';
 import useNetworkState from '@/ui/hooks/useNetwork';
 import { updateStateADT, useUpdate } from '@/ui/pages/update/hooks/useUpdate';
+import { panic } from '@/utils/error';
 import Loading from './components/Loading';
 
 export interface GlobalContext {
@@ -51,7 +52,7 @@ export const GlobalContextProvider = React.memo(function GlobalContextProvider({
 
   useEffect(() => {
     if (state == null) {
-      void pipe(
+      pipe(
         getSetupState(projectRepository),
         task.map((setupState) => {
           stateDispatch({
@@ -97,7 +98,7 @@ export const GlobalContextProvider = React.memo(function GlobalContextProvider({
 export const useGlobalContextWithActions = () => {
   const value = React.useContext(context);
   if (value == null)
-    throw new Error(
+    panic(
       'GlobalContext needs to be defined before use. Did you forget to add a Provider? Or did you use it before it was initialised?',
     );
   return value;

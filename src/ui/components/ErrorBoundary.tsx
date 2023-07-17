@@ -1,5 +1,5 @@
-import fromThrown from 'normalize-exception';
 import React from 'react';
+import { fromThrown } from '@/utils/error';
 
 /**
  * Capture the React component stack when an error occurs and throw it to

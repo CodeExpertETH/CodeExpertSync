@@ -1,7 +1,7 @@
 import React from 'react';
 import { tagged } from '@code-expert/prelude';
-import { requireNonNull } from '@/domain/exception';
 import { CourseItem } from '@/ui/pages/courses/components/model';
+import { requireNonNull } from '@/utils/error';
 
 export type Route =
   | tagged.Tagged<'courses'>

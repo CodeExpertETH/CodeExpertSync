@@ -3,6 +3,7 @@ dist
 .eslintcache
 *.log
 /storybook-static
+.idea
 build/
 *.tsbuildinfo
 
@@ -22,6 +23,9 @@ build/
 !.yarn/sdks
 !.yarn/versions
 .pnp.*
+
+### macOS ###
+.DS_Store
 
 ### WebStorm ###
 

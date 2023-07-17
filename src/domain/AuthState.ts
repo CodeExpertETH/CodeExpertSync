@@ -1,11 +1,12 @@
 import { api } from 'api';
 import React from 'react';
-import { pipe, tagged, task, taskEither } from '@code-expert/prelude';
+import { constVoid, flow, pipe, tagged, task, taskEither } from '@code-expert/prelude';
 import { getAccess } from '@/api/oauth/getAccess';
 import { config } from '@/config';
-import { notificationT } from '@/ui/helper/notifications';
 import useTimeout from '@/ui/hooks/useTimeout';
+import { apiErrorToMessage } from '@/utils/api';
 import { pkceChallenge } from '@/utils/crypto';
+import { panic } from '@/utils/error';
 import { ClientId } from './ClientId';
 
 export type AuthState =
@@ -56,18 +57,18 @@ export const useAuthState = (
     const onAuthToken = async ({ data: authToken }: { data: string }) => {
       if (authState.is.waitingForAuthorization(state)) {
         await pipe(
-          api.create_keys(),
-          taskEither.chainW((publicKey) =>
+          api.create_keys,
+          task.chain((publicKey) =>
             getAccess(clientId, state.value.code_verifier, authToken, publicKey),
           ),
-          taskEither.foldW(notificationT.error, task.of),
-          task.run,
+          taskEither.match(flow(apiErrorToMessage, panic), constVoid),
+          task.toPromise,
         );
         sse.current?.close();
         sse.current = null;
         onAuthorize();
       } else {
-        throw new Error('Invalid state. Please try again.');
+        panic('Invalid state. Please try again.');
       }
     };
 
@@ -75,7 +76,7 @@ export const useAuthState = (
       if (authState.is.waitingForAuthorization(state)) {
         setState(authState.deniedAuthorization());
       } else {
-        throw new Error('Invalid state. Please try again.');
+        panic('Invalid state. Please try again.');
       }
     };
     const onError = (e: Event) => {

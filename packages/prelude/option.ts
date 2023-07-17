@@ -1,7 +1,6 @@
 import { applicative, apply, option, pipeable } from 'fp-ts';
 import { Kind, Kind2, URIS, URIS2 } from 'fp-ts/HKT';
-import { Lazy, flow, pipe } from 'fp-ts/function';
-
+import { Lazy, flow } from 'fp-ts/function';
 import * as alternative from './alternative';
 
 export * from 'fp-ts/Option';
@@ -38,16 +37,6 @@ export const fromBoolean =
  * );
  */
 export const altAllBy = alternative.altAllBy(option.Alternative);
-
-export const getOrThrow =
-  (error: Lazy<Error>) =>
-  <A>(o: option.Option<A>): A =>
-    pipe(
-      o,
-      option.getOrElse<A>(() => {
-        throw error();
-      }),
-    );
 
 /**
  * Traverse followed by flatten.
