@@ -30,16 +30,6 @@ import { LazyArg, constant, flow, identity, pipe } from 'fp-ts/function';
 import * as remote from '../remote';
 
 /**
- * TODO: regarding Wide-by-default, Either.ts currently does it as follows:
- *  - flatMap (chain) is wide by default
- *  - chain, chainFirst, chainEK, alt, orElse (recover), getOrElse, match (fold), flatten aren't
- *  While chain and it's variants (chainFirst, chainOptionK etc.) all were strict with a wide variant (chainW, chainFirstW, chainOptionKW),
- *  flatMap and it's variants (tap, flatMapOption) are wide by default. NB: for chain and flatMap the strict/narrow discussion
- *  is generally only about the `Left` part. Same for flatten. In the case of alt, orElse, getOrElse it's only about
- *  the `Right` part.
- */
-
-/**
  * @category Instances
  */
 export const URI = 'RemoteEither';
@@ -156,42 +146,33 @@ export const isRight = remote.exists(e.isRight);
 /**
  * @category pattern matching
  */
-export const match: <E, A, B>(
+export const fold: <E, A, B>(
   onInitial: () => B,
   onPending: () => B,
   onLeft: (e: E) => B,
   onRight: (a: A) => B,
-) => (fa: RemoteEither<E, A>) => B = (i, p, l, r) => remote.match(i, p, e.fold(l, r));
+) => (fa: RemoteEither<E, A>) => B = (i, p, l, r) => remote.fold(i, p, e.fold(l, r));
 
 /**
  * @category pattern matching
  */
-export const matchW: <I, P, E, G, A, B>(
+export const foldW: <I, P, E, G, A, B>(
   onInitial: () => I,
   onPending: () => P,
   onLeft: (e: E) => G,
   onRight: (a: A) => B,
-) => (fa: RemoteEither<E, A>) => I | P | G | B = (i, p, l, r) =>
-  remote.matchW(i, p, e.matchW(l, r));
-
-/**
- * Use {@link match}
- *
- * @deprecated
- * @category legacy
- */
-export const fold = match;
+) => (fa: RemoteEither<E, A>) => I | P | G | B = (i, p, l, r) => remote.foldW(i, p, e.foldW(l, r));
 
 /**
  * @internal
  */
-const _match = <E, A, B>(
+const _fold = <E, A, B>(
   fa: RemoteEither<E, A>,
   onInitial: () => B,
   onPending: () => B,
   onLeft: (e: E) => B,
   onRight: (a: A) => B,
-) => match(onInitial, onPending, onLeft, onRight)(fa);
+) => fold(onInitial, onPending, onLeft, onRight)(fa);
 
 /**
  * @category mapping
@@ -265,7 +246,7 @@ export const Applicative: Applicative2<URI> = {
 /**
  * @category sequencing
  */
-export const flatMap: <E2, A, B>(
+export const chain: <E2, A, B>(
   f: (a: A) => RemoteEither<E2, B>,
 ) => <E1>(fa: RemoteEither<E1, A>) => RemoteEither<E1 | E2, B> = eT.chain(remote.Monad)<
   any,
@@ -274,19 +255,11 @@ export const flatMap: <E2, A, B>(
 >;
 
 /**
- * Use {@link flatMap}
- *
- * @deprecated
- * @category legacy
- */
-export const chain = flatMap;
-
-/**
  * @category Instances
  */
 export const Chain: chainable.Chain2<URI> = {
   ...Apply,
-  chain: (fa, f) => pipe(fa, flatMap(f)),
+  chain: (fa, f) => pipe(fa, chain(f)),
 };
 
 /**
@@ -460,214 +433,114 @@ export const fromRemote = eT.rightF(remote.Functor);
 /**
  * @category lifting
  */
-export const liftEither = fe.fromEitherK(FromEither);
-
-/**
- * Use {@link liftEither}
- *
- * @deprecated
- * @category legacy
- */
-export const fromEitherK = liftEither;
+export const fromEitherK = fe.fromEitherK(FromEither);
 
 /**
  * @category lifting
  */
-export const liftOption = fe.fromOptionK(FromEither);
-
-/**
- * Use {@link liftOption}
- *
- * @deprecated
- * @category legacy
- */
-export const fromOptionK = liftOption;
+export const fromOptionK = fe.fromOptionK(FromEither);
 
 /**
  * @category lifting
  */
-export const liftNullable = eT.fromNullableK(Pointed);
-
-/**
- * Use {@link liftNullable}
- *
- * @deprecated
- * @category legacy
- */
-export const fromNullableK = liftNullable;
+export const fromNullableK = eT.fromNullableK(Pointed);
 
 /**
  * @category lifting
  */
-export const liftRemote = <A extends ReadonlyArray<unknown>, B>(
+export const fromRemoteK = <A extends ReadonlyArray<unknown>, B>(
   f: (...a: A) => remote.Remote<B>,
 ): (<E = never>(...a: A) => RemoteEither<E, B>) => flow(f, fromRemote);
-
-/**
- * Use {@link liftRemote}
- *
- * @deprecated
- * @category legacy
- */
-export const fromRemoteK = liftRemote;
 
 /**
  * @category sequencing
  */
 export const flattenW: <E1, E2, A>(
   ffa: RemoteEither<E1, RemoteEither<E2, A>>,
-) => RemoteEither<E1 | E2, A> = flatMap(identity);
+) => RemoteEither<E1 | E2, A> = chain(identity);
 
 /**
  * @category sequencing
  */
 export const flatten: <E, A>(ffa: RemoteEither<E, RemoteEither<E, A>>) => RemoteEither<E, A> =
-  flatMap(identity);
+  chain(identity);
 
 /**
  * @category sequencing
  */
-export const flatMapOption = fe.chainOptionK(FromEither, Chain);
-
-/**
- * FIXME See discussion RE: Wide variants at top of file
- *
- * @category sequencing
- */
-export const flatMapOptionW: <E2>(
+export const chainOptionK: <E2>(
   onNone: LazyArg<E2>,
 ) => <A, B>(f: (a: A) => o.Option<B>) => <E1>(fa: RemoteEither<E1, A>) => RemoteEither<E1 | E2, B> =
-  flatMapOption as any;
+  fe.chainOptionK(FromEither, Chain)<any>;
 
 /**
- * Use {@link flatMapOption}
- *
- * @deprecated
- * @category legacy
+ * FIXME This really should be implemented as eT.chainNullableK(remote.Monad), but it's onNull isn't Lazy yet.
+ * @category sequencing
  */
-export const chainOptionK = flatMapOption;
+export const chainNullableK: <E2>(
+  onNullable: LazyArg<E2>,
+) => <A, B>(
+  f: (a: A) => B | null | undefined,
+) => <E1>(ma: RemoteEither<E1, A>) => RemoteEither<E1 | E2, NonNullable<B>> = (onNull) => (f) =>
+  chain(flow(f, fromNullable(onNull)));
 
 /**
  * @category sequencing
  */
-export const flatMapNullable = eT.chainNullableK(remote.Monad);
-
-/**
- * Use {@link flatMapNullable}
- *
- * @deprecated
- * @category legacy
- */
-export const chainNullableK = flatMapNullable;
-
-/**
- * @category sequencing
- */
-export const flatMapEither = fe.chainEitherK(FromEither, Chain);
-
-/**
- FIXME See discussion RE: Wide variants at top of file
- *
- * @category sequencing
- */
-export const flatMapEitherW: <E2, A, B>(
+export const chainEitherK: <E2, A, B>(
   f: (a: A) => e.Either<E2, B>,
-) => <E1>(ma: RemoteEither<E1, A>) => RemoteEither<E2 | E1, B> = flatMapEither as any;
-
-/**
- * Use {@link flatMapEither}
- *
- * @deprecated
- * @category legacy
- */
-export const chainEitherK = flatMapEither;
+) => <E1>(ma: RemoteEither<E1, A>) => RemoteEither<E2 | E1, B> = fe.chainEitherK(FromEither, Chain)<
+  any,
+  any,
+  any
+>;
 
 /**
  * @category sequencing
  */
-export const flatMapRemote =
+export const chainRemoteK =
   <A, B>(f: (a: A) => remote.Remote<B>) =>
   <E>(fa: RemoteEither<E, A>): RemoteEither<E, B> =>
-    pipe(fa, flatMap(liftRemote(f)<E>));
-
-/**
- * Use {@link flatMapRemote}
- *
- * @deprecated
- * @category legacy
- */
-export const chainRemoteK = flatMapRemote;
+    pipe(fa, chain(fromRemoteK(f)<E>));
 
 /**
  * @category sequencing
  */
-export const tap = chainable.chainFirst(Chain);
-
-/**
- * Use {@link tap}
- *
- * @deprecated
- * @category legacy
- */
-export const chainFirst = tap;
-
-/**
- * @category sequencing
- */
-export const tapEither = fe.chainFirstEitherK(FromEither, Chain);
-
-/**
- * Use {@link tapEither}
- *
- * @deprecated
- * @category legacy
- */
-export const chainFirstEitherK = tapEither;
+export const chainFirst: <A, E2>(
+  f: (a: A) => RemoteEither<E2, unknown>,
+) => <E1>(first: RemoteEither<E1, A>) => RemoteEither<E1 | E2, A> = chainable.chainFirst(Chain)<
+  any,
+  any,
+  any
+>;
 
 /**
  * @category sequencing
  */
-export const tapOption: <E>(
-  onNone: LazyArg<E>,
-) => <A>(f: (a: A) => o.Option<unknown>) => (fa: RemoteEither<E, A>) => RemoteEither<E, A> = (
-  onNone,
-) => flow(liftOption(onNone), tap);
-
-/**
- * FIXME this implementation is "elegant", but also illegible. is there a name for what I'm trying to do here?
- *
- * @category sequencing
- */
-export const tapOption2: <E>(
-  onNone: LazyArg<E>,
-) => <A>(f: (a: A) => o.Option<unknown>) => (fa: RemoteEither<E, A>) => RemoteEither<E, A> = flow(
-  liftOption,
-  (x) => flow(x, tap),
-);
-
-/**
- * Use {@link tapOption}
- *
- * @deprecated
- * @category legacy
- */
-export const chainFirstOptionK = tapOption;
+export const chainFirstEitherK: <E2, A>(
+  f: (a: A) => e.Either<E2, unknown>,
+) => <E1>(fa: RemoteEither<E1, A>) => RemoteEither<E1 | E2, A> = fe.chainFirstEitherK(
+  FromEither,
+  Chain,
+)<any, any, any>;
 
 /**
  * @category sequencing
  */
-export const tapRemote =
+export const chainFirstOptionK: <E2>(
+  onNone: LazyArg<E2>,
+) => <A>(
+  f: (a: A) => o.Option<unknown>,
+) => <E1>(fa: RemoteEither<E1, A>) => RemoteEither<E1 | E2, A> = (onNone) =>
+  flow(fromOptionK(onNone), chainFirst);
+
+/**
+ * @category sequencing
+ */
+export const chainFirstRemoteK =
   <A>(f: (a: A) => remote.Remote<unknown>) =>
   <E>(fa: RemoteEither<E, A>): RemoteEither<E, A> =>
-    pipe(fa, tap(liftRemote(f)<E>));
-
-/**
- * Use {@link tapRemote}
- *
- * @deprecated
- * @category legacy
- */
-export const chainFirstRemoteK = tapRemote;
+    pipe(fa, chainFirst(fromRemoteK(f)<E>));
 
 /**
  * @category error handling
@@ -687,15 +560,10 @@ export const orElseW: <E1, E2, B>(
 ) => <A>(fa: RemoteEither<E1, A>) => RemoteEither<E2, B | A> = orElse as any;
 
 /**
- * FIXME what the hell does this even do??????
- */
-// const orElseFirst = eT.orElseFirst(remote.Monad);
-
-/**
  * @category pattern matching
  */
 export const match3 = <E, A, R>(onNone: LazyArg<R>, onLeft: (e: E) => R, onRight: (a: A) => R) =>
-  match(onNone, onNone, onLeft, onRight);
+  fold(onNone, onNone, onLeft, onRight);
 
 /**
  * @category Destructors
@@ -737,7 +605,7 @@ export const toEither = <E>(
   onInitial: () => E,
   onPending: () => E,
 ): (<A>(fa: RemoteEither<E, A>) => e.Either<E, A>) =>
-  remote.match(flow(onInitial, e.left), flow(onPending, e.left), identity);
+  remote.fold(flow(onInitial, e.left), flow(onPending, e.left), identity);
 
 /**
  * @category utils
@@ -780,7 +648,7 @@ export const getApplicativeValidation: <E>(SE: Semigroup<E>) => Applicative2C<UR
 });
 
 /**
- * FIXME Write tests!!!
+ * TODO tests
  *
  * @category Instances
  */
@@ -813,7 +681,7 @@ export const getAltValidation: <E>(SE: Semigroup<E>) => Alt2C<URI, E> = (SE) => 
  */
 export const getEq = <E, A>(EE: Eq<E>, EA: Eq<A>): Eq<RemoteEither<E, A>> => ({
   equals: (x, y) =>
-    _match(
+    _fold(
       x,
       () => isInitial(y),
       () => isPending(y),
@@ -839,12 +707,12 @@ export const getOrd = <E, A>(OE: Ord<E>, OA: Ord<A>): Ord<RemoteEither<E, A>> =>
   ...getEq(OE, OA),
   compare: (x, y) =>
     sign(
-      _match(
+      _fold(
         x,
-        () => _match(y, constEq, constLt, constLt, constLt),
-        () => _match(y, constGt, constEq, constLt, constLt),
-        (xLeft) => _match(y, constGt, constGt, (yLeft) => OE.compare(xLeft, yLeft), constLt),
-        (xRight) => _match(y, constGt, constGt, constGt, (yRight) => OA.compare(xRight, yRight)),
+        () => _fold(y, constEq, constLt, constLt, constLt),
+        () => _fold(y, constGt, constEq, constLt, constLt),
+        (xLeft) => _fold(y, constGt, constGt, (yLeft) => OE.compare(xLeft, yLeft), constLt),
+        (xRight) => _fold(y, constGt, constGt, constGt, (yRight) => OA.compare(xRight, yRight)),
       ),
     ),
 });
@@ -853,7 +721,7 @@ export const getOrd = <E, A>(OE: Ord<E>, OA: Ord<A>): Ord<RemoteEither<E, A>> =>
  * @category Instances
  */
 export const getShow = <E, A>(SE: Show<E>, SA: Show<A>): Show<RemoteEither<E, A>> => ({
-  show: match(
+  show: fold(
     () => 'initial',
     () => 'pending',
     (e) => `left(${SE.show(e)})`,
@@ -894,7 +762,7 @@ export type RefreshStrategy = <E, A>(
 export const staleWhileRevalidate: RefreshStrategy = (next) => (current) =>
   pipe(
     next,
-    match(
+    fold(
       () => current,
       () => (isInitial(current) ? next : current),
       () => next,
@@ -908,7 +776,7 @@ export const staleWhileRevalidate: RefreshStrategy = (next) => (current) =>
 export const staleIfError: RefreshStrategy = (next) => (current) =>
   pipe(
     next,
-    match(
+    fold(
       () => current,
       () => (isInitial(current) || isLeft(current) ? next : current),
       () => (isRight(current) ? current : next),

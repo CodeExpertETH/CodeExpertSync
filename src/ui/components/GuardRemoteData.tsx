@@ -23,7 +23,7 @@ export function GuardRemote<A>({
   pending = renderLoading,
   initial = pending,
 }: GuardRemoteProps<A>) {
-  return <>{pipe(value, remote.match(initial, pending, render))}</>;
+  return <>{pipe(value, remote.fold(initial, pending, render))}</>;
 }
 
 export interface GuardRemoteEitherProps<E, A> {
@@ -48,5 +48,5 @@ export function GuardRemoteEither<E, A>({
   pending = renderLoading,
   initial = pending,
 }: GuardRemoteEitherProps<E, A>) {
-  return <>{pipe(value, remoteEither.match(initial, pending, failure, render))}</>;
+  return <>{pipe(value, remoteEither.fold(initial, pending, failure, render))}</>;
 }

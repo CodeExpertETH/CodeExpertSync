@@ -159,7 +159,7 @@ export const match: <A, B>(
   onPending: () => B,
   onNone: () => B,
   onSome: (a: A) => B,
-) => (fa: RemoteOption<A>) => B = (i, p, l, r) => remote.match(i, p, o.fold(l, r));
+) => (fa: RemoteOption<A>) => B = (i, p, l, r) => remote.fold(i, p, o.fold(l, r));
 
 /**
  * Use {@link match}
@@ -233,22 +233,14 @@ export const Applicative: Applicative1<URI> = {
 /**
  * @category sequencing
  */
-export const flatMap = oT.chain(remote.Monad);
-
-/**
- * Use {@link flatMap}
- *
- * @deprecated
- * @category legacy
- */
-export const chain = flatMap;
+export const chain = oT.chain(remote.Monad);
 
 /**
  * @category Instances
  */
 export const Chain: chainable.Chain1<URI> = {
   ...Apply,
-  chain: (fa, f) => pipe(fa, flatMap(f)),
+  chain: (fa, f) => pipe(fa, chain(f)),
 };
 
 /**
@@ -417,22 +409,22 @@ export const fromRemote = oT.fromF(remote.Functor);
 /**
  * @category lifting
  */
-export const liftEither = fe.fromEitherK(FromEither);
+export const fromEitherK = fe.fromEitherK(FromEither);
 
 /**
  * @category lifting
  */
-export const liftOption = oT.fromOptionK(remote.Pointed);
+export const fromOptionK = oT.fromOptionK(remote.Pointed);
 
 /**
  * @category lifting
  */
-export const liftNullable = oT.fromNullableK(remote.Pointed);
+export const fromNullableK = oT.fromNullableK(remote.Pointed);
 
 /**
  * @category lifting
  */
-export const liftRemote = <A extends ReadonlyArray<unknown>, B>(
+export const fromRemoteK = <A extends ReadonlyArray<unknown>, B>(
   f: (...a: A) => remote.Remote<B>,
 ): ((...a: A) => RemoteOption<B>) => flow(f, fromRemote);
 
@@ -451,118 +443,53 @@ export const filter: {
 /**
  * @category sequencing
  */
-export const flatten: <A>(ffa: RemoteOption<RemoteOption<A>>) => RemoteOption<A> =
-  flatMap(identity);
+export const flatten: <A>(ffa: RemoteOption<RemoteOption<A>>) => RemoteOption<A> = chain(identity);
 
 /**
  * @category sequencing
  */
-export const flatMapOption = oT.chainOptionK(remote.Monad);
-
-/**
- * Use {@link flatMapOption}
- *
- * @deprecated
- * @category legacy
- */
-export const chainOptionK = flatMapOption;
+export const chainOptionK = oT.chainOptionK(remote.Monad);
 
 /**
  * @category sequencing
  */
-export const flatMapNullable = oT.chainNullableK(remote.Monad);
-
-/**
- * Use {@link flatMapNullable}
- *
- * @deprecated
- * @category legacy
- */
-export const chainNullableK = flatMapNullable;
+export const chainNullableK = oT.chainNullableK(remote.Monad);
 
 /**
  * @category sequencing
  */
-export const flatMapEither = fe.chainEitherK(FromEither, Chain);
-
-/**
- * Use {@link flatMapEither}
- *
- * @deprecated
- * @category legacy
- */
-export const chainEitherK = flatMapEither;
+export const chainEitherK = fe.chainEitherK(FromEither, Chain);
 
 /**
  * @category sequencing
  */
-export const flatMapRemote: <A, B>(
+export const chainRemoteK: <A, B>(
   f: (a: A) => remote.Remote<B>,
-) => (fa: RemoteOption<A>) => RemoteOption<B> = flow(liftRemote, flatMap);
-
-/**
- * Use {@link flatMapRemote}
- *
- * @deprecated
- * @category legacy
- */
-export const chainRemoteK = flatMapRemote;
+) => (fa: RemoteOption<A>) => RemoteOption<B> = flow(fromRemoteK, chain);
 
 /**
  * @category sequencing
  */
-export const tap = chainable.chainFirst(Chain);
-
-/**
- * Use {@link tap}
- *
- * @deprecated
- * @category legacy
- */
-export const chainFirst = tap;
+export const chainFirst = chainable.chainFirst(Chain);
 
 /**
  * @category sequencing
  */
-export const tapEither = fe.chainFirstEitherK(FromEither, Chain);
-
-/**
- * Use {@link tapEither}
- *
- * @deprecated
- * @category legacy
- */
-export const chainFirstEitherK = tapEither;
+export const chainFirstEitherK = fe.chainFirstEitherK(FromEither, Chain);
 
 /**
  * @category sequencing
  */
-export const tapOption: <A>(
+export const chainFirstOptionK: <A>(
   f: (a: A) => o.Option<unknown>,
-) => (fa: RemoteOption<A>) => RemoteOption<A> = flow(liftOption, tap);
-
-/**
- * Use {@link tapOption}
- *
- * @deprecated
- * @category legacy
- */
-export const chainFirstOptionK = tapOption;
+) => (fa: RemoteOption<A>) => RemoteOption<A> = flow(fromOptionK, chainFirst);
 
 /**
  * @category sequencing
  */
-export const tapRemote: <A>(
+export const chainFirstRemoteK: <A>(
   f: (a: A) => remote.Remote<unknown>,
-) => (fa: RemoteOption<A>) => RemoteOption<A> = flow(liftRemote, tap);
-
-/**
- * Use {@link tapRemote}
- *
- * @deprecated
- * @category legacy
- */
-export const chainFirstRemoteK = tapRemote;
+) => (fa: RemoteOption<A>) => RemoteOption<A> = flow(fromRemoteK, chainFirst);
 
 /**
  * @category Destructors
@@ -576,7 +503,7 @@ export const getOrElseW: <B>(onNone: LazyArg<B>) => <A>(fa: RemoteOption<A>) => 
  */
 export const getOrElse =
   <A>(onNone: LazyArg<A>) =>
-  <A>(fa: RemoteOption<A>) =>
+  (fa: RemoteOption<A>) =>
     getOrElseW(onNone)(fa);
 
 /**
@@ -600,7 +527,7 @@ export const toUndefined = <A>(ma: RemoteOption<A>): A | undefined =>
 /**
  * @category Destructors
  */
-export const toOption: <A>(fa: RemoteOption<A>) => o.Option<A> = remote.match(
+export const toOption: <A>(fa: RemoteOption<A>) => o.Option<A> = remote.fold(
   constant(o.none),
   constant(o.none),
   identity,
@@ -614,7 +541,7 @@ export const toEither = <E>(
   onPending: () => E,
   onNone: () => E,
 ): (<A>(fa: RemoteOption<A>) => e.Either<E, A>) =>
-  remote.match(flow(onInitial, e.left), flow(onPending, e.left), e.fromOption(onNone));
+  remote.fold(flow(onInitial, e.left), flow(onPending, e.left), e.fromOption(onNone));
 
 /**
  * @category utils

@@ -30,9 +30,7 @@ import { PipeableTraverse1, Traversable1 } from 'fp-ts/Traversable';
 import { Zero1 } from 'fp-ts/Zero';
 import { LazyArg, constant, flow, identity, pipe } from 'fp-ts/function';
 
-/**
- * TODO: Witherable
- */
+// TODO: Witherable
 
 /**
  * @category Instances
@@ -153,7 +151,7 @@ export const isDone = <A>(data: Remote<A>): data is Done<A> => data._tag === 'do
 /**
  * @category pattern matching
  */
-export const matchW =
+export const foldW =
   <I, P, A, B>(onInitial: () => I, onPending: () => P, onDone: (value: A) => B) =>
   (ma: Remote<A>): I | P | B => {
     switch (ma._tag) {
@@ -184,19 +182,11 @@ export const matchW =
  * f(pending) // "it's pending"
  * f(done(21)) // '22'
  */
-export const match: <A, B>(
+export const fold: <A, B>(
   onInitial: () => B,
   onPending: () => B,
   onDone: (value: A) => B,
-) => (ma: Remote<A>) => B = matchW;
-
-/**
- * Use {@link match}
- *
- * @deprecated
- * @category legacy
- */
-export const fold = match;
+) => (ma: Remote<A>) => B = foldW;
 
 /**
  * @category mapping
@@ -249,24 +239,15 @@ export const Applicative: applicative.Applicative1<URI> = {
 /**
  * @category sequencing
  */
-export const flatMap: <A, B>(f: (a: A) => Remote<B>) => (fa: Remote<A>) => Remote<B> =
-  (f) => (fa) =>
-    isDone(fa) ? f(fa.value) : fa;
-
-/**
- * Use {@link flatMap}
- *
- * @deprecated
- * @category legacy
- */
-export const chain = flatMap;
+export const chain: <A, B>(f: (a: A) => Remote<B>) => (fa: Remote<A>) => Remote<B> = (f) => (fa) =>
+  isDone(fa) ? f(fa.value) : fa;
 
 /**
  * @category Instances
  */
 export const Chain: chainable.Chain1<URI> = {
   ...Apply,
-  chain: (fa, f) => pipe(fa, flatMap(f)),
+  chain: (fa, f) => pipe(fa, chain(f)),
 };
 
 /**
@@ -459,7 +440,7 @@ export const liftNullable: <A extends ReadonlyArray<unknown>, B>(
 /**
  * @category filtering
  */
-export const compact: <A>(fa: Remote<Option<A>>) => Remote<A> = flatMap(fromOption);
+export const compact: <A>(fa: Remote<Option<A>>) => Remote<A> = chain(fromOption);
 
 /**
  * @category internal
@@ -555,95 +536,45 @@ export const Filterable: Filterable1<URI> = {
 /**
  * @category sequencing
  */
-export const flatten: <A>(ffa: Remote<Remote<A>>) => Remote<A> = flatMap(identity);
+export const flatten: <A>(ffa: Remote<Remote<A>>) => Remote<A> = chain(identity);
 
 /**
  * @category sequencing
  */
-export const flatMapOption: <A, B>(f: (a: A) => Option<B>) => (ma: Remote<A>) => Remote<B> = flow(
+export const chainOptionK: <A, B>(f: (a: A) => Option<B>) => (ma: Remote<A>) => Remote<B> = flow(
   liftOption,
-  flatMap,
+  chain,
 );
 
 /**
- * Use {@link flatMapOption}
- *
- * @deprecated
- * @category legacy
- */
-export const chainOptionK = flatMapOption;
-
-/**
  * @category sequencing
  */
-export const flatMapNullable: <A, B>(
+export const chainNullableK: <A, B>(
   f: (a: A) => B | undefined | null,
-) => (ma: Remote<A>) => Remote<B> = flow(liftNullable, flatMap);
-
-/**
- * Use {@link flatMapNullable}
- *
- * @deprecated
- * @category legacy
- */
-export const chainNullableK = flatMapNullable;
+) => (ma: Remote<A>) => Remote<B> = flow(liftNullable, chain);
 
 /**
  * @category sequencing
  */
-export const flatMapEither: <A, B>(
+export const chainEitherK: <A, B>(
   f: (a: A) => e.Either<unknown, B>,
-) => (ma: Remote<A>) => Remote<B> = flow(liftEither, flatMap);
-
-/**
- * Use {@link flatMapEither}
- *
- * @deprecated
- * @category legacy
- */
-export const chainEitherK = flatMapEither;
+) => (ma: Remote<A>) => Remote<B> = flow(liftEither, chain);
 
 /**
  * @category sequencing
  */
-export const tap = chainable.chainFirst(Chain);
-
-/**
- * Use {@link tap}
- *
- * @deprecated
- * @category legacy
- */
-export const chainFirst = tap;
+export const chainFirst = chainable.chainFirst(Chain);
 
 /**
  * @category sequencing
  */
-export const tapEither = fe.chainFirstEitherK(FromEither, Chain);
-
-/**
- * Use {@link tapEither}
- *
- * @deprecated
- * @category legacy
- */
-export const chainFirstEitherK = tapEither;
+export const chainFirstEitherK = fe.chainFirstEitherK(FromEither, Chain);
 
 /**
  * @category sequencing
  */
-export const tapOption: <A>(f: (a: A) => Option<unknown>) => (fa: Remote<A>) => Remote<A> = flow(
-  liftOption,
-  tap,
-);
-
-/**
- * Use {@link tapOption}
- *
- * @deprecated
- * @category legacy
- */
-export const chainFirstOptionK = tapOption;
+export const chainFirstOptionK: <A>(f: (a: A) => Option<unknown>) => (fa: Remote<A>) => Remote<A> =
+  flow(liftOption, chainFirst);
 
 /**
  * @category Destructors
@@ -657,7 +588,7 @@ export const getOrElseW: <B>(onNone: LazyArg<B>) => <A>(fa: Remote<A>) => A | B 
  * If this {@link Remote} is "Left" part it will return default value.
  * If this {@link Remote} is {@link Done} it will return its value ("wrapped" value, not default value)
  *
- * Note: Default value should be the same type as {@link Remote} (internal) value, if you want to pass different type as default, use {@link match}.
+ * Note: Default value should be the same type as {@link Remote} (internal) value, if you want to pass different type as default, use {@link fold}.
  *
  * @example
  * getOrElse(() => 999)(some(1)) // 1
@@ -683,7 +614,7 @@ export const getOrElse: <A>(f: LazyArg<A>) => (ma: Remote<A>) => A = getOrElseW;
  * assert.equal(f(done(21)), "result is: 22");
  */
 export const match2 = <A, R>(onUnresolved: () => R, onDone: (a: A) => R): ((fa: Remote<A>) => R) =>
-  match(onUnresolved, onUnresolved, onDone);
+  fold(onUnresolved, onUnresolved, onDone);
 
 /**
  * One more way to unwrap a value from {@link Remote}.
@@ -738,7 +669,7 @@ export const toEither: <E>(
   onInitial: () => E,
   onPending: () => E,
 ) => <A>(data: Remote<A>) => e.Either<E, A> = (onInitial, onPending) =>
-  matchW(flow(onInitial, e.left), flow(onPending, e.left), e.right);
+  foldW(flow(onInitial, e.left), flow(onPending, e.left), e.right);
 
 /**
  * Compare values and returns `true` if they are identical, otherwise returns `false`.
@@ -773,7 +704,7 @@ export const getEq = <A>(EA: Eq<A>): Eq<Remote<A>> => ({
   equals: (x, y) =>
     pipe(
       x,
-      match(
+      fold(
         () => isInitial(y),
         () => isPending(y),
         (ax) => isDone(y) && EA.equals(ax, y.value),
@@ -813,13 +744,13 @@ export const getOrd = <A>(OA: Ord<A>): Ord<Remote<A>> => ({
     sign(
       pipe(
         x,
-        match(
-          () => pipe(y, match(constEq, constLt, constLt)),
-          () => pipe(y, match(constGt, constEq, constLt)),
+        fold(
+          () => pipe(y, fold(constEq, constLt, constLt)),
+          () => pipe(y, fold(constGt, constEq, constLt)),
           (xValue) =>
             pipe(
               y,
-              match(constGt, constGt, (yValue) => OA.compare(xValue, yValue)),
+              fold(constGt, constGt, (yValue) => OA.compare(xValue, yValue)),
             ),
         ),
       ),
@@ -830,7 +761,7 @@ export const getOrd = <A>(OA: Ord<A>): Ord<Remote<A>> => ({
  * @category Instances
  */
 export const getShow = <A>(SA: Show<A>): Show<Remote<A>> => ({
-  show: match(
+  show: fold(
     () => 'initial',
     () => 'pending',
     (a) => `done(${SA.show(a)})`,
@@ -868,7 +799,7 @@ export type RefreshStrategy = <A>(next: Remote<A>) => (current: Remote<A>) => Re
 export const staleWhileRevalidate: RefreshStrategy = (next) => (current) =>
   pipe(
     next,
-    match(
+    fold(
       () => current,
       () => (isInitial(current) ? next : current),
       () => next,
