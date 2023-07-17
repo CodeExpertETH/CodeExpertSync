@@ -1,14 +1,5 @@
-import { taskEither } from 'fp-ts';
 import React from 'react';
-import {
-  fn,
-  pipe,
-  remote,
-  remoteEither,
-  remoteOption,
-  task,
-  taskOption,
-} from '@code-expert/prelude';
+import { fn, pipe, remote, task } from '@code-expert/prelude';
 import { useRaceState } from './useRaceState';
 
 /**
@@ -39,26 +30,3 @@ export function useTask<P extends ReadonlyArray<unknown>, A>(
 
   return fn.tuple(state, current.refresh);
 }
-
-/**
- * Run a `TaskOption` and represent the states before, during and after as `RemoteData`.
- */
-export function useRemoteOption<P extends ReadonlyArray<unknown>, A>(
-  run: (...props: P) => taskOption.TaskOption<A>,
-): [remoteOption.RemoteOption<A>, (...props: P) => void] {
-  return useTask(run);
-}
-
-/**
- * Run a `TaskEither` and represent the states before, during and after as `RemoteData`.
- */
-export function useRemoteEither<P extends ReadonlyArray<unknown>, E, A>(
-  run: (...props: P) => taskEither.TaskEither<E, A>,
-): [remoteEither.RemoteEither<E, A>, (...props: P) => void] {
-  return useTask(run);
-}
-
-/**
- * @deprecated Use {@link useRemoteEither} if an error channel is needed.
- */
-export const useRemoteData = useRemoteEither;
