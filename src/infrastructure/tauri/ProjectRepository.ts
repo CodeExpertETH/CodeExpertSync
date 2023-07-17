@@ -88,7 +88,6 @@ export const mkProjectRepositoryTauri = (): task.Task<ProjectRepository> => {
           task.chainFirst(persistMetadata),
           task.chain(projectsFromMetadata),
           task.chainFirstIOK(setProjects), // FIXME This overwrites existing sync state
-          task.map(constVoid),
           task.run,
         );
       },
