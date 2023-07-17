@@ -28,7 +28,10 @@ export function assertNonNull<A>(value: A, details?: string): asserts value is N
 /**
  * Assert that the given value is not null and return it, throw an invariant violation otherwise.
  */
-export function requireNonNull<A>(value: A | null, details?: string): NonNullable<A> {
+export function requireNonNull<A>(
+  value: null extends A ? A : undefined extends A ? A : never,
+  details?: string,
+): NonNullable<A> {
   assertNonNull(value, details);
   return value;
 }
