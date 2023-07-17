@@ -3,9 +3,7 @@
   "compilerOptions": {
     "outDir": "./build",
     "paths": {
-      "@code-expert/fp-ts-remote/remote-either": ["../fp-ts-remote/remote-either"],
-      "@code-expert/fp-ts-remote/remote-option": ["../fp-ts-remote/remote-option"],
-      "@code-expert/fp-ts-remote/remote": ["../fp-ts-remote/remote"],
+      "@code-expert/fp-ts-remote*": ["../fp-ts-remote*"],
       "@code-expert/fp-ts-remote": ["../fp-ts-remote"],
       "@code-expert/test-utils": ["../test-utils"],
       "@code-expert/type-utils": ["../type-utils"]
@@ -15,9 +13,6 @@
   "include": ["**/*"],
   "exclude": ["build"],
   "references": [
-    { "path": "../fp-ts-remote/remote-either" },
-    { "path": "../fp-ts-remote/remote-option" },
-    { "path": "../fp-ts-remote/remote" },
     { "path": "../fp-ts-remote" },
     { "path": "../test-utils" },
     { "path": "../type-utils" }

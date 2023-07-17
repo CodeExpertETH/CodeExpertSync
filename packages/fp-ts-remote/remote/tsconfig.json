@@ -4,6 +4,6 @@
     "outDir": "./build",
     "composite": true
   },
-  "include": ["**/*"],
+  "include": ["*.ts"],
   "exclude": ["build"],
 }

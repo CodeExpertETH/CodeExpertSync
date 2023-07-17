@@ -2,8 +2,14 @@
   "extends": "../../tsconfig.options.json",
   "compilerOptions": {
     "outDir": "./build",
-    "composite": true,
+    "composite": true
   },
-  "include": ["**/*"],
+  "include": ["index.ts"],
   "exclude": ["build"],
+  "references": [
+    { "path": "./remote" },
+    { "path": "./remote-data" },
+    { "path": "./remote-either" },
+    { "path": "./remote-option" }
+  ]
 }

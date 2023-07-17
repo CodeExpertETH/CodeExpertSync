@@ -1,5 +1,4 @@
-import { remoteEither } from '@code-expert/fp-ts-remote';
-import { $Unexpressable } from '@code-expert/type-utils';
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Alt2 } from 'fp-ts/Alt';
 import { Alternative2 } from 'fp-ts/Alternative';
 import { getApplySemigroup } from 'fp-ts/Apply';
@@ -12,6 +11,9 @@ import { Option, fold as foldOption } from 'fp-ts/Option';
 import { Semigroup } from 'fp-ts/Semigroup';
 import { Traversable2 } from 'fp-ts/Traversable';
 import { pipe } from 'fp-ts/function';
+import * as remoteEither from '../remote-either';
+
+// TODO Compactable, Filterable, MonadThrow, Witherable
 
 export {
   left as failure,
@@ -23,7 +25,7 @@ export {
   isPending,
   isInitial,
   getOrElse,
-  match as fold,
+  fold as fold,
   match3 as fold3,
   toNullable,
   toUndefined,
@@ -39,15 +41,15 @@ export {
   sequenceT as combine,
 
   // extra
-  flatMap as chain,
-  flatMap as chainW,
+  chain as chain,
+  chain as chainW,
   fromNullable,
   filterOrElse,
   staleWhileRevalidate,
   staleIfError,
   sequenceT,
   sequenceS,
-} from '@code-expert/fp-ts-remote/remote-either';
+} from '../remote-either';
 
 export type {
   Initial as RemoteInitial,
@@ -55,7 +57,7 @@ export type {
   Left as RemoteFailure,
   Right as RemoteSuccess,
   RefreshStrategy,
-} from '@code-expert/fp-ts-remote/remote-either';
+} from '../remote-either';
 
 export const URI = remoteEither.URI;
 export type URI = remoteEither.URI;
@@ -76,13 +78,13 @@ export const recoverMap =
   (fa: RemoteData<E, A>): RemoteData<E, B> =>
     pipe(
       fa,
-      remoteEither.match(
+      remoteEither.fold(
         () => remoteEither.initial,
         () => remoteEither.pending,
         (e) =>
           pipe(
             onLeft(e),
-            foldOption(() => fa as $Unexpressable, remoteEither.right<B, E>),
+            foldOption(() => fa as any, remoteEither.right<B, E>),
           ),
         (a) => remoteEither.right(fab(a)),
       ),
@@ -121,6 +123,3 @@ export const remoteData: Monad2<URI> &
   zero: remoteEither.Alternative.zero,
   extend: remoteEither.Extend.extend,
 };
-
-// TODO Compactable, Filterable, MonadThrow, Witherable
-// TODO move this into fp-ts-remote/remote-data

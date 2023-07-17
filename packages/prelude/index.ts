@@ -1,4 +1,5 @@
 import * as remote from '@code-expert/fp-ts-remote/remote';
+import * as remoteDataDeprecated from '@code-expert/fp-ts-remote/remote-data';
 import * as remoteEither from '@code-expert/fp-ts-remote/remote-either';
 import * as remoteOption from '@code-expert/fp-ts-remote/remote-option';
 import * as applicative from 'fp-ts/Applicative';
@@ -44,7 +45,6 @@ import * as optionT from './optionT';
 import * as ord from './ord';
 import * as profiling from './profiling';
 import * as record from './record';
-import * as remoteDataDeprecated from './remote-data';
 import * as separated from './separated';
 import * as string from './string';
 import * as struct from './struct';

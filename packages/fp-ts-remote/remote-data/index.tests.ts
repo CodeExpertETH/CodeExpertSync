@@ -4,7 +4,7 @@
 
 /* eslint-disable import/no-extraneous-dependencies */
 import { assert, describe, it } from 'vitest';
-import * as remoteData from './remote-data';
+import * as remoteData from '.';
 
 describe('RemoteData', () => {
   describe('filterOrElse', () => {
