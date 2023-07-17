@@ -9,7 +9,7 @@ import { GlobalContextProvider, useGlobalContextWithActions } from '@/ui/GlobalC
 import { ErrorBoundary } from '@/ui/components/ErrorBoundary';
 import { GuardRemote } from '@/ui/components/GuardRemoteData';
 import { TimeContextProvider, timeContext } from '@/ui/contexts/TimeContext';
-import { useRemote } from '@/ui/hooks/useRemoteData';
+import { useTask } from '@/ui/hooks/useTask';
 import { AppLayout } from '@/ui/layout';
 import { Courses } from '@/ui/pages/courses';
 import { Developer } from '@/ui/pages/developer';
@@ -45,7 +45,7 @@ export const render = (container: HTMLElement): Promise<void> =>
 export function App() {
   const [{ setupState }] = useGlobalContextWithActions();
   const { currentRoute, navigateTo } = useRoute();
-  const [clientIdRD, refreshClientId] = useRemote(registerApp);
+  const [clientIdRD, refreshClientId] = useTask(registerApp);
 
   useHotkeys('ctrl+c+x', () => {
     navigateTo(routes.developer());

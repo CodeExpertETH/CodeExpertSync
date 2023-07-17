@@ -9,7 +9,7 @@ import { useTimeContext } from '@/ui/contexts/TimeContext';
 import { Icon } from '@/ui/foundation/Icons';
 import { HStack, VStack } from '@/ui/foundation/Layout';
 import { styled } from '@/ui/foundation/Theme';
-import { useRemote, useRemoteEither } from '@/ui/hooks/useRemoteData';
+import { useTask } from '@/ui/hooks/useTask';
 import { fromProject } from '@/ui/pages/projects/components/ProjectList/model/SyncButtonState';
 import { ForceSyncDirection } from '@/ui/pages/projects/hooks/useProjectSync';
 import { SyncButton } from './SyncButton';
@@ -51,9 +51,9 @@ export interface ListItemProps {
 export const ListItem = ({ project, onOpen, onSync, onRemove }: ListItemProps) => {
   const { now } = useTimeContext();
 
-  const [openStateRD, runOpen] = useRemoteEither(onOpen);
-  const [syncStateRD, runSync] = useRemoteEither(onSync);
-  const [removalStateRD, runRemove] = useRemote(onRemove);
+  const [openStateRD, runOpen] = useTask(onOpen);
+  const [syncStateRD, runSync] = useTask(onSync);
+  const [removalStateRD, runRemove] = useTask(onRemove);
 
   // All states combined. Order matters: the first failure gets precedence.
   const actionStates = remoteEither.sequenceT(

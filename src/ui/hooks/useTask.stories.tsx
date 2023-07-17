@@ -1,7 +1,7 @@
 import { Story } from '@storybook/react';
 import React from 'react';
 import { adt, either, pipe, remoteEither, taskEither } from '@code-expert/prelude';
-import { useRemoteEither } from './useRemoteData';
+import { useTask } from './useTask';
 
 const foldMeteorCallType = adt.foldFromKeys({ resolve: null, reject: null, throw: null });
 type MeteorCallType = adt.TypeOfKeys<typeof foldMeteorCallType>;
@@ -27,16 +27,16 @@ function mockMethodCall(type: MeteorCallType): taskEither.TaskEither<string, str
 
 interface UseRemoteEitherTestProps {
   type: MeteorCallType;
-  useRemoteEitherHook: typeof useRemoteEither;
+  useTaskHook: typeof useTask;
 }
 
-function UseRemoteEitherTest({ type, useRemoteEitherHook }: UseRemoteEitherTestProps) {
-  const [rd, refresh] = useRemoteEitherHook(mockMethodCall);
+function UseRemoteEitherTest({ type, useTaskHook }: UseRemoteEitherTestProps) {
+  const [rd, refresh] = useTaskHook(mockMethodCall);
   return (
     <div>
       {pipe(
         rd,
-        remoteEither.match(
+        remoteEither.fold(
           () => <div>[Initial]</div>,
           () => <div>[Loading]</div>,
           (e) => <div>[Error] {e}</div>,
@@ -58,7 +58,7 @@ export default {
 };
 
 const Template: Story<{ type: MeteorCallType }> = ({ type = 'resolve' }) => (
-  <UseRemoteEitherTest type={type} useRemoteEitherHook={useRemoteEither} />
+  <UseRemoteEitherTest type={type} useTaskHook={useTask} />
 );
 
 export const Resolve = Template.bind({});
