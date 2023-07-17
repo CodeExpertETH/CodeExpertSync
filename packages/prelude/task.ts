@@ -1,7 +1,6 @@
 import { $Unexpressable } from '@code-expert/type-utils';
 import { task } from 'fp-ts';
 import { flow } from 'fp-ts/function';
-
 import * as apply from './apply';
 
 export * from 'fp-ts/Task';
@@ -10,10 +9,12 @@ export const sequenceS = apply.sequenceS(task.ApplyPar);
 
 export const sequenceT = apply.sequenceT(task.ApplyPar);
 
-export const run = <A>(t: task.Task<A>): Promise<A> => t();
+export const toPromise = <A>(t: task.Task<A>): Promise<A> => t();
+
+export const run = (t: task.Task<void>): void => void t();
 
 export const exists: <A>(f: (a: A) => boolean) => (fa: task.Task<A>) => Promise<boolean> = (f) =>
-  flow(task.map(f), run);
+  flow(task.map(f), toPromise);
 
 export const map2 = apply.map2(task.ApplyPar);
 

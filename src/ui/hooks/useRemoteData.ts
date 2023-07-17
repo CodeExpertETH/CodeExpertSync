@@ -45,7 +45,7 @@ export function useRemoteEither<P extends ReadonlyArray<unknown>, E, A>(
     refresh(...props: P) {
       const setState = mkSetState();
       setState(remoteData.pending);
-      void pipe(
+      pipe(
         current.run(...props),
         task.map(remoteData.fromEither),
         task.chainIOK((x) => () => setState(x)),

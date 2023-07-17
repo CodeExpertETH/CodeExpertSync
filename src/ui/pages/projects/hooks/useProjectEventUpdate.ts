@@ -28,7 +28,7 @@ export const useProjectEventUpdate = (
     let timeout: NodeJS.Timeout | null = null;
     const registerEventSource = () => {
       if (sse.current == null) {
-        void pipe(
+        pipe(
           createToken(clientId)(),
           task.map((token) => {
             if (sse.current == null) {

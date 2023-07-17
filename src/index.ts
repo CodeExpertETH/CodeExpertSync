@@ -10,8 +10,8 @@ import './reset.css';
 import './global.css';
 import AppSignal from '@appsignal/javascript';
 import { relaunch } from '@tauri-apps/api/process';
-import { fromThrown } from '@/utils/error';
 import { config } from '@/config';
+import { fromThrown } from '@/utils/error';
 
 const appSignal =
   config.APP_SIGNAL_KEY != null ? new AppSignal({ key: config.APP_SIGNAL_KEY }) : undefined;

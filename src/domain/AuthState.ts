@@ -1,9 +1,10 @@
 import { api } from 'api';
 import React from 'react';
-import { pipe, tagged, task } from '@code-expert/prelude';
+import { constVoid, flow, pipe, tagged, task, taskEither } from '@code-expert/prelude';
 import { getAccess } from '@/api/oauth/getAccess';
 import { config } from '@/config';
 import useTimeout from '@/ui/hooks/useTimeout';
+import { apiErrorToMessage } from '@/utils/api';
 import { pkceChallenge } from '@/utils/crypto';
 import { panic } from '@/utils/error';
 import { ClientId } from './ClientId';
@@ -60,7 +61,8 @@ export const useAuthState = (
           task.chain((publicKey) =>
             getAccess(clientId, state.value.code_verifier, authToken, publicKey),
           ),
-          task.run,
+          taskEither.match(flow(apiErrorToMessage, panic), constVoid),
+          task.toPromise,
         );
         sse.current?.close();
         sse.current = null;

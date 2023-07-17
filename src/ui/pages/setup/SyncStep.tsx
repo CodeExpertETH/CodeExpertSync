@@ -17,7 +17,7 @@ export const SyncStep = ({ clientId, active }: { clientId: ClientId; active: boo
   const sseStatus = useProjectEventUpdate(projectRepository.fetchChanges, clientId);
 
   React.useEffect(() => {
-    void pipe(
+    pipe(
       getSetupState(projectRepository),
       task.map((state) => {
         dispatch({ setupState: state });

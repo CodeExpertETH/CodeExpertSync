@@ -2,7 +2,7 @@ import { relaunch } from '@tauri-apps/api/process';
 import { UpdateManifest, installUpdate } from '@tauri-apps/api/updater';
 import { Alert, Button, Spin, Typography } from 'antd';
 import React from 'react';
-import { pipe, tagged, taskEither } from '@code-expert/prelude';
+import { pipe, tagged, task, taskEither } from '@code-expert/prelude';
 import { config } from '@/config';
 import { Icon } from '@/ui/foundation/Icons';
 import { Box, VStack } from '@/ui/foundation/Layout';
@@ -27,17 +27,15 @@ export const updateStatus = tagged.build<UpdateStatus>();
 export function Updater(props: { manifest: UpdateManifest }) {
   const href = `${config.CX_REPO_RELEASE}/tag/v${props.manifest.version}`;
   const [status, setStatus] = React.useState<UpdateStatus>(updateStatus.start);
-  const installUpdateL = () =>
-    pipe(
-      taskEither.fromIO(() => setStatus(updateStatus.pending)),
-      taskEither.chain(() => installUpdateT),
-      taskEither.chain(() => relaunchT),
-      taskEither.fold(
-        (e) => taskEither.fromIO(() => setStatus(updateStatus.error(e))),
-        () => taskEither.fromIO(() => setStatus(updateStatus.done)),
-      ),
-      taskEither.run,
-    );
+  const installUpdateL: task.Task<void> = pipe(
+    taskEither.fromIO(() => setStatus(updateStatus.pending)),
+    taskEither.chain(() => installUpdateT),
+    taskEither.chain(() => relaunchT),
+    taskEither.match(
+      (e) => setStatus(updateStatus.error(e)),
+      () => setStatus(updateStatus.done),
+    ),
+  );
 
   return (
     <VStack align="start" justify="start" gap="sm" mh>

@@ -18,7 +18,7 @@ export const ProjectDirStep = ({ active }: { active: boolean }) => {
       defaultPath: await homeDir(),
     });
     if (projectDir != null) {
-      await pipe(
+      pipe(
         api.settingWrite('projectDir', projectDir),
         task.chain(() => getSetupState(projectRepository)),
         task.map((state) => dispatch({ setupState: state })),

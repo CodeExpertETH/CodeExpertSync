@@ -1,5 +1,4 @@
 import { assert, describe, it } from 'vitest';
-
 import {
   Identity,
   Kind,
@@ -10,6 +9,7 @@ import {
   io,
   naturalTransformation as nt,
   pipe,
+  task,
   taskEither,
 } from './';
 
@@ -58,7 +58,7 @@ describe('transform', () => {
     >(ioService, taskEither.fromIO);
 
     const compareTE = async <A>(expected: A, actual: taskEither.TaskEither<never, A>) =>
-      assert.deepStrictEqual(either.right(expected), await pipe(actual, taskEither.run));
+      assert.deepStrictEqual(either.right(expected), await pipe(actual, task.toPromise));
 
     await compareTE(true, teService.true());
     await compareTE(5, teService.length('hello'));

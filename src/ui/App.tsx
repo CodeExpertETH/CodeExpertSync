@@ -39,7 +39,7 @@ export const render = (container: HTMLElement): Promise<void> =>
         </React.StrictMode>,
       );
     }),
-    task.run,
+    task.toPromise,
   );
 
 export function App() {

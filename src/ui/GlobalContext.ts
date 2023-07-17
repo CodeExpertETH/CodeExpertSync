@@ -52,7 +52,7 @@ export const GlobalContextProvider = React.memo(function GlobalContextProvider({
 
   useEffect(() => {
     if (state == null) {
-      void pipe(
+      pipe(
         getSetupState(projectRepository),
         task.map((setupState) => {
           stateDispatch({

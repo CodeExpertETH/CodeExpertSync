@@ -21,7 +21,7 @@ export function Setup(props: { state: SetupState }) {
       pipe(
         api.settingRead('clientId', ClientId),
         taskOption.getOrElse(() => panic('No client ID was found. Please contact the developers.')),
-        task.run,
+        task.toPromise,
       ),
     [],
   );

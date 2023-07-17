@@ -16,7 +16,7 @@ const Version = () => {
   const [version, setVersion] = React.useState<string>('');
 
   React.useEffect(() => {
-    void pipe(api.getVersion, task.map(setVersion), task.run);
+    pipe(api.getVersion, task.map(setVersion), task.run);
   }, []);
 
   return (

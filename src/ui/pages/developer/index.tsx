@@ -1,31 +1,32 @@
 import { BaseDirectory } from '@tauri-apps/api/fs';
 import { Alert, Button } from 'antd';
 import React from 'react';
-import { iots, pipe, task, taskEither } from '@code-expert/prelude';
+import { constVoid, flow, iots, pipe, task, taskEither } from '@code-expert/prelude';
 import { globalSetupState, setupState } from '@/domain/Setup';
 import { fs } from '@/lib/tauri';
 import { useGlobalContextWithActions } from '@/ui/GlobalContext';
 import { VStack } from '@/ui/foundation/Layout';
-import { notificationT } from '@/ui/helper/notifications';
+import { notification, notificationT } from '@/ui/helper/notifications';
 import { routes, useRoute } from '@/ui/routes';
-import { apiGetSigned } from '@/utils/api';
+import { apiErrorToMessage, apiGetSigned } from '@/utils/api';
 
 export function Developer() {
   const [{ projectRepository }, dispatchContext] = useGlobalContextWithActions();
   const { navigateTo } = useRoute();
 
   const testAuth = () => {
-    void pipe(
+    pipe(
       apiGetSigned({
         path: 'app/assertAccess',
         codec: iots.strict({ status: iots.string }),
       }),
-      task.run,
+      taskEither.map(constVoid),
+      taskEither.run(flow(apiErrorToMessage, notification.error)),
     );
   };
 
-  const cleanConfig = () => {
-    void pipe(
+  const cleanConfig = () =>
+    pipe(
       projectRepository.projects.get(),
       task.traverseSeqArray((project) => projectRepository.removeProject(project.value.projectId)),
       task.chainFirst(() =>
@@ -49,7 +50,6 @@ export function Developer() {
       }),
       task.run,
     );
-  };
 
   return (
     <VStack gap={8}>

@@ -1,5 +1,5 @@
 import { apply, eq, option, predicate, taskEither, taskOption } from 'fp-ts';
-import { flow, pipe } from 'fp-ts/function';
+import { Lazy, flow, identity, pipe } from 'fp-ts/function';
 import * as task from './task';
 
 export * from 'fp-ts/TaskOption';
@@ -7,6 +7,9 @@ export * from 'fp-ts/TaskOption';
 export const sequenceS = apply.sequenceS(taskOption.ApplicativePar);
 
 export const sequenceT = apply.sequenceT(taskOption.ApplicativePar);
+
+export const run: (onNone: Lazy<void>) => (fa: taskOption.TaskOption<void>) => void = (onNone) =>
+  flow(taskOption.match(onNone, identity), (t) => void t());
 
 export const elem =
   <A>(eq: eq.Eq<A>) =>
