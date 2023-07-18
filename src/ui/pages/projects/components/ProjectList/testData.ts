@@ -1,7 +1,8 @@
 import { constVoid, task, taskEither } from '@code-expert/prelude';
 import { ProjectId, projectADT } from '@/domain/Project';
 import { ProjectMetadata } from '@/domain/ProjectMetadata';
-import { SyncException, changesADT, syncStateADT } from '@/domain/SyncState';
+import { SyncException } from '@/domain/SyncException';
+import { changesADT, syncStateADT } from '@/domain/SyncState';
 
 const metadata: ProjectMetadata = {
   projectId: 'p1' as ProjectId,

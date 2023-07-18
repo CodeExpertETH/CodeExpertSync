@@ -2,7 +2,7 @@ import { Alert, Button, List, Typography } from 'antd';
 import React from 'react';
 import { constNull, remoteEither, task, taskEither } from '@code-expert/prelude';
 import { Project, ProjectId, projectADT } from '@/domain/Project';
-import { SyncException, syncExceptionADT } from '@/domain/SyncState';
+import { SyncException, syncExceptionADT } from '@/domain/SyncException';
 import { ActionMenu } from '@/ui/components/ActionMenu';
 import { GuardRemoteEither } from '@/ui/components/GuardRemoteData';
 import { useTimeContext } from '@/ui/contexts/TimeContext';

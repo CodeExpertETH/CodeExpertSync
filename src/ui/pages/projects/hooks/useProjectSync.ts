@@ -41,12 +41,13 @@ import {
 } from '@/domain/FileState';
 import { LocalProject, Project, ProjectId, projectADT, projectPrism } from '@/domain/Project';
 import { ProjectMetadata } from '@/domain/ProjectMetadata';
-import { SyncException, changesADT, syncExceptionADT, syncStateADT } from '@/domain/SyncState';
+import { SyncException, fromHttpError, syncExceptionADT } from '@/domain/SyncException';
+import { changesADT, syncStateADT } from '@/domain/SyncState';
 import { fs as libFs, os as libOs, path as libPath } from '@/lib/tauri';
 import { removeFile } from '@/lib/tauri/fs';
 import { useGlobalContext } from '@/ui/GlobalContext';
 import { useTimeContext } from '@/ui/contexts/TimeContext';
-import { apiError, apiGetSigned, apiPostSigned, requestBody } from '@/utils/api';
+import { apiGetSigned, apiPostSigned, requestBody } from '@/utils/api';
 import { panic } from '@/utils/error';
 
 function updateDir({
@@ -104,7 +105,7 @@ const writeSingeFile = ({
               codec: iots.string,
               responseType: ResponseType.Text,
             }),
-            taskEither.mapLeft(syncExceptionFromHttpError),
+            taskEither.mapLeft(fromHttpError),
           ),
         ),
         taskEither.chain((fileContent) =>
@@ -246,7 +247,7 @@ const getProjectInfoRemote = (
         files: iots.array(RemoteFileInfoC),
       }),
     }),
-    taskEither.mapLeft(syncExceptionFromHttpError),
+    taskEither.mapLeft(fromHttpError),
   );
 
 const getProjectDirRelative = ({
@@ -552,7 +553,7 @@ export const uploadChangedFiles = (
             files: iots.array(RemoteFileInfoC),
           }),
         }),
-        taskEither.mapLeft(syncExceptionFromHttpError),
+        taskEither.mapLeft(fromHttpError),
       ),
     ),
     taskEither.map(constVoid),
@@ -781,11 +782,3 @@ export const useProjectSync = () => {
     [projectRepository, time],
   );
 };
-
-// -------------------------------------------------------------------------------------------------
-
-const syncExceptionFromHttpError = apiError.fold({
-  noNetwork: () => syncExceptionADT.wide.networkError({ reason: 'No network' }),
-  clientError: ({ message }) => syncExceptionADT.networkError({ reason: message }),
-  serverError: ({ message }) => syncExceptionADT.networkError({ reason: message }),
-});

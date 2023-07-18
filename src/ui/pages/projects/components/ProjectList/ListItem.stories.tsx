@@ -2,7 +2,7 @@ import { Meta, StoryObj } from '@storybook/react';
 import { List } from 'antd';
 import React from 'react';
 import { either, flow, taskEither } from '@code-expert/prelude';
-import { syncExceptionADT } from '@/domain/SyncState';
+import { syncExceptionADT } from '@/domain/SyncException';
 import {
   localProject,
   openProject,

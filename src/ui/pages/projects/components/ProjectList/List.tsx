@@ -2,7 +2,7 @@ import { List as AntList, Card, Typography } from 'antd';
 import React from 'react';
 import { array, pipe, task, taskEither } from '@code-expert/prelude';
 import { Project, ProjectId, ordProjectTask } from '@/domain/Project';
-import { SyncException } from '@/domain/SyncState';
+import { SyncException } from '@/domain/SyncException';
 import { VStack } from '@/ui/foundation/Layout';
 import { styled } from '@/ui/foundation/Theme';
 import { ForceSyncDirection } from '@/ui/pages/projects/hooks/useProjectSync';

@@ -1,7 +1,7 @@
 import { api } from 'api';
 import { boolean, constVoid, pipe, taskEither } from '@code-expert/prelude';
 import { LocalProject } from '@/domain/Project';
-import { SyncException, syncExceptionADT } from '@/domain/SyncState';
+import { SyncException, syncExceptionADT } from '@/domain/SyncException';
 
 export const verifyProjectConsistency = ({
   value: { basePath },
