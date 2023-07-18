@@ -10,7 +10,7 @@ import { Icon } from '@/ui/foundation/Icons';
 import ProjectEventStatus from '@/ui/pages/projects/components/ProjectEventStatus';
 import { useProjectEventUpdate } from '@/ui/pages/projects/hooks/useProjectEventUpdate';
 
-export const SyncStep = ({ clientId, active }: { clientId: ClientId; active: boolean }) => {
+export const SyncStep = ({ clientId }: { clientId: ClientId }) => {
   const [{ projectRepository }, dispatch] = useGlobalContextWithActions();
   const projects = useProperty(projectRepository.projects);
 
@@ -26,7 +26,7 @@ export const SyncStep = ({ clientId, active }: { clientId: ClientId; active: boo
     );
   }, [projectRepository, projects, dispatch]);
 
-  return active ? (
+  return (
     <>
       <ProjectEventStatus status={sseStatus} />
       <Typography.Paragraph>
@@ -56,5 +56,5 @@ export const SyncStep = ({ clientId, active }: { clientId: ClientId; active: boo
         }
       />
     </>
-  ) : null;
+  );
 };

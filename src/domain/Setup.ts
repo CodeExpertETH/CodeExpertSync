@@ -11,7 +11,7 @@ import {
   taskOption,
 } from '@code-expert/prelude';
 import { ProjectRepository } from '@/domain/ProjectRepository';
-import { apiError, apiGetSigned } from '@/utils/api';
+import { apiError, apiTryGetSigned } from '@/utils/api';
 import { panic } from '@/utils/error';
 
 export type SetupState =
@@ -45,7 +45,7 @@ const getSetupNoProjectDir = (projectRepository: ProjectRepository): task.Task<G
   );
 export const getSetupState = (projectRepository: ProjectRepository): task.Task<GlobalSetupState> =>
   pipe(
-    apiGetSigned({
+    apiTryGetSigned({
       path: 'app/assertAccess',
       codec: iots.strict({ status: iots.string }),
     }),
@@ -53,6 +53,7 @@ export const getSetupState = (projectRepository: ProjectRepository): task.Task<G
       (err) =>
         task.fromIO(() =>
           apiError.fold(err, {
+            notReady: () => globalSetupState.setup({ state: setupState.notAuthorized() }),
             noNetwork: () => panic('No network'),
             clientError: ({ statusCode, message }) =>
               [401, 403].includes(statusCode)

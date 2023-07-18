@@ -8,7 +8,7 @@ import { getSetupState } from '@/domain/Setup';
 import { useGlobalContextWithActions } from '@/ui/GlobalContext';
 import { EditableCard } from '@/ui/components/EditableCard';
 
-export const ProjectDirStep = ({ active }: { active: boolean }) => {
+export const ProjectDirStep = () => {
   const [{ projectRepository }, dispatch] = useGlobalContextWithActions();
 
   const selectDir = async () => {
@@ -27,21 +27,19 @@ export const ProjectDirStep = ({ active }: { active: boolean }) => {
     }
   };
 
-  return active ? (
+  return (
     <>
       <Typography.Paragraph>
         Before you start, please choose where on your computer you would like to store the synced
         projects.
       </Typography.Paragraph>
       <Typography.Paragraph>This can later be changed in settings.</Typography.Paragraph>
-      {active && (
-        <EditableCard
-          iconName="folder-open-regular"
-          description="All projects are synced into this directory"
-          value={''}
-          actions={[{ name: 'Select…', iconName: 'edit', type: 'link', onClick: selectDir }]}
-        />
-      )}
+      <EditableCard
+        iconName="folder-open-regular"
+        description="All projects are synced into this directory"
+        value={''}
+        actions={[{ name: 'Select…', iconName: 'edit', type: 'link', onClick: selectDir }]}
+      />
     </>
-  ) : null;
+  );
 };

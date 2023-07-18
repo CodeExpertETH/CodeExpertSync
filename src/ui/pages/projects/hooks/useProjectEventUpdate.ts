@@ -1,7 +1,8 @@
 import React from 'react';
-import { pipe, remoteEither, tagged, task } from '@code-expert/prelude';
+import { pipe, remoteEither, tagged, task, taskEither } from '@code-expert/prelude';
 import { config } from '@/config';
 import { ClientId } from '@/domain/ClientId';
+import { panic } from '@/utils/error';
 import { createToken } from '@/utils/jwt';
 
 export type SSEException = tagged.Tagged<'disconnected'>;
@@ -31,6 +32,7 @@ export const useProjectEventUpdate = (
       if (sse.current == null) {
         pipe(
           createToken(clientId)(),
+          taskEither.getOrElse(panic),
           task.map((token) => {
             if (sse.current == null) {
               setSseStatus(remoteEither.pending);

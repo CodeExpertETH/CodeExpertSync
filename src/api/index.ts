@@ -1,9 +1,18 @@
 import { invoke } from '@tauri-apps/api';
 import { getVersion } from '@tauri-apps/api/app';
-import { exists as fsExists, removeDir } from '@tauri-apps/api/fs';
+import { removeDir } from '@tauri-apps/api/fs';
 import { relaunch } from '@tauri-apps/api/process';
 import { Store as TauriStore } from 'tauri-plugin-store-api';
-import { constVoid, iots, option, pipe, task, taskEither, taskOption } from '@code-expert/prelude';
+import {
+  constVoid,
+  either,
+  iots,
+  option,
+  pipe,
+  task,
+  taskEither,
+  taskOption,
+} from '@code-expert/prelude';
 import { os, path } from '@/lib/tauri';
 import { TauriException, fromTauriError } from '@/lib/tauri/TauriException';
 import { removeFile } from '@/lib/tauri/fs';
@@ -14,7 +23,7 @@ const store = new TauriStore('settings.json');
 export interface Api {
   getVersion: task.Task<string>;
   create_keys: task.Task<string>;
-  create_jwt_tokens(claims: Record<string, unknown>): task.Task<string>;
+  create_jwt_tokens(claims: Record<string, unknown>): taskEither.TaskEither<string, string>;
   buildTar(fileName: string, rootDir: string, files: Array<string>): task.Task<string>;
   settingRead<T>(key: string, decoder: iots.Decoder<unknown, T>): taskOption.TaskOption<T>;
   settingWrite(key: string, value: unknown): task.Task<void>;
@@ -30,7 +39,6 @@ export interface Api {
     readOnly: boolean,
   ): taskEither.TaskEither<TauriException, void>;
   createProjectPath(filePath: string): taskEither.TaskEither<TauriException, void>;
-  exists(path: string): task.Task<boolean>;
   logout(): task.Task<void>;
   getSystemInfo: taskOption.TaskOption<string>;
   restart: task.Task<void>;
@@ -39,7 +47,11 @@ export interface Api {
 export const api: Api = {
   getVersion,
   create_keys: () => invoke('create_keys', {}),
-  create_jwt_tokens: (claims) => () => invoke('create_jwt_token', { claims }),
+  create_jwt_tokens: (claims) =>
+    pipe(
+      () => invoke<AlmostEither>('create_jwt_token', { claims }),
+      task.map((ae) => (ae._tag === 'Left' ? either.left(ae.value) : either.right(ae.value))),
+    ),
   buildTar: (fileName, rootDir, files) => () => invoke('build_tar', { fileName, rootDir, files }),
   settingRead: (key, decoder) =>
     pipe(() => store.get(key), task.map(decoder.decode), taskOption.fromTaskEither),
@@ -47,7 +59,6 @@ export const api: Api = {
     value != null
       ? store.set(key, value).then(() => store.save())
       : store.delete(key).then(() => store.save()),
-  exists: (path: string) => () => fsExists(path),
   removeDir: (filePath) =>
     taskEither.tryCatch(() => removeDir(filePath, { recursive: true }), fromTauriError),
   getFileHash: (path) =>
@@ -84,3 +95,8 @@ export const api: Api = {
   getSystemInfo: async () => option.fromNullable<string>(await invoke('system_info')),
   restart: () => relaunch(),
 };
+
+interface AlmostEither {
+  _tag: 'Left' | 'Right';
+  value: string;
+}

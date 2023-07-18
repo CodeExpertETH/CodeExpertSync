@@ -27,7 +27,7 @@ const AuthWarning = ({
     showIcon
   />
 );
-export const LoginStep = ({ clientId, active }: { clientId: ClientId; active: boolean }) => {
+export const LoginStep = ({ clientId }: { clientId: ClientId }) => {
   const [{ projectRepository }, dispatch] = useGlobalContextWithActions();
 
   const { state, startAuthorization, cancelAuthorization } = useAuthState(clientId, () =>
@@ -38,44 +38,43 @@ export const LoginStep = ({ clientId, active }: { clientId: ClientId; active: bo
     ),
   );
 
-  return active ? (
+  return (
     <>
       <Typography.Paragraph>
         You will be redirected to the Code Expert website to confirm that this app is authorised to
         access your projects.
       </Typography.Paragraph>
-      {active &&
-        authState.fold(state, {
-          startingAuthorization: ({ redirectLink, code_verifier }) => (
-            <Button
-              type="primary"
-              href={redirectLink}
-              onClick={() => startAuthorization(code_verifier)}
-              target="_blank"
-            >
+      {authState.fold(state, {
+        startingAuthorization: ({ redirectLink, code_verifier }) => (
+          <Button
+            type="primary"
+            href={redirectLink}
+            onClick={() => startAuthorization(code_verifier)}
+            target="_blank"
+          >
+            Authorize Code Expert Sync
+          </Button>
+        ),
+        deniedAuthorization: () => (
+          <AuthWarning warning="Denied authorization" cancelAuthorization={cancelAuthorization} />
+        ),
+        timeoutAuthorization: () => (
+          <AuthWarning warning="Timed out" cancelAuthorization={cancelAuthorization} />
+        ),
+        waitingForAuthorization: () => (
+          <>
+            <Button type="primary" loading target="_blank">
               Authorize Code Expert Sync
             </Button>
-          ),
-          deniedAuthorization: () => (
-            <AuthWarning warning="Denied authorization" cancelAuthorization={cancelAuthorization} />
-          ),
-          timeoutAuthorization: () => (
-            <AuthWarning warning="Timed out" cancelAuthorization={cancelAuthorization} />
-          ),
-          waitingForAuthorization: () => (
-            <>
-              <Button type="primary" loading target="_blank">
-                Authorize Code Expert Sync
+            <Typography.Paragraph>
+              Waiting for confirmation …{' '}
+              <Button danger type="link" onClick={cancelAuthorization}>
+                Cancel
               </Button>
-              <Typography.Paragraph>
-                Waiting for confirmation …{' '}
-                <Button danger type="link" onClick={cancelAuthorization}>
-                  Cancel
-                </Button>
-              </Typography.Paragraph>
-            </>
-          ),
-        })}
+            </Typography.Paragraph>
+          </>
+        ),
+      })}
     </>
-  ) : null;
+  );
 };

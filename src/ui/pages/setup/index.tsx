@@ -68,15 +68,15 @@ export function Setup(props: { state: SetupState }) {
                 items={[
                   {
                     title: 'Log in',
-                    description: <LoginStep clientId={clientId} active={step === 0} />,
+                    description: step === 0 ? <LoginStep clientId={clientId} /> : null,
                   },
                   {
                     title: 'Project directory',
-                    description: <ProjectDirStep active={step === 1} />,
+                    description: step === 1 ? <ProjectDirStep /> : null,
                   },
                   {
                     title: 'Synchronise tasks',
-                    description: <SyncStep clientId={clientId} active={step === 2} />,
+                    description: step === 2 ? <SyncStep clientId={clientId} /> : null,
                   },
                 ]}
               />

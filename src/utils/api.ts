@@ -1,6 +1,16 @@
 import * as http from '@tauri-apps/api/http';
 import { api } from 'api';
-import { either, iots, pipe, tagged, task, taskEither, taskOption } from '@code-expert/prelude';
+import {
+  constant,
+  either,
+  flow,
+  iots,
+  pipe,
+  tagged,
+  task,
+  taskEither,
+  taskOption,
+} from '@code-expert/prelude';
 import { config } from '@/config';
 import { ClientId } from '@/domain/ClientId';
 import { HttpError, RequestBody, httpError, httpGet, httpPost } from '@/lib/tauri/http';
@@ -51,16 +61,30 @@ export const apiPost = <A>({
   );
 };
 
-export const apiGetSigned = <A>({
+export const apiTryGetSigned = <A>({
   jwtPayload = {},
   ...options
 }: ApiGetSignedOptions<A>): taskEither.TaskEither<ApiError, A> =>
   pipe(
     readClientId,
-    task.chain((clientId) => createToken(clientId)(jwtPayload)),
-    taskEither.fromTask,
+    taskOption.chainTaskEitherK((clientId) => createToken(clientId)(jwtPayload)),
+    taskEither.fromTaskOption(() => apiError.notReady()),
     taskEither.chainW((token) => apiGet({ ...options, token })),
   );
+
+export const apiGetSigned: <A>(
+  options: ApiGetSignedOptions<A>,
+) => taskEither.TaskEither<ApiError, A> = flow(
+  apiTryGetSigned,
+  taskEither.mapLeft((e) =>
+    apiError.fold(e, {
+      notReady: panic('Unable to build a signed request'),
+      noNetwork: constant(e),
+      clientError: constant(e),
+      serverError: constant(e),
+    }),
+  ),
+);
 
 export const apiPostSigned = <A>({
   jwtPayload = {},
@@ -68,14 +92,15 @@ export const apiPostSigned = <A>({
 }: ApiPostSignedOptions<A>): taskEither.TaskEither<ApiError, A> =>
   pipe(
     readClientId,
-    task.chain((clientId) => createToken(clientId)(jwtPayload)),
-    taskEither.fromTask,
-    taskEither.chainW((token) => apiPost({ ...options, token })),
+    taskOption.getOrElse(() => panic('No client id was found. Please contact the developers.')),
+    task.chain((clientId) => pipe(createToken(clientId)(jwtPayload), taskEither.getOrElse(panic))),
+    task.chain((token) => apiPost({ ...options, token })),
   );
 
 // -------------------------------------------------------------------------------------------------
 
 export type ApiError =
+  | tagged.Tagged<'notReady'>
   | tagged.Tagged<'noNetwork'>
   | tagged.Tagged<'clientError', { statusCode: number; message: string }>
   | tagged.Tagged<'serverError', { statusCode: number; message: string }>;
@@ -83,6 +108,7 @@ export type ApiError =
 export const apiError = tagged.build<ApiError>();
 
 export const apiErrorToMessage: (err: ApiError) => string = apiError.fold({
+  notReady: () => 'Unable to build a signed request',
   noNetwork: () => 'Network is not available',
   clientError: (e) => `Client error (${e.statusCode}): ${e.message}`,
   serverError: (e) => `Server error (${e.statusCode}): ${e.message}`,
@@ -125,7 +151,4 @@ const fromResponseError = ({ statusCode, message }: ResponseError): ApiError => 
 
 // -------------------------------------------------------------------------------------------------
 
-const readClientId: task.Task<ClientId> = pipe(
-  api.settingRead('clientId', ClientId),
-  taskOption.getOrElse(() => panic('No client id was found. Please contact the developers.')),
-);
+const readClientId: taskOption.TaskOption<ClientId> = api.settingRead('clientId', ClientId);

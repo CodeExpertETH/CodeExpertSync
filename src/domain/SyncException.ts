@@ -1,5 +1,6 @@
 import { tagged } from '@code-expert/prelude';
 import { apiError } from '@/utils/api';
+import { panic } from '@/utils/error';
 
 export type SyncException =
   | tagged.Tagged<'conflictingChanges'>
@@ -13,6 +14,7 @@ export type SyncException =
 export const syncExceptionADT = tagged.build<SyncException>();
 
 export const fromHttpError = apiError.fold({
+  notReady: () => panic('Unable to build a signed request'),
   noNetwork: () => syncExceptionADT.wide.networkError({ reason: 'No network' }),
   clientError: ({ message }) => syncExceptionADT.networkError({ reason: message }),
   serverError: ({ message }) => syncExceptionADT.networkError({ reason: message }),

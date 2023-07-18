@@ -26,8 +26,7 @@ const getSystemInfo: task.Task<{ os: string; name: string; version: string }> = 
 export const registerApp = (): task.Task<ClientId> =>
   pipe(
     api.settingRead('clientId', ClientId),
-    taskOption.getOrElse(() => panic('No client id was found. Please contact the developers.')),
-    task.chain(() =>
+    taskOption.getOrElse(() =>
       pipe(
         getSystemInfo,
         task.bind('token', () => getClientToken),
