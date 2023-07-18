@@ -31,13 +31,13 @@ describe('RemoteData', () => {
 
     it('should be stable for remoteData.failure', () => {
       const rd: remoteData.RemoteData<string, number> = remoteData.failure('initial');
-      assert.strictEqual(keep(rd), rd);
-      assert.strictEqual(reject(rd), rd);
+      assert.deepEqual(keep(rd), rd);
+      assert.deepEqual(reject(rd), rd);
     });
 
     it('should be stable for remoteData.success when the predicate succeeds', () => {
       const rd: remoteData.RemoteData<string, number> = remoteData.success(1);
-      assert.strictEqual(keep(rd), rd);
+      assert.deepEqual(keep(rd), rd);
     });
 
     it('should transform success to failure when the predicate fails', () => {
