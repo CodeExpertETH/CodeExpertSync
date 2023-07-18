@@ -12,6 +12,7 @@ import { styled } from '@/ui/foundation/Theme';
 import { useTask } from '@/ui/hooks/useTask';
 import { fromProject } from '@/ui/pages/projects/components/ProjectList/model/SyncButtonState';
 import { ForceSyncDirection } from '@/ui/pages/projects/hooks/useProjectSync';
+import { routes, useRoute } from '@/ui/routes';
 import { SyncButton } from './SyncButton';
 
 const StyledListItem = styled(List.Item, () => ({
@@ -50,6 +51,7 @@ export interface ListItemProps {
 
 export const ListItem = ({ project, onOpen, onSync, onRemove }: ListItemProps) => {
   const { now } = useTimeContext();
+  const { navigateTo } = useRoute();
 
   const [openStateRD, runOpen] = useTask(onOpen);
   const [syncStateRD, runSync] = useTask(onSync);
@@ -59,6 +61,7 @@ export const ListItem = ({ project, onOpen, onSync, onRemove }: ListItemProps) =
   const actionStates = remoteEither.sequenceT(
     viewFromStringException(openStateRD),
     viewFromSyncException({
+      choseProjectDir: () => navigateTo(routes.settings()),
       forcePush: () => runSync(project.value.projectId, 'push'),
       forcePull: () => runSync(project.value.projectId, 'pull'),
     })(syncStateRD),
@@ -133,11 +136,16 @@ const viewFromStringException: <A>(
 ) => remoteEither.RemoteEither<React.ReactElement, A> = remoteEither.mapLeft((x) => <>{x}</>);
 
 const viewFromSyncException: (env: {
+  choseProjectDir(): void;
   forcePush(): void;
   forcePull(): void;
 }) => <A>(
   e: remoteEither.RemoteEither<SyncException, A>,
-) => remoteEither.RemoteEither<React.ReactElement, A> = ({ forcePush, forcePull }) =>
+) => remoteEither.RemoteEither<React.ReactElement, A> = ({
+  choseProjectDir,
+  forcePush,
+  forcePull,
+}) =>
   remoteEither.mapLeft(
     syncExceptionADT.fold({
       conflictingChanges: () => (
@@ -163,7 +171,14 @@ const viewFromSyncException: (env: {
           Problems with the file system: {reason} ({path})
         </>
       ),
-      projectDirMissing: () => <>Project directory not found; set it up in settings</>,
+      projectDirMissing: () => (
+        <>
+          <Typography.Paragraph>
+            Could not find the project directory to store data in.
+          </Typography.Paragraph>
+          <Button onClick={choseProjectDir}>Chose project directory …</Button>
+        </>
+      ),
       networkError: ({ reason }) => <>Network error: {reason}</>,
     }),
   );
