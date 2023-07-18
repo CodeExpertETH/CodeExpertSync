@@ -174,9 +174,11 @@ const viewFromSyncException: (env: {
       projectDirMissing: () => (
         <>
           <Typography.Paragraph>
-            Could not find the project directory to store data in.
+            Could not store the project data, please choose a storage location first.
           </Typography.Paragraph>
-          <Button onClick={choseProjectDir}>Chose project directory …</Button>
+          <Button type="primary" onClick={choseProjectDir}>
+            Choose project directory …
+          </Button>
         </>
       ),
       networkError: ({ reason }) => <>Network error: {reason}</>,
