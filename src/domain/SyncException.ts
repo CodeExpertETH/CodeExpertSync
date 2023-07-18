@@ -14,7 +14,7 @@ export type SyncException =
 export const syncExceptionADT = tagged.build<SyncException>();
 
 export const fromHttpError = apiError.fold({
-  notReady: () => panic('Unable to build a signed request'),
+  notReady: panic,
   noNetwork: () => syncExceptionADT.wide.networkError({ reason: 'Could not connect to server' }),
   clientError: ({ message }) => syncExceptionADT.networkError({ reason: message }),
   serverError: ({ message }) => syncExceptionADT.networkError({ reason: message }),
