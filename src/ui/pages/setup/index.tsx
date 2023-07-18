@@ -1,7 +1,7 @@
 import { Result, Steps, Typography } from 'antd';
 import { api } from 'api';
 import React from 'react';
-import { boolean, pipe, task, taskOption } from '@code-expert/prelude';
+import { boolean, pipe, taskOption } from '@code-expert/prelude';
 import { ClientId } from '@/domain/ClientId';
 import { SetupState, setupState } from '@/domain/Setup';
 import { useGlobalContextWithActions } from '@/ui/GlobalContext';
@@ -21,7 +21,6 @@ export function Setup(props: { state: SetupState }) {
       pipe(
         api.settingRead('clientId', ClientId),
         taskOption.getOrElse(() => panic('No client ID was found. Please contact the developers.')),
-        task.toPromise,
       ),
     [],
   );

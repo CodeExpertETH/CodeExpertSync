@@ -12,4 +12,4 @@ const getUserInfo = pipe(
   taskEither.getOrElse(flow(apiErrorToMessage, panic)),
 );
 
-export const useUserInfo = (): remote.Remote<UserInfo> => useAsync(getUserInfo, []);
+export const useUserInfo = (): remote.Remote<UserInfo> => useAsync(() => getUserInfo, []);
