@@ -1,4 +1,4 @@
-import { Alert, Button, List, Typography } from 'antd';
+import { Alert, Button, Collapse, List, Typography } from 'antd';
 import React from 'react';
 import { constNull, remoteEither, task, taskEither } from '@code-expert/prelude';
 import { Project, ProjectId, projectADT } from '@/domain/Project';
@@ -181,6 +181,18 @@ const viewFromSyncException: (env: {
           </Button>
         </>
       ),
-      networkError: ({ reason }) => <>Network error: {reason}</>,
+      networkError: ({ reason }) => (
+        <>
+          <Typography.Paragraph>
+            Could not connect to the server. Please make sure that your Internet connection is
+            working or try again later.
+          </Typography.Paragraph>
+          <Collapse>
+            <Collapse.Panel key="details" header="Show error details">
+              <Typography.Paragraph>{reason}</Typography.Paragraph>
+            </Collapse.Panel>
+          </Collapse>
+        </>
+      ),
     }),
   );
