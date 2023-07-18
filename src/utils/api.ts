@@ -78,7 +78,7 @@ export const apiGetSigned: <A>(
   apiTryGetSigned,
   taskEither.mapLeft((e) =>
     apiError.fold(e, {
-      notReady: panic('Unable to build a signed request'),
+      notReady: () => panic('Unable to build a signed request'),
       noNetwork: constant(e),
       clientError: constant(e),
       serverError: constant(e),
