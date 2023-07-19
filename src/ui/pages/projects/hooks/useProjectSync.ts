@@ -17,7 +17,6 @@ import {
   task,
   taskEither,
   taskOption,
-  tree,
 } from '@code-expert/prelude';
 import {
   File,
@@ -25,9 +24,11 @@ import {
   FileEntryTypeC,
   FilePermissions,
   FilePermissionsC,
+  fileArrayFromTree,
   isFile,
   isValidDirName,
   isValidFileName,
+  isVisibleFile,
 } from '@/domain/File';
 import {
   LocalFileChange,
@@ -177,12 +178,9 @@ const getProjectFilesLocal = (
         reason: e.message,
       }),
     ),
-    taskEither.map(
-      flow(
-        tree.foldMap(array.getMonoid<{ path: string; type: FileEntryType }>())(array.of),
-        array.filter(isFile),
-      ),
-    ),
+    taskEither.map(fileArrayFromTree),
+    taskEither.chainTaskK(array.filterE(task.ApplicativePar)(isVisibleFile(libPath))),
+    taskEither.map(array.filter(isFile)),
     taskEither.chain(
       taskEither.traverseArray(({ path, type }) =>
         pipe(
