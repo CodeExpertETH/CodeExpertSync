@@ -1,6 +1,6 @@
 import { Alert, Button, Collapse, List, Typography } from 'antd';
-import React from 'react';
-import { constNull, remoteEither, task, taskEither } from '@code-expert/prelude';
+import React, { useEffect } from 'react';
+import { constNull, io, remoteEither, task, taskEither } from '@code-expert/prelude';
 import { invalidFileNameMessage } from '@/domain/File';
 import { Project, ProjectId, projectADT } from '@/domain/Project';
 import { SyncException, syncExceptionADT } from '@/domain/SyncException';
@@ -58,6 +58,17 @@ export const ListItem = ({ project, onOpen, onSync, onRemove }: ListItemProps) =
   const [syncStateRD, runSync] = useTask(onSync);
   const [removalStateRD, runRemove] = useTask(onRemove);
 
+  const callWhenSynced = useCallWhen(projectADT.is.local(project));
+
+  const onOpenClick = React.useCallback(() => {
+    if (projectADT.is.local(project)) {
+      runOpen(project.value.projectId);
+    } else {
+      callWhenSynced(() => runOpen(project.value.projectId));
+      runSync(project.value.projectId);
+    }
+  }, [callWhenSynced, project, runOpen, runSync]);
+
   // All states combined. Order matters: the first failure gets precedence.
   const actionStates = remoteEither.sequenceT(
     viewFromStringException(openStateRD),
@@ -77,7 +88,7 @@ export const ListItem = ({ project, onOpen, onSync, onRemove }: ListItemProps) =
           <StyledButton
             type={'link'}
             block
-            onClick={() => runOpen(project.value.projectId)}
+            onClick={onOpenClick}
             disabled={remoteEither.isPending(openStateRD)}
           >
             {project.value.taskName}
@@ -97,7 +108,7 @@ export const ListItem = ({ project, onOpen, onSync, onRemove }: ListItemProps) =
                     key: 'open',
                     disabled: projectADT.is.remote(project),
                     icon: <Icon name="folder-open-regular" />,
-                    onClick: () => runOpen(project.value.projectId),
+                    onClick: onOpenClick,
                   },
                   {
                     label: 'Sync to local computer',
@@ -209,3 +220,17 @@ const viewFromSyncException: (env: {
       ),
     }),
   );
+
+const useCallWhen = (condition: boolean) => {
+  const { current } = React.useRef({
+    f: undefined as io.IO<void> | undefined,
+    setF: (f?: io.IO<void>) => (current.f = f),
+  });
+  useEffect(() => {
+    if (condition) {
+      current.f?.();
+      current.setF();
+    }
+  }, [condition, current]);
+  return current.setF;
+};
