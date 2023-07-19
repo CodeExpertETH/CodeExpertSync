@@ -1,6 +1,6 @@
 import { fs } from '@tauri-apps/api';
 import { pipe, task, taskEither, tree } from '@code-expert/prelude';
-import { FileEntryType } from '@/domain/File';
+import { FileEntry } from '@/domain/File';
 import { TauriException, fromTauriError } from '@/lib/tauri/TauriException';
 
 export const readDir = taskEither.tryCatchK(fs.readDir, fromTauriError);
@@ -14,11 +14,11 @@ export const exists =
 
 export const readDirTree = (
   dir: string,
-): taskEither.TaskEither<TauriException, tree.Tree<{ path: string; type: FileEntryType }>> =>
+): taskEither.TaskEither<TauriException, tree.Tree<FileEntry>> =>
   pipe(
     readDir(dir, { recursive: true }),
     taskEither.map((files) =>
-      tree.make<{ path: string; type: FileEntryType }>(
+      tree.make<FileEntry>(
         { path: dir, type: 'dir' },
         tree.unfoldForest(files, ({ path, children }) => [
           { path, type: children == null ? 'file' : 'dir' },

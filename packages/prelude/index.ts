@@ -19,7 +19,6 @@ import * as set from 'fp-ts/Set';
 import * as show from 'fp-ts/Show';
 import * as state from 'fp-ts/State';
 import * as these from 'fp-ts/These';
-import * as tree from 'fp-ts/Tree';
 import * as pipeable from 'fp-ts/pipeable';
 import * as adt from './adt';
 import * as apply from './apply';
@@ -52,6 +51,7 @@ import * as tagged from './tagged';
 import * as task from './task';
 import * as taskEither from './task-either';
 import * as taskOption from './task-option';
+import * as tree from './tree';
 import * as tuple from './tuple';
 
 export type { Kind, Kind2, Kind3, Kind4, URIS, URIS2, URIS3, URIS4 } from 'fp-ts/HKT';

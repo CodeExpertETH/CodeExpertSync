@@ -10,25 +10,27 @@ import {
   either,
   flow,
   iots,
+  not,
   number,
   option,
   ord,
   pipe,
+  string,
   task,
   taskEither,
   taskOption,
+  tree,
 } from '@code-expert/prelude';
 import {
   File,
+  FileEntry,
   FileEntryType,
   FileEntryTypeC,
   FilePermissions,
   FilePermissionsC,
-  fileArrayFromTree,
   isFile,
   isValidDirName,
   isValidFileName,
-  isVisibleFile,
 } from '@/domain/File';
 import {
   LocalFileChange,
@@ -167,6 +169,9 @@ const addHash =
       task.map((hash) => ({ path, type, hash })),
     );
 
+const isVisibleFile = (file: FileEntry): task.Task<boolean> =>
+  pipe(libPath.basename(file.path), task.map(option.exists(not(string.startsWith('.')))));
+
 const getProjectFilesLocal = (
   projectDir: string,
 ): taskEither.TaskEither<SyncException, ReadonlyArray<{ path: string; type: 'file' }>> =>
@@ -178,8 +183,8 @@ const getProjectFilesLocal = (
         reason: e.message,
       }),
     ),
-    taskEither.map(fileArrayFromTree),
-    taskEither.chainTaskK(array.filterE(task.ApplicativePar)(isVisibleFile(libPath))),
+    taskEither.map((x) => tree.toArray(x)),
+    taskEither.chainTaskK(array.filterE(task.ApplicativePar)(isVisibleFile)),
     taskEither.map(array.filter(isFile)),
     taskEither.chain(
       taskEither.traverseArray(({ path, type }) =>
