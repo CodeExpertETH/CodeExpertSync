@@ -1,6 +1,7 @@
 import { Alert, Button, Collapse, List, Typography } from 'antd';
 import React from 'react';
 import { constNull, remoteEither, task, taskEither } from '@code-expert/prelude';
+import { invalidFileNameMessage } from '@/domain/File';
 import { Project, ProjectId, projectADT } from '@/domain/Project';
 import { SyncException, syncExceptionADT } from '@/domain/SyncException';
 import { ActionMenu } from '@/ui/components/ActionMenu';
@@ -165,7 +166,19 @@ const viewFromSyncException: (env: {
           Read-only files changed: {reason} ({path})
         </>
       ),
-      invalidFilename: (filename) => <>Filename invalid: &quot;{filename}&quot;</>,
+      invalidFilename: (filename) => (
+        <>
+          <Typography.Paragraph>
+            This file name can’t be used, please rename:
+            <br />
+            <HStack align="center" gap="xs">
+              <Icon name={'file'} />
+              <strong>{filename}</strong>
+            </HStack>
+          </Typography.Paragraph>
+          <Typography.Paragraph>{invalidFileNameMessage}</Typography.Paragraph>
+        </>
+      ),
       fileSystemCorrupted: ({ path, reason }) => (
         <>
           Problems with the file system: {reason} ({path})
