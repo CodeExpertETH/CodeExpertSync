@@ -3,6 +3,10 @@ import { iots } from '@code-expert/prelude';
 export const FilePermissionsC = iots.keyof({ r: null, rw: null });
 export type FilePermissions = iots.TypeOf<typeof FilePermissionsC>;
 
+export const isReadOnly = (permissions: FilePermissions): boolean => permissions === 'r';
+
+export const isWritable = (permissions: FilePermissions): boolean => permissions === 'rw';
+
 export const FileEntryTypeC = iots.keyof({ file: null, dir: null });
 export type FileEntryType = iots.TypeOf<typeof FileEntryTypeC>;
 

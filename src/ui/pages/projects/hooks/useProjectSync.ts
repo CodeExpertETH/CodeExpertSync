@@ -22,15 +22,15 @@ import {
   tree,
 } from '@code-expert/prelude';
 import {
-  File,
   FileEntry,
-  FileEntryType,
   FileEntryTypeC,
   FilePermissions,
   FilePermissionsC,
   isFile,
+  isReadOnly,
   isValidDirName,
   isValidFileName,
+  isWritable,
 } from '@/domain/File';
 import {
   LocalFileChange,
@@ -67,7 +67,7 @@ function updateDir({
     taskEither.bindTaskK('systemFilePath', () => libPath.join(projectDir, projectDirPath)),
     taskEither.chainW(({ systemFilePath }) =>
       pipe(
-        api.createProjectDir(systemFilePath, permissions === 'r'),
+        api.createProjectDir(systemFilePath, isReadOnly(permissions)),
         taskEither.mapLeft(({ message: reason }) =>
           syncExceptionADT.fileSystemCorrupted({ path: projectDir, reason }),
         ),
@@ -76,21 +76,17 @@ function updateDir({
   );
 }
 
-const writeSingeFile = ({
+const writeSingleFile = ({
   projectFilePath,
   projectId,
   projectDir,
-  version,
-  permissions,
-  type,
+  readOnly,
 }: {
   projectFilePath: string;
   projectId: ProjectId;
   projectDir: string;
-  version: number;
-  permissions: FilePermissions;
-  type: FileEntryType;
-}): taskEither.TaskEither<SyncException, File> =>
+  readOnly: boolean;
+}): taskEither.TaskEither<SyncException, void> =>
   pipe(
     taskEither.Do,
     taskEither.bindTaskK('systemFilePath', () => libPath.join(projectDir, projectFilePath)),
@@ -113,7 +109,7 @@ const writeSingeFile = ({
         ),
         taskEither.chain((fileContent) =>
           pipe(
-            api.writeProjectFile(systemFilePath, fileContent, permissions === 'r'),
+            api.writeProjectFile(systemFilePath, fileContent, readOnly),
             taskEither.mapLeft(({ message: reason }) =>
               syncExceptionADT.wide.fileSystemCorrupted({ path: projectDir, reason }),
             ),
@@ -121,21 +117,7 @@ const writeSingeFile = ({
         ),
       ),
     ),
-    taskEither.bind('hash', ({ systemFilePath }) =>
-      pipe(
-        api.getFileHash(systemFilePath),
-        taskEither.mapLeft(({ message: reason }) =>
-          syncExceptionADT.wide.fileSystemCorrupted({ path: projectDir, reason }),
-        ),
-      ),
-    ),
-    taskEither.map(({ hash }) => ({
-      path: projectFilePath,
-      version,
-      hash,
-      type,
-      permissions,
-    })),
+    taskEither.map(constVoid),
   );
 
 const deleteSingeFile = ({
@@ -306,7 +288,7 @@ const checkClosestExistingAncestorIsWritable: (
           pipe(
             remote,
             array.findFirst((i) => i.path === closestPath),
-            option.map((i) => i.permissions === 'rw'),
+            option.map((i) => isWritable(i.permissions)),
           ),
         ),
         taskEither.filterOrElse(boolean.isTrue, () =>
@@ -391,7 +373,7 @@ const isFileWritable =
     pipe(
       remote,
       array.findFirst((i) => i.path === c.path),
-      option.fold(constFalse, (i) => i.permissions === 'rw'),
+      option.fold(constFalse, (i) => isWritable(i.permissions)),
     );
 
 // TODO: filter localChanges that are in conflict with remoteChanges
@@ -704,16 +686,13 @@ export const useProjectSync = () => {
                   (filesToDownload) =>
                     pipe(
                       filesToDownload,
-                      array.traverse(taskEither.ApplicativeSeq)(
-                        ({ path, permissions, type, version }) =>
-                          writeSingeFile({
-                            projectFilePath: path,
-                            projectId: project.value.projectId,
-                            projectDir,
-                            type,
-                            version,
-                            permissions,
-                          }),
+                      array.traverse(taskEither.ApplicativeSeq)(({ path, permissions }) =>
+                        writeSingleFile({
+                          projectFilePath: path,
+                          projectId: project.value.projectId,
+                          projectDir,
+                          readOnly: isReadOnly(permissions),
+                        }),
                       ),
                       taskEither.map(constVoid),
                     ),
