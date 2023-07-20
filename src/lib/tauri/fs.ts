@@ -1,7 +1,21 @@
 import { fs } from '@tauri-apps/api';
+import { FileEntry } from '@tauri-apps/api/fs';
 import { pipe, task, taskEither, tree } from '@code-expert/prelude';
-import { FileEntry } from '@/domain/File';
 import { TauriException, fromTauriError } from '@/lib/tauri/TauriException';
+
+export interface FsDir {
+  type: 'dir';
+  path: string;
+}
+
+export interface FsFile {
+  type: 'file';
+  path: string;
+}
+
+export type FsNode = FsDir | FsFile;
+
+export const isFile = <A extends FsNode>(a: A): a is A & FsFile => a.type === 'file';
 
 export const readDir = taskEither.tryCatchK(fs.readDir, fromTauriError);
 export const readBinaryFile = taskEither.tryCatchK(fs.readBinaryFile, fromTauriError);
@@ -12,18 +26,20 @@ export const exists =
   () =>
     fs.exists(path);
 
-export const readDirTree = (
-  dir: string,
-): taskEither.TaskEither<TauriException, tree.Tree<FileEntry>> =>
+export const readFsTree = (dir: string): taskEither.TaskEither<TauriException, tree.Tree<FsNode>> =>
   pipe(
     readDir(dir, { recursive: true }),
     taskEither.map((files) =>
-      tree.make<FileEntry>(
+      tree.make<FsNode>(
         { path: dir, type: 'dir' },
-        tree.unfoldForest(files, ({ path, children }) => [
-          { path, type: children == null ? 'file' : 'dir' },
-          children ?? [],
-        ]),
+        tree.unfoldForest(files, (file) => [fromFileEntry(file), file.children ?? []]),
       ),
     ),
   );
+
+// -------------------------------------------------------------------------------------------------
+
+const fromFileEntry = ({ path, children }: FileEntry): FsNode => ({
+  path,
+  type: children == null ? 'file' : 'dir',
+});
