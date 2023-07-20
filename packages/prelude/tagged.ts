@@ -1,8 +1,6 @@
 import { $IntentionalAny, $Unexpressable } from '@code-expert/type-utils';
 import { Refinement } from 'fp-ts/Refinement';
 import { Prism } from 'monocle-ts';
-import { identity } from './function';
-import * as option from './option';
 
 /**
  * Tools for working with tagged unions.
@@ -64,7 +62,7 @@ export type Constructor<A extends Tagged<string>> = A extends Tagged<string, inf
  * const one = num(1);
  * //    ^? NumStr
  */
-export type WideConstructor<A extends Tagged<string>, AA extends A> = AA extends Tagged<
+export type WideConstructor<A extends Tagged<string>, B extends A> = B extends Tagged<
   string,
   infer V
 >
@@ -136,8 +134,8 @@ export const fold = <A extends Tagged<string>>(): FoldStrict<A> => {
  * }
  */
 export const is =
-  <A extends Tagged<string>, AA extends A>(t: AA['_tag']): Refinement<A, AA> =>
-  (a): a is AA =>
+  <A extends Tagged<string>, B extends A>(t: B['_tag']): Refinement<A, B> =>
+  (a): a is B =>
     a._tag === t;
 
 // Build -----------------------------------------------------------------------------------------
@@ -244,7 +242,7 @@ export const build = <A extends Tagged<string>>(): Algebra<A> => {
 };
 
 export type Prisms<A extends Tagged<string>> = {
-  readonly [T in A['_tag']]: Prism<A, Member<A, T>>;
+  [T in A['_tag']]: Prism<A, Member<A, T>>;
 };
 
 /**
@@ -262,12 +260,9 @@ export const prisms = <A extends Tagged<string>>(): Prisms<A> =>
     get(prisms, prop) {
       const _tag = prop as A['_tag'];
       type T = typeof _tag;
+      type B = Member<A, T>;
       if (!(_tag in prisms)) {
-        // eslint-disable-next-line no-param-reassign
-        (prisms as $Unexpressable)[_tag] = new Prism<A, Member<A, T>>(
-          option.fromPredicate((a): a is Member<A, T> => a._tag === _tag),
-          identity,
-        );
+        prisms[_tag] = Prism.fromPredicate<A, B>(is<A, B>(_tag));
       }
       return prisms[_tag];
     },
