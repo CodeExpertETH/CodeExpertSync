@@ -70,7 +70,7 @@ const updateDir =
         pipe(
           api.createProjectDir(systemFilePath, isReadOnly(fileInfo)),
           taskEither.mapLeft(({ message: reason }) =>
-            syncExceptionADT.fileSystemCorrupted({ path: projectDir, reason }),
+            syncExceptionADT.fileSystemCorrupted({ path: systemFilePath, reason }),
           ),
         ),
       ),
