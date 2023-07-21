@@ -24,6 +24,7 @@ import {
 import {
   FsNodeInfo,
   LocalNodeChange,
+  RemoteFileChange,
   RemoteNodeChange,
   RemoteNodeInfo,
   RemoteNodeInfoC,
@@ -108,14 +109,14 @@ const writeSingleFile = ({
     taskEither.map(constVoid),
   );
 
-const deleteSingeFile = ({
-  projectFilePath,
+const deleteSingleFile = ({
+  file,
   projectDir,
 }: {
-  projectFilePath: string;
+  file: FsFile;
   projectDir: string;
 }): task.Task<void> =>
-  pipe(libPath.join(projectDir, projectFilePath), task.chainFirst(removeFile), task.map(constVoid));
+  pipe(libPath.join(projectDir, file.path), task.chainFirst(removeFile), task.map(constVoid));
 
 const isVisibleFile = (node: FsNode): task.Task<boolean> =>
   pipe(libPath.basename(node.path), task.map(option.exists(not(string.startsWith('.')))));
@@ -409,9 +410,10 @@ const getFilesToDownload =
       ),
     );
 
-const getFilesToDelete = (remoteChanges: Array<RemoteNodeChange>): Array<RemoteNodeChange> =>
+const getFilesToDelete = (remoteChanges: Array<RemoteNodeChange>): Array<RemoteFileChange> =>
   pipe(
     remoteChanges,
+    array.filter(isFile),
     array.filter((c) =>
       remoteNodeChange.fold(c.change, {
         noChange: constFalse,
@@ -660,11 +662,8 @@ export const useProjectSync = () => {
               (filesToDelete) =>
                 pipe(
                   filesToDelete,
-                  array.traverse(task.ApplicativeSeq)(({ path }) =>
-                    deleteSingeFile({
-                      projectFilePath: path,
-                      projectDir,
-                    }),
+                  array.traverse(task.ApplicativeSeq)((file) =>
+                    deleteSingleFile({ file, projectDir }),
                   ),
                 ),
             ),
