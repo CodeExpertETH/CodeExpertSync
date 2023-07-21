@@ -24,10 +24,12 @@ import {
 import {
   FsNodeInfo,
   LocalNodeChange,
+  RemoteDirInfo,
   RemoteFileChange,
   RemoteNodeChange,
   RemoteNodeInfo,
   RemoteNodeInfoC,
+  deleteSingleFile,
   fromFsFile,
   fromRemoteFileInfo,
   getConflicts,
@@ -40,12 +42,18 @@ import {
   localNodeChange,
   remoteNodeChange,
 } from '@/domain/FileSystem';
-import { LocalProject, Project, ProjectId, projectADT, projectPrism } from '@/domain/Project';
-import { ProjectMetadata } from '@/domain/ProjectMetadata';
+import {
+  LocalProject,
+  Project,
+  ProjectId,
+  getProjectDirRelative,
+  projectADT,
+  projectPrism,
+} from '@/domain/Project';
 import { SyncException, fromHttpError, syncExceptionADT } from '@/domain/SyncException';
 import { changesADT, syncStateADT } from '@/domain/SyncState';
 import { fs as libFs, os as libOs, path as libPath } from '@/lib/tauri';
-import { FsFile, FsNode, isFile, removeFile } from '@/lib/tauri/fs';
+import { FsNode, isDir, isFile } from '@/lib/tauri/fs';
 import { useGlobalContext } from '@/ui/GlobalContext';
 import { useTimeContext } from '@/ui/contexts/TimeContext';
 import { apiGetSigned, apiPostSigned, requestBody } from '@/utils/api';
@@ -53,7 +61,7 @@ import { panic } from '@/utils/error';
 
 const updateDir =
   (projectDir: string) =>
-  (fileInfo: RemoteNodeInfo): taskEither.TaskEither<SyncException, void> =>
+  (fileInfo: RemoteDirInfo): taskEither.TaskEither<SyncException, void> =>
     pipe(
       taskEither.Do,
       taskEither.bindTaskK('systemFilePath', () => libPath.join(projectDir, fileInfo.path)),
@@ -109,21 +117,20 @@ const writeSingleFile = ({
     taskEither.map(constVoid),
   );
 
-const deleteSingleFile = ({
-  file,
-  projectDir,
-}: {
-  file: FsFile;
-  projectDir: string;
-}): task.Task<void> =>
-  pipe(libPath.join(projectDir, file.path), task.chainFirst(removeFile), task.map(constVoid));
-
-const isVisibleFile = (node: FsNode): task.Task<boolean> =>
+const isVisibleFsNode = (node: FsNode): task.Task<boolean> =>
   pipe(libPath.basename(node.path), task.map(option.exists(not(string.startsWith('.')))));
 
-const getProjectFilesLocal = (
+/**
+ * Possible Exceptions:
+ * - has been synced before, but dir not present
+ * - can't read dir or subdir
+ *
+ * By requiring {@link LocalProject} we have handled case 1. Case 2 & 3 are textbook exception, no need to differentiate
+ */
+const getProjectInfoLocal = (
   projectDir: string,
-): taskEither.TaskEither<SyncException, ReadonlyArray<FsFile>> =>
+  _: LocalProject,
+): taskEither.TaskEither<SyncException, Array<FsNodeInfo>> =>
   pipe(
     libFs.readFsTree(projectDir),
     taskEither.mapLeft((e) =>
@@ -133,7 +140,7 @@ const getProjectFilesLocal = (
       }),
     ),
     taskEither.map((x) => tree.toArray(x)),
-    taskEither.chainTaskK(array.filterE(task.ApplicativePar)(isVisibleFile)),
+    taskEither.chainTaskK(array.filterE(task.ApplicativePar)(isVisibleFsNode)),
     taskEither.map(array.filter(isFile)),
     taskEither.chain(
       taskEither.traverseArray(({ path, type }) =>
@@ -150,33 +157,8 @@ const getProjectFilesLocal = (
         ),
       ),
     ),
-  );
-
-/**
- * Possible Exceptions:
- * - has been synced before, but dir not present
- * - can't read dir or subdir
- *
- * By requiring {@link LocalProject} we have handled case 1. Case 2 & 3 are textbook exception, no need to differentiate
- */
-const getProjectInfoLocal = (
-  projectDir: string,
-  _: LocalProject,
-): taskEither.TaskEither<SyncException, Array<FsNodeInfo>> =>
-  pipe(
-    getProjectFilesLocal(projectDir),
-    taskEither.chainW(
-      flow(
-        taskEither.traverseArray(flow(fromFsFile(libPath, projectDir), taskEither.fromTask)),
-        taskEither.map(array.unsafeFromReadonly),
-      ),
-    ),
-  );
-
-const getDirToUpdate = (projectInfoRemote: Array<RemoteNodeInfo>): Array<RemoteNodeInfo> =>
-  pipe(
-    projectInfoRemote,
-    array.filter((node) => !isFile(node)),
+    taskEither.chainTaskK(task.traverseArray(fromFsFile(libPath, projectDir))),
+    taskEither.map(array.unsafeFromReadonly),
   );
 
 const getProjectInfoRemote = (
@@ -191,19 +173,6 @@ const getProjectInfoRemote = (
       }),
     }),
     taskEither.mapLeft(fromHttpError),
-  );
-
-const getProjectDirRelative = ({
-  semester,
-  courseName,
-  exerciseName,
-  taskName,
-}: ProjectMetadata): task.Task<string> =>
-  libPath.join(
-    libPath.escape(semester),
-    libPath.escape(courseName),
-    libPath.escape(exerciseName),
-    libPath.escape(taskName),
   );
 
 const findClosest =
@@ -549,7 +518,7 @@ export const useProjectSync = () => {
         taskEither.bindW('projectDirRelative', () =>
           pipe(
             projectADT.fold(project, {
-              remote: (metadata) => getProjectDirRelative(metadata),
+              remote: getProjectDirRelative(libPath),
               local: ({ basePath }) => task.of(basePath),
             }),
             taskEither.fromTask,
@@ -626,7 +595,8 @@ export const useProjectSync = () => {
         // download and write added and updated files
         taskEither.chainFirst(({ filesToDownload, projectDir, projectInfoRemote }) =>
           pipe(
-            getDirToUpdate(projectInfoRemote.files),
+            projectInfoRemote.files,
+            array.filter(isDir),
             array.sort(
               ord.contramap((dir: { path: string }) => dir.path.split('/').length)(number.Ord),
             ),
@@ -662,9 +632,7 @@ export const useProjectSync = () => {
               (filesToDelete) =>
                 pipe(
                   filesToDelete,
-                  array.traverse(task.ApplicativeSeq)((file) =>
-                    deleteSingleFile({ file, projectDir }),
-                  ),
+                  array.traverse(task.ApplicativeSeq)(deleteSingleFile(libPath, projectDir)),
                 ),
             ),
           ),
