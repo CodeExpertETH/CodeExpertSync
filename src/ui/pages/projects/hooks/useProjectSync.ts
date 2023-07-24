@@ -501,11 +501,11 @@ export type RunProjectSync = (
   options?: { force?: ForceSyncDirection },
 ) => taskEither.TaskEither<SyncException, void>;
 
+const projectInfoStack: FileSystemStack = { ...libFs, ...libPath };
+
 export const useProjectSync = () => {
   const time = useTimeContext();
   const { projectRepository } = useGlobalContext();
-
-  const stack: FileSystemStack = { ...libFs, ...libPath };
 
   return React.useCallback<RunProjectSync>(
     (project, { force } = {}) =>
@@ -519,7 +519,9 @@ export const useProjectSync = () => {
             taskEither.fromTaskOption(() => syncExceptionADT.projectDirMissing()),
           ),
         ),
-        taskEither.bindTaskK('projectDirRelative', () => getProjectDirRelative(stack)(project)),
+        taskEither.bindTaskK('projectDirRelative', () =>
+          getProjectDirRelative(projectInfoStack)(project),
+        ),
         taskEither.bindW('projectDir', ({ rootDir, projectDirRelative }) =>
           pipe(libPath.join(rootDir, projectDirRelative), taskEither.fromTask),
         ),
@@ -535,7 +537,7 @@ export const useProjectSync = () => {
           pipe(
             projectPrism.local.getOption(project),
             option.traverse(taskEither.ApplicativePar)((project) =>
-              getProjectInfoLocal(stack)(projectDir, project),
+              getProjectInfoLocal(projectInfoStack)(projectDir, project),
             ),
           ),
         ),
@@ -628,7 +630,9 @@ export const useProjectSync = () => {
               (filesToDelete) =>
                 pipe(
                   filesToDelete,
-                  array.traverse(task.ApplicativeSeq)(deleteSingleFile(stack, projectDir)),
+                  array.traverse(task.ApplicativeSeq)(
+                    deleteSingleFile(projectInfoStack, projectDir),
+                  ),
                 ),
             ),
           ),
@@ -641,7 +645,9 @@ export const useProjectSync = () => {
               pipe(
                 projectInfoRemote.files,
                 array.filter(isFile),
-                array.traverse(task.ApplicativeSeq)(fromRemoteFileInfo(stack, projectDir)),
+                array.traverse(task.ApplicativeSeq)(
+                  fromRemoteFileInfo(projectInfoStack, projectDir),
+                ),
                 task.map((files) => ({
                   ...projectInfoRemote,
                   files,
