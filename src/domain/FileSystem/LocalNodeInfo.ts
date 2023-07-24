@@ -4,30 +4,30 @@ import { FsDir, FsFile, removeFile } from '@/lib/tauri/fs';
 import { FsDirC, FsFileC } from './FsNode';
 import { FileSystemStack } from './fileSystemStack';
 
-export type FsDirInfo = FsDir;
-export const FsDirInfoC: iots.Type<FsDir> = FsDirC;
+export type LocalDirInfo = FsDir;
+export const LocalDirInfoC: iots.Type<FsDir> = FsDirC;
 
-export interface FsFileInfo extends FsFile {
+export interface LocalFileInfo extends FsFile {
   hash: string;
 }
-export const FsFileInfoC: iots.Type<FsFileInfo> = iots.intersection([
+export const LocalFileInfoC: iots.Type<LocalFileInfo> = iots.intersection([
   FsFileC,
   iots.strict({ hash: iots.string }),
 ]);
 
-export type FsNodeInfo = FsDirInfo | FsFileInfo;
-export const FsNodeInfoC: iots.Type<FsNodeInfo> = iots.union([FsDirInfoC, FsFileInfoC]);
+export type LocalNodeInfo = LocalDirInfo | LocalFileInfo;
+export const LocalNodeInfoC: iots.Type<LocalNodeInfo> = iots.union([LocalDirInfoC, LocalFileInfoC]);
 
-export const eqFsNodeInfo = eq.struct({
+export const eqLocalNodeInfo = eq.struct({
   type: string.Eq,
   path: string.Eq,
 });
 
 // -------------------------------------------------------------------------------------------------
 
-export const fromFsFile =
+export const localFileInfoFromFsFile =
   (stack: FileSystemStack, projectDir: string) =>
-  <A extends FsFile>(file: A): task.Task<A & FsFileInfo> =>
+  <A extends FsFile>(file: A): task.Task<A & LocalFileInfo> =>
     pipe(
       stack.join(projectDir, file.path),
       task.chain(api.getFileHash),

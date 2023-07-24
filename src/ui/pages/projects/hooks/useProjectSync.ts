@@ -24,13 +24,13 @@ import {
 import {
   FsNodeInfo,
   LocalNodeChange,
+  LocalNodeInfo,
   RemoteDirInfo,
   RemoteFileChange,
   RemoteNodeChange,
   RemoteNodeInfo,
   RemoteNodeInfoC,
   deleteSingleFile,
-  fromFsFile,
   fromRemoteFileInfo,
   getConflicts,
   getLocalChanges,
@@ -39,6 +39,7 @@ import {
   isValidDirName,
   isValidFileName,
   isWritable,
+  localFileInfoFromFsFile,
   localNodeChange,
   remoteNodeChange,
 } from '@/domain/FileSystem';
@@ -130,7 +131,7 @@ const isVisibleFsNode = (node: FsNode): task.Task<boolean> =>
 const getProjectInfoLocal = (
   projectDir: string,
   _: LocalProject,
-): taskEither.TaskEither<SyncException, Array<FsNodeInfo>> =>
+): taskEither.TaskEither<SyncException, Array<LocalNodeInfo>> =>
   pipe(
     libFs.readFsTree(projectDir),
     taskEither.mapLeft((e) =>
@@ -157,7 +158,7 @@ const getProjectInfoLocal = (
         ),
       ),
     ),
-    taskEither.chainTaskK(task.traverseArray(fromFsFile(libPath, projectDir))),
+    taskEither.chainTaskK(task.traverseArray(localFileInfoFromFsFile(libPath, projectDir))),
     taskEither.map(array.unsafeFromReadonly),
   );
 

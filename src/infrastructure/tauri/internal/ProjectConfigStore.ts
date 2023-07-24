@@ -1,11 +1,11 @@
 import { BaseDirectory, readTextFile, removeFile, writeTextFile } from '@tauri-apps/api/fs';
 import { flow, iots, option, pipe, task, taskOption } from '@code-expert/prelude';
-import { FileInfoC } from '@/domain/FileSystem';
+import { PersistedFileInfoC } from '@/domain/FileSystem';
 import { LocalProject, ProjectId } from '@/domain/Project';
 
 const ProjectConfigC = iots.strict({
   basePath: iots.string,
-  files: iots.array(FileInfoC),
+  files: iots.array(PersistedFileInfoC),
   syncedAt: iots.DateFromISOString,
 });
 

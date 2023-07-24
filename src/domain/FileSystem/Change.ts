@@ -1,6 +1,6 @@
 import { array, monoid, nonEmptyArray, option, pipe, tagged } from '@code-expert/prelude';
 import { FsDir, FsFile, isFile } from '@/lib/tauri/fs';
-import { FsNodeInfo, eqFsNodeInfo } from './FsNodeInfo';
+import { LocalNodeInfo, eqLocalNodeInfo } from './LocalNodeInfo';
 import { RemoteNodeInfo } from './RemoteNodeInfo';
 
 export interface RemoteDirChange extends FsDir {
@@ -53,12 +53,12 @@ export const getRemoteChanges = (
   const latestFiles = pipe(latest, array.filter(isFile));
   const removed: Array<RemoteNodeChange> = pipe(
     previousFiles,
-    array.difference<RemoteNodeInfo>(eqFsNodeInfo)(latestFiles),
+    array.difference<RemoteNodeInfo>(eqLocalNodeInfo)(latestFiles),
     array.map(({ type, path }) => ({ type, path, change: remoteNodeChange.removed() })),
   );
   const added: Array<RemoteNodeChange> = pipe(
     latestFiles,
-    array.difference<RemoteNodeInfo>(eqFsNodeInfo)(previousFiles),
+    array.difference<RemoteNodeInfo>(eqLocalNodeInfo)(previousFiles),
     array.map(({ type, path, version }) => ({
       type,
       path,
@@ -88,19 +88,19 @@ export const getRemoteChanges = (
 };
 
 export const getLocalChanges = (
-  previous: Array<FsNodeInfo>,
-  latest: Array<FsNodeInfo>,
+  previous: Array<LocalNodeInfo>,
+  latest: Array<LocalNodeInfo>,
 ): option.Option<NonEmptyArray<LocalNodeChange>> => {
   const previousFiles = pipe(previous, array.filter(isFile));
   const latestFiles = pipe(latest, array.filter(isFile));
   const removed: Array<LocalNodeChange> = pipe(
     previousFiles,
-    array.difference<FsNodeInfo>(eqFsNodeInfo)(latestFiles),
+    array.difference<LocalNodeInfo>(eqLocalNodeInfo)(latestFiles),
     array.map(({ type, path }) => ({ type, path, change: localNodeChange.removed() })),
   );
   const added: Array<LocalNodeChange> = pipe(
     latestFiles,
-    array.difference<FsNodeInfo>(eqFsNodeInfo)(previousFiles),
+    array.difference<LocalNodeInfo>(eqLocalNodeInfo)(previousFiles),
     array.map(({ type, path }) => ({ type, path, change: localNodeChange.added() })),
   );
   const updated: Array<LocalNodeChange> = pipe(
@@ -109,7 +109,7 @@ export const getLocalChanges = (
     array.bind('latest', ({ previous }) =>
       pipe(
         latestFiles,
-        array.findFirst((latest) => eqFsNodeInfo.equals(previous, latest)),
+        array.findFirst((latest) => eqLocalNodeInfo.equals(previous, latest)),
         option.fold(() => [], array.of),
       ),
     ),
