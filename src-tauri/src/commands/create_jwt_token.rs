@@ -3,11 +3,15 @@ use serde::Serialize;
 use serde_json::Value;
 use std::fs;
 
-trait Traversable<T, E> {
-    fn traverse<U, G, F: FnOnce(T) -> Result<U, G>>(self, op: F) -> Result<Result<U, E>, G>;
+trait Traversable<T> {
+    type Output<U>;
+
+    fn traverse<U, G, F: FnOnce(T) -> Result<U, G>>(self, op: F) -> Result<Self::Output<U>, G>;
 }
 
-impl<T, E> Traversable<T, E> for Result<T, E> {
+impl<T, E> Traversable<T> for Result<T, E> {
+    type Output<U> = Result<U, E>;
+
     fn traverse<U, G, F: FnOnce(T) -> Result<U, G>>(self, op: F) -> Result<Result<U, E>, G> {
         match self {
             Err(e) => Ok(Err(e)),
