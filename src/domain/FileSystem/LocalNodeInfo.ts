@@ -1,20 +1,13 @@
-import { constVoid, eq, iots, pipe, string, task, taskEither } from '@code-expert/prelude';
-import { FsDir, FsDirC, FsFile, FsFileC, removeFile } from './FsNode';
+import { constVoid, eq, iots, pipe, string, task } from '@code-expert/prelude';
+import { FsFile, FsFileC } from './FsNode';
+import { HashInfo, HashInfoC } from './HashInfo';
 import { FileSystemStack } from './fileSystemStack';
 
-export type LocalDirInfo = FsDir;
-export const LocalDirInfoC: iots.Type<FsDir> = FsDirC;
+export interface LocalFileInfo extends FsFile, HashInfo {}
+export const LocalFileInfoC: iots.Type<LocalFileInfo> = iots.intersection([FsFileC, HashInfoC]);
 
-export interface LocalFileInfo extends FsFile {
-  hash: string;
-}
-export const LocalFileInfoC: iots.Type<LocalFileInfo> = iots.intersection([
-  FsFileC,
-  iots.strict({ hash: iots.string }),
-]);
-
-export type LocalNodeInfo = LocalDirInfo | LocalFileInfo;
-export const LocalNodeInfoC: iots.Type<LocalNodeInfo> = iots.union([LocalDirInfoC, LocalFileInfoC]);
+export type LocalNodeInfo = LocalFileInfo;
+export const LocalNodeInfoC: iots.Type<LocalNodeInfo> = LocalFileInfoC;
 
 export const eqLocalNodeInfo = eq.struct({
   type: string.Eq,
@@ -23,19 +16,7 @@ export const eqLocalNodeInfo = eq.struct({
 
 // -------------------------------------------------------------------------------------------------
 
-export const localFileInfoFromFsFile =
-  (stack: FileSystemStack, projectDir: string) =>
-  <A extends FsFile>(file: A): task.Task<A & LocalFileInfo> =>
-    pipe(
-      stack.join(projectDir, file.path),
-      task.chain(stack.getFileHash),
-      taskEither.getOrElse((e) => {
-        throw e;
-      }),
-      task.map((hash) => ({ ...file, hash })),
-    );
-
 export const deleteSingleFile =
   (stack: FileSystemStack, projectDir: string) =>
   (file: FsFile): task.Task<void> =>
-    pipe(stack.join(projectDir, file.path), task.chainFirst(removeFile), task.map(constVoid));
+    pipe(stack.join(projectDir, file.path), task.chainFirst(stack.removeFile), task.map(constVoid));

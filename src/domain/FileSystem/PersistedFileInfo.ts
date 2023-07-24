@@ -1,12 +1,14 @@
 import { iots, pipe, task } from '@code-expert/prelude';
-import { LocalFileInfo, LocalFileInfoC, localFileInfoFromFsFile } from './LocalNodeInfo';
+import { FsFile, FsFileC } from './FsNode';
+import { HashInfo, HashInfoC, localFileInfoFromFsFile } from './HashInfo';
 import { PfsInfo, PfsInfoC } from './PfsInfo';
 import { RemoteFileInfo } from './RemoteNodeInfo';
 import { FileSystemStack } from './fileSystemStack';
 
-export interface PersistedFileInfo extends LocalFileInfo, PfsInfo {}
+export interface PersistedFileInfo extends FsFile, HashInfo, PfsInfo {}
 export const PersistedFileInfoC: iots.Type<PersistedFileInfo> = iots.intersection([
-  LocalFileInfoC,
+  FsFileC,
+  HashInfoC,
   PfsInfoC,
 ]);
 

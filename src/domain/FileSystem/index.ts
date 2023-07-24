@@ -6,3 +6,4 @@ export * from './PersistedFileInfo';
 export * from './PfsInfo';
 export * from './RemoteNodeInfo';
 export * from './utils';
+export * from './HashInfo';
