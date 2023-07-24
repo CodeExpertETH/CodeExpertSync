@@ -15,8 +15,8 @@ export interface FsFile {
 
 export type FsNode = FsDir | FsFile;
 
-export const isFile = <A extends FsNode>(a: A): a is A & FsFile => a.type === 'file';
-export const isDir = <A extends FsNode>(a: A): a is A & FsDir => a.type === 'dir';
+export const isFile = <A extends FsNode>(a: A): a is Extract<A, FsFile> => a.type === 'file';
+export const isDir = <A extends FsNode>(a: A): a is Extract<A, FsDir> => a.type === 'dir';
 
 export const readDir = taskEither.tryCatchK(fs.readDir, fromTauriError);
 export const readBinaryFile = taskEither.tryCatchK(fs.readBinaryFile, fromTauriError);
