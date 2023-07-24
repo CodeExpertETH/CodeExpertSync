@@ -22,9 +22,8 @@ import {
   tree,
 } from '@code-expert/prelude';
 import {
-  FsNodeInfo,
+  LocalFileInfo,
   LocalNodeChange,
-  LocalNodeInfo,
   RemoteDirInfo,
   RemoteFileChange,
   RemoteNodeChange,
@@ -131,7 +130,7 @@ const isVisibleFsNode = (node: FsNode): task.Task<boolean> =>
 const getProjectInfoLocal = (
   projectDir: string,
   _: LocalProject,
-): taskEither.TaskEither<SyncException, Array<LocalNodeInfo>> =>
+): taskEither.TaskEither<SyncException, Array<LocalFileInfo>> =>
   pipe(
     libFs.readFsTree(projectDir),
     taskEither.mapLeft((e) =>

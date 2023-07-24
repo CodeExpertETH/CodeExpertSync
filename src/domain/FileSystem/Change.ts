@@ -1,6 +1,6 @@
 import { array, monoid, nonEmptyArray, option, pipe, tagged } from '@code-expert/prelude';
 import { FsDir, FsFile, isFile } from '@/lib/tauri/fs';
-import { LocalNodeInfo, eqLocalNodeInfo } from './LocalNodeInfo';
+import { LocalFileInfo, eqLocalNodeInfo } from './LocalNodeInfo';
 import { RemoteNodeInfo } from './RemoteNodeInfo';
 
 export interface RemoteDirChange extends FsDir {
@@ -88,22 +88,22 @@ export const getRemoteChanges = (
 };
 
 export const getLocalChanges = (
-  previous: Array<LocalNodeInfo>,
-  latest: Array<LocalNodeInfo>,
-): option.Option<NonEmptyArray<LocalNodeChange>> => {
+  previous: Array<LocalFileInfo>,
+  latest: Array<LocalFileInfo>,
+): option.Option<NonEmptyArray<LocalFileChange>> => {
   const previousFiles = pipe(previous, array.filter(isFile));
   const latestFiles = pipe(latest, array.filter(isFile));
-  const removed: Array<LocalNodeChange> = pipe(
+  const removed: Array<LocalFileChange> = pipe(
     previousFiles,
-    array.difference<LocalNodeInfo>(eqLocalNodeInfo)(latestFiles),
+    array.difference<LocalFileInfo>(eqLocalNodeInfo)(latestFiles),
     array.map(({ type, path }) => ({ type, path, change: localNodeChange.removed() })),
   );
-  const added: Array<LocalNodeChange> = pipe(
+  const added: Array<LocalFileChange> = pipe(
     latestFiles,
-    array.difference<LocalNodeInfo>(eqLocalNodeInfo)(previousFiles),
+    array.difference<LocalFileInfo>(eqLocalNodeInfo)(previousFiles),
     array.map(({ type, path }) => ({ type, path, change: localNodeChange.added() })),
   );
-  const updated: Array<LocalNodeChange> = pipe(
+  const updated: Array<LocalFileChange> = pipe(
     previousFiles,
     array.bindTo('previous'),
     array.bind('latest', ({ previous }) =>
