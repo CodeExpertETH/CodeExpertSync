@@ -1,4 +1,4 @@
-import { fs } from '@tauri-apps/api';
+import { fs, invoke } from '@tauri-apps/api';
 import { FileEntry } from '@tauri-apps/api/fs';
 import { pipe, task, taskEither, tree } from '@code-expert/prelude';
 import { TauriException, fromTauriError } from '@/lib/tauri/TauriException';
@@ -37,6 +37,9 @@ export const readFsTree = (dir: string): taskEither.TaskEither<TauriException, t
       ),
     ),
   );
+
+export const getFileHash = (path: string): taskEither.TaskEither<TauriException, string> =>
+  taskEither.tryCatch(() => invoke('get_file_hash', { path }), fromTauriError);
 
 // -------------------------------------------------------------------------------------------------
 

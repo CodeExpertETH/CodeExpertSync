@@ -20,9 +20,6 @@ export const api: Api = {
   removeDir: () => {
     panic('[Storybook] Not implemented');
   },
-  getFileHash: () => {
-    panic('[Storybook] Not implemented');
-  },
   createProjectDir: () => {
     panic('[Storybook] Not implemented');
   },

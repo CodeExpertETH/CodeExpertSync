@@ -33,7 +33,6 @@ export interface Api {
     readOnly: boolean,
   ): taskEither.TaskEither<TauriException, void>;
   removeDir(filePath: string): taskEither.TaskEither<TauriException, void>;
-  getFileHash(filePath: string): taskEither.TaskEither<TauriException, string>;
   createProjectDir(
     filePath: string,
     readOnly: boolean,
@@ -61,8 +60,6 @@ export const api: Api = {
       : store.delete(key).then(() => store.save()),
   removeDir: (filePath) =>
     taskEither.tryCatch(() => removeDir(filePath, { recursive: true }), fromTauriError),
-  getFileHash: (path) =>
-    taskEither.tryCatch(() => invoke('get_file_hash', { path }), fromTauriError),
   createProjectPath: (path) =>
     pipe(
       api.settingRead('projectDir', iots.string),

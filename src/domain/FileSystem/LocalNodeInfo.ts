@@ -1,4 +1,3 @@
-import { api } from 'api';
 import { constVoid, eq, iots, pipe, string, task, taskEither } from '@code-expert/prelude';
 import { FsDir, FsDirC, FsFile, FsFileC, removeFile } from './FsNode';
 import { FileSystemStack } from './fileSystemStack';
@@ -29,7 +28,7 @@ export const localFileInfoFromFsFile =
   <A extends FsFile>(file: A): task.Task<A & LocalFileInfo> =>
     pipe(
       stack.join(projectDir, file.path),
-      task.chain(api.getFileHash),
+      task.chain(stack.getFileHash),
       taskEither.getOrElse((e) => {
         throw e;
       }),

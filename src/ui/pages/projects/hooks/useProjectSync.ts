@@ -42,6 +42,7 @@ import {
   localFileInfoFromFsFile,
   remoteChangeType,
 } from '@/domain/FileSystem';
+import { FileSystemStack } from '@/domain/FileSystem/fileSystemStack';
 import {
   LocalProject,
   Project,
@@ -127,39 +128,41 @@ const isVisibleFsNode = (node: FsNode): task.Task<boolean> =>
  *
  * By requiring {@link LocalProject} we have handled case 1. Case 2 & 3 are textbook exception, no need to differentiate
  */
-const getProjectInfoLocal = (
-  projectDir: string,
-  _: LocalProject,
-): taskEither.TaskEither<SyncException, Array<LocalFileInfo>> =>
-  pipe(
-    libFs.readFsTree(projectDir),
-    taskEither.mapLeft((e) =>
-      syncExceptionADT.fileSystemCorrupted({
-        path: projectDir,
-        reason: e.message,
-      }),
-    ),
-    taskEither.map((x) => tree.toArray(x)),
-    taskEither.chainTaskK(array.filterE(task.ApplicativePar)(isVisibleFsNode)),
-    taskEither.map(array.filter(isFile)),
-    taskEither.chain(
-      taskEither.traverseArray(({ path, type }) =>
-        pipe(
-          libPath.stripAncestor(projectDir)(path),
-          taskEither.bimap(
-            (e) =>
-              syncExceptionADT.fileSystemCorrupted({
-                path: projectDir,
-                reason: e.message,
-              }),
-            (relative) => ({ path: relative, type }),
+const getProjectInfoLocal =
+  (stack: FileSystemStack) =>
+  (
+    projectDir: string,
+    _: LocalProject,
+  ): taskEither.TaskEither<SyncException, Array<LocalFileInfo>> =>
+    pipe(
+      libFs.readFsTree(projectDir),
+      taskEither.mapLeft((e) =>
+        syncExceptionADT.fileSystemCorrupted({
+          path: projectDir,
+          reason: e.message,
+        }),
+      ),
+      taskEither.map((x) => tree.toArray(x)),
+      taskEither.chainTaskK(array.filterE(task.ApplicativePar)(isVisibleFsNode)),
+      taskEither.map(array.filter(isFile)),
+      taskEither.chain(
+        taskEither.traverseArray(({ path, type }) =>
+          pipe(
+            libPath.stripAncestor(projectDir)(path),
+            taskEither.bimap(
+              (e) =>
+                syncExceptionADT.fileSystemCorrupted({
+                  path: projectDir,
+                  reason: e.message,
+                }),
+              (relative) => ({ path: relative, type }),
+            ),
           ),
         ),
       ),
-    ),
-    taskEither.chainTaskK(task.traverseArray(localFileInfoFromFsFile(libPath, projectDir))),
-    taskEither.map(array.unsafeFromReadonly),
-  );
+      taskEither.chainTaskK(task.traverseArray(localFileInfoFromFsFile(stack, projectDir))),
+      taskEither.map(array.unsafeFromReadonly),
+    );
 
 const getProjectInfoRemote = (
   projectId: ProjectId,
@@ -502,6 +505,8 @@ export const useProjectSync = () => {
   const time = useTimeContext();
   const { projectRepository } = useGlobalContext();
 
+  const stack: FileSystemStack = { ...libFs, ...libPath };
+
   return React.useCallback<RunProjectSync>(
     (project, { force } = {}) =>
       pipe(
@@ -518,7 +523,7 @@ export const useProjectSync = () => {
         taskEither.bindW('projectDirRelative', () =>
           pipe(
             projectADT.fold(project, {
-              remote: getProjectDirRelative(libPath),
+              remote: getProjectDirRelative(stack),
               local: ({ basePath }) => task.of(basePath),
             }),
             taskEither.fromTask,
@@ -539,7 +544,7 @@ export const useProjectSync = () => {
           pipe(
             projectPrism.local.getOption(project),
             option.traverse(taskEither.ApplicativePar)((project) =>
-              getProjectInfoLocal(projectDir, project),
+              getProjectInfoLocal(stack)(projectDir, project),
             ),
           ),
         ),
@@ -632,7 +637,7 @@ export const useProjectSync = () => {
               (filesToDelete) =>
                 pipe(
                   filesToDelete,
-                  array.traverse(task.ApplicativeSeq)(deleteSingleFile(libPath, projectDir)),
+                  array.traverse(task.ApplicativeSeq)(deleteSingleFile(stack, projectDir)),
                 ),
             ),
           ),
@@ -645,7 +650,7 @@ export const useProjectSync = () => {
               pipe(
                 projectInfoRemote.files,
                 array.filter(isFile),
-                array.traverse(task.ApplicativeSeq)(fromRemoteFileInfo(libPath, projectDir)),
+                array.traverse(task.ApplicativeSeq)(fromRemoteFileInfo(stack, projectDir)),
                 task.map((files) => ({
                   ...projectInfoRemote,
                   files,
