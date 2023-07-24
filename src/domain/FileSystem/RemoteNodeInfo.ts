@@ -1,6 +1,5 @@
 import { iots } from '@code-expert/prelude';
-import { FsDir, FsFile } from '@/lib/tauri/fs';
-import { FsDirC, FsFileC } from './FsNode';
+import { FsDir, FsDirC, FsFile, FsFileC } from './FsNode';
 import { PfsInfo, PfsInfoC } from './PfsInfo';
 
 export interface RemoteDirInfo extends FsDir, PfsInfo {}

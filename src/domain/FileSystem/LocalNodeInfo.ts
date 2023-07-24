@@ -1,7 +1,6 @@
 import { api } from 'api';
 import { constVoid, eq, iots, pipe, string, task, taskEither } from '@code-expert/prelude';
-import { FsDir, FsFile, removeFile } from '@/lib/tauri/fs';
-import { FsDirC, FsFileC } from './FsNode';
+import { FsDir, FsDirC, FsFile, FsFileC, removeFile } from './FsNode';
 import { FileSystemStack } from './fileSystemStack';
 
 export type LocalDirInfo = FsDir;
