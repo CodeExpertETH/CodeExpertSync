@@ -46,7 +46,7 @@ const getSetupNoProjectDir = (projectRepository: ProjectRepository): task.Task<G
 export const getSetupState = (projectRepository: ProjectRepository): task.Task<GlobalSetupState> =>
   pipe(
     apiTryGetSigned({
-      path: 'app/assertAccess',
+      path: 'access/assertAccess',
       codec: iots.strict({ status: iots.string }),
     }),
     taskEither.matchE(

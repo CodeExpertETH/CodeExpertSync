@@ -17,5 +17,5 @@ export const getAccess = (
     pubKey,
   });
 
-  return apiPost({ path: 'app/oauth/gainAccess', body, codec });
+  return apiPost({ path: 'access/verify', body, codec });
 };
