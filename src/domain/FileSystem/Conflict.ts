@@ -1,5 +1,5 @@
 import { array, nonEmptyArray, option, pipe } from '@code-expert/prelude';
-import { LocalNodeChange, RemoteNodeChange, remoteNodeChange } from './Change';
+import { LocalNodeChange, RemoteNodeChange, remoteChangeType } from './Change';
 import { eqLocalNodeInfo } from './LocalNodeInfo';
 
 export interface Conflict {
@@ -22,7 +22,7 @@ export const getConflicts = (
         remote,
         array.findFirst((changeRemote) => eqLocalNodeInfo.equals(changeLocal, changeRemote)),
         option.map(({ change }) => change),
-        option.getOrElseW(() => remoteNodeChange.noChange()),
+        option.getOrElseW(() => remoteChangeType.noChange()),
       ),
     })),
     nonEmptyArray.fromArray,

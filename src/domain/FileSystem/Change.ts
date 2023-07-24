@@ -3,45 +3,41 @@ import { FsDir, FsFile, isFile } from '@/lib/tauri/fs';
 import { LocalFileInfo, eqLocalNodeInfo } from './LocalNodeInfo';
 import { RemoteNodeInfo } from './RemoteNodeInfo';
 
+export type RemoteChangeType =
+  | tagged.Tagged<'noChange'>
+  | tagged.Tagged<'updated', number>
+  | tagged.Tagged<'removed'>
+  | tagged.Tagged<'added', number>;
+
+export const remoteChangeType = tagged.build<RemoteChangeType>();
+
+export type LocalChangeType =
+  | tagged.Tagged<'noChange'>
+  | tagged.Tagged<'updated'>
+  | tagged.Tagged<'removed'>
+  | tagged.Tagged<'added'>;
+
+export const localChangeType = tagged.build<LocalChangeType>();
+
 export interface RemoteDirChange extends FsDir {
-  change:
-    | tagged.Tagged<'noChange'>
-    | tagged.Tagged<'updated', number>
-    | tagged.Tagged<'removed'>
-    | tagged.Tagged<'added', number>;
+  change: RemoteChangeType;
 }
 
 export interface RemoteFileChange extends FsFile {
-  change:
-    | tagged.Tagged<'noChange'>
-    | tagged.Tagged<'updated', number>
-    | tagged.Tagged<'removed'>
-    | tagged.Tagged<'added', number>;
+  change: RemoteChangeType;
 }
 
 export type RemoteNodeChange = RemoteDirChange | RemoteFileChange;
 
-export const remoteNodeChange = tagged.build<RemoteNodeChange['change']>();
-
 export interface LocalDirChange extends FsDir {
-  change:
-    | tagged.Tagged<'noChange'>
-    | tagged.Tagged<'updated'>
-    | tagged.Tagged<'removed'>
-    | tagged.Tagged<'added'>;
+  change: LocalChangeType;
 }
 
 export interface LocalFileChange extends FsFile {
-  change:
-    | tagged.Tagged<'noChange'>
-    | tagged.Tagged<'updated'>
-    | tagged.Tagged<'removed'>
-    | tagged.Tagged<'added'>;
+  change: LocalChangeType;
 }
 
 export type LocalNodeChange = LocalDirChange | LocalFileChange;
-
-export const localNodeChange = tagged.build<LocalNodeChange['change']>();
 
 // -------------------------------------------------------------------------------------------------
 
@@ -54,7 +50,7 @@ export const getRemoteChanges = (
   const removed: Array<RemoteNodeChange> = pipe(
     previousFiles,
     array.difference<RemoteNodeInfo>(eqLocalNodeInfo)(latestFiles),
-    array.map(({ type, path }) => ({ type, path, change: remoteNodeChange.removed() })),
+    array.map(({ type, path }) => ({ type, path, change: remoteChangeType.removed() })),
   );
   const added: Array<RemoteNodeChange> = pipe(
     latestFiles,
@@ -62,7 +58,7 @@ export const getRemoteChanges = (
     array.map(({ type, path, version }) => ({
       type,
       path,
-      change: remoteNodeChange.added(version),
+      change: remoteChangeType.added(version),
     })),
   );
   const updated: Array<RemoteNodeChange> = pipe(
@@ -77,7 +73,7 @@ export const getRemoteChanges = (
     array.map(({ type, path, version }) => ({
       type,
       path,
-      change: remoteNodeChange.updated(version),
+      change: remoteChangeType.updated(version),
     })),
   );
   return pipe(
@@ -96,12 +92,12 @@ export const getLocalChanges = (
   const removed: Array<LocalFileChange> = pipe(
     previousFiles,
     array.difference<LocalFileInfo>(eqLocalNodeInfo)(latestFiles),
-    array.map(({ type, path }) => ({ type, path, change: localNodeChange.removed() })),
+    array.map(({ type, path }) => ({ type, path, change: localChangeType.removed() })),
   );
   const added: Array<LocalFileChange> = pipe(
     latestFiles,
     array.difference<LocalFileInfo>(eqLocalNodeInfo)(previousFiles),
-    array.map(({ type, path }) => ({ type, path, change: localNodeChange.added() })),
+    array.map(({ type, path }) => ({ type, path, change: localChangeType.added() })),
   );
   const updated: Array<LocalFileChange> = pipe(
     previousFiles,
@@ -117,7 +113,7 @@ export const getLocalChanges = (
     array.map(({ latest: { type, path } }) => ({
       type,
       path,
-      change: localNodeChange.updated(),
+      change: localChangeType.updated(),
     })),
   );
   return pipe(

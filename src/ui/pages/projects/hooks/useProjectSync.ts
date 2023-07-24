@@ -38,9 +38,9 @@ import {
   isValidDirName,
   isValidFileName,
   isWritable,
+  localChangeType,
   localFileInfoFromFsFile,
-  localNodeChange,
-  remoteNodeChange,
+  remoteChangeType,
 } from '@/domain/FileSystem';
 import {
   LocalProject,
@@ -319,7 +319,7 @@ const getFilesToUpload = (
   pipe(
     local,
     array.filter((c) =>
-      localNodeChange.fold(c.change, {
+      localChangeType.fold(c.change, {
         noChange: constFalse,
         added: constTrue,
         removed: constTrue,
@@ -329,7 +329,7 @@ const getFilesToUpload = (
     taskEither.traverseArray((x) =>
       pipe(
         x,
-        localNodeChange.fold<
+        localChangeType.fold<
           (c: LocalNodeChange) => taskEither.TaskEither<SyncException, LocalNodeChange>
         >(x.change, {
           noChange: () => () => {
@@ -367,7 +367,7 @@ const getFilesToDownload =
         pipe(
           remoteChanges,
           array.filter((c) =>
-            remoteNodeChange.fold(c.change, {
+            remoteChangeType.fold(c.change, {
               noChange: constFalse,
               added: constTrue,
               removed: constFalse,
@@ -384,7 +384,7 @@ const getFilesToDelete = (remoteChanges: Array<RemoteNodeChange>): Array<RemoteF
     remoteChanges,
     array.filter(isFile),
     array.filter((c) =>
-      remoteNodeChange.fold(c.change, {
+      remoteChangeType.fold(c.change, {
         noChange: constFalse,
         added: constFalse,
         removed: constTrue,
@@ -405,7 +405,7 @@ export const uploadChangedFiles = (
       pipe(
         localChanges,
         array.filter((c) =>
-          localNodeChange.fold(c.change, {
+          localChangeType.fold(c.change, {
             noChange: constFalse,
             added: constTrue,
             removed: constFalse,
@@ -431,7 +431,7 @@ export const uploadChangedFiles = (
       pipe(
         localChanges,
         array.filter((c) =>
-          localNodeChange.fold(c.change, {
+          localChangeType.fold(c.change, {
             noChange: constFalse,
             added: constFalse,
             removed: constTrue,
