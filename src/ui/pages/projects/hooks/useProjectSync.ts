@@ -519,16 +519,7 @@ export const useProjectSync = () => {
             taskEither.fromTaskOption(() => syncExceptionADT.projectDirMissing()),
           ),
         ),
-        // This is where it *should* be
-        taskEither.bindW('projectDirRelative', () =>
-          pipe(
-            projectADT.fold(project, {
-              remote: getProjectDirRelative(stack),
-              local: ({ basePath }) => task.of(basePath),
-            }),
-            taskEither.fromTask,
-          ),
-        ),
+        taskEither.bindTaskK('projectDirRelative', () => getProjectDirRelative(stack)(project)),
         taskEither.bindW('projectDir', ({ rootDir, projectDirRelative }) =>
           pipe(libPath.join(rootDir, projectDirRelative), taskEither.fromTask),
         ),

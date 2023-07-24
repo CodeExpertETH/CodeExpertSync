@@ -24,7 +24,15 @@ export const ordProjectExercise = ord.contramap((x: Project) => x.value.exercise
 
 // -------------------------------------------------------------------------------------------------
 
-export const getProjectDirRelative =
+export const getProjectDirRelative: (
+  stack: FileSystemStack,
+) => (project: Project) => task.Task<string> = (stack) =>
+  projectADT.fold({
+    remote: buildProjectPath(stack),
+    local: ({ basePath }) => task.of(basePath),
+  });
+
+const buildProjectPath =
   (stack: FileSystemStack) =>
   ({ semester, courseName, exerciseName, taskName }: ProjectMetadata): task.Task<string> =>
     stack.join(
