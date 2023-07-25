@@ -1,7 +1,7 @@
 import { Alert, Button, Collapse, List, Typography } from 'antd';
 import React, { useEffect } from 'react';
 import { constNull, io, remoteEither, task, taskEither } from '@code-expert/prelude';
-import { invalidFileNameMessage } from '@/domain/File';
+import { invalidFileNameMessage } from '@/domain/FileSystem';
 import { Project, ProjectId, projectADT } from '@/domain/Project';
 import { SyncException, syncExceptionADT } from '@/domain/SyncException';
 import { ActionMenu } from '@/ui/components/ActionMenu';
