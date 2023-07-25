@@ -9,7 +9,7 @@ export interface HashInfo {
   hash: string;
 }
 
-export const localFileInfoFromFsFile =
+export const hashInfoFromFsFile =
   (stack: FileSystemStack, projectDir: string) =>
   <A extends FsFile>(file: A): task.Task<A & HashInfo> =>
     pipe(

@@ -34,12 +34,12 @@ import {
   getConflicts,
   getLocalChanges,
   getRemoteChanges,
+  hashInfoFromFsFile,
   isReadOnly,
   isValidDirName,
   isValidFileName,
   isWritable,
   localChangeType,
-  localFileInfoFromFsFile,
   remoteChangeType,
 } from '@/domain/FileSystem';
 import { FileSystemStack } from '@/domain/FileSystem/fileSystemStack';
@@ -160,7 +160,7 @@ const getProjectInfoLocal =
           ),
         ),
       ),
-      taskEither.chainTaskK(task.traverseArray(localFileInfoFromFsFile(stack, projectDir))),
+      taskEither.chainTaskK(task.traverseArray(hashInfoFromFsFile(stack, projectDir))),
       taskEither.map(array.unsafeFromReadonly),
     );
 
