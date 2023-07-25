@@ -1,6 +1,6 @@
 import { array, monoid, nonEmptyArray, option, pipe, tagged } from '@code-expert/prelude';
 import { FsDir, FsFile, eqFsNode, isFile } from '@/lib/tauri/fs';
-import { LocalFileInfo } from './LocalNodeInfo';
+import { LocalFileInfo } from './LocalFileInfo';
 import { RemoteNodeInfo } from './RemoteNodeInfo';
 
 export type RemoteChangeType =

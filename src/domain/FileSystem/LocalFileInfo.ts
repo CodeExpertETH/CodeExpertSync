@@ -6,9 +6,6 @@ import { FileSystemStack } from './fileSystemStack';
 export interface LocalFileInfo extends FsFile, HashInfo {}
 export const LocalFileInfoC: iots.Type<LocalFileInfo> = iots.intersection([FsFileC, HashInfoC]);
 
-export type LocalNodeInfo = LocalFileInfo;
-export const LocalNodeInfoC: iots.Type<LocalNodeInfo> = LocalFileInfoC;
-
 // -------------------------------------------------------------------------------------------------
 
 export const deleteSingleFile =
