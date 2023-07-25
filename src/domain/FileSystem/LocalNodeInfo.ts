@@ -1,4 +1,4 @@
-import { constVoid, eq, iots, pipe, string, task } from '@code-expert/prelude';
+import { constVoid, iots, pipe, task } from '@code-expert/prelude';
 import { FsFile, FsFileC } from './FsNode';
 import { HashInfo, HashInfoC } from './HashInfo';
 import { FileSystemStack } from './fileSystemStack';
@@ -8,11 +8,6 @@ export const LocalFileInfoC: iots.Type<LocalFileInfo> = iots.intersection([FsFil
 
 export type LocalNodeInfo = LocalFileInfo;
 export const LocalNodeInfoC: iots.Type<LocalNodeInfo> = LocalFileInfoC;
-
-export const eqLocalNodeInfo = eq.struct({
-  type: string.Eq,
-  path: string.Eq,
-});
 
 // -------------------------------------------------------------------------------------------------
 

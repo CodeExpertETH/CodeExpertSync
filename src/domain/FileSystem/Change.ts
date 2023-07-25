@@ -1,6 +1,6 @@
 import { array, monoid, nonEmptyArray, option, pipe, tagged } from '@code-expert/prelude';
-import { FsDir, FsFile, isFile } from '@/lib/tauri/fs';
-import { LocalFileInfo, eqLocalNodeInfo } from './LocalNodeInfo';
+import { FsDir, FsFile, eqFsNode, isFile } from '@/lib/tauri/fs';
+import { LocalFileInfo } from './LocalNodeInfo';
 import { RemoteNodeInfo } from './RemoteNodeInfo';
 
 export type RemoteChangeType =
@@ -49,12 +49,12 @@ export const getRemoteChanges = (
   const latestFiles = pipe(latest, array.filter(isFile));
   const removed: Array<RemoteNodeChange> = pipe(
     previousFiles,
-    array.difference<RemoteNodeInfo>(eqLocalNodeInfo)(latestFiles),
+    array.difference<RemoteNodeInfo>(eqFsNode)(latestFiles),
     array.map(({ type, path }) => ({ type, path, change: remoteChangeType.removed() })),
   );
   const added: Array<RemoteNodeChange> = pipe(
     latestFiles,
-    array.difference<RemoteNodeInfo>(eqLocalNodeInfo)(previousFiles),
+    array.difference<RemoteNodeInfo>(eqFsNode)(previousFiles),
     array.map(({ type, path, version }) => ({
       type,
       path,
@@ -91,12 +91,12 @@ export const getLocalChanges = (
   const latestFiles = pipe(latest, array.filter(isFile));
   const removed: Array<LocalFileChange> = pipe(
     previousFiles,
-    array.difference<LocalFileInfo>(eqLocalNodeInfo)(latestFiles),
+    array.difference<LocalFileInfo>(eqFsNode)(latestFiles),
     array.map(({ type, path }) => ({ type, path, change: localChangeType.removed() })),
   );
   const added: Array<LocalFileChange> = pipe(
     latestFiles,
-    array.difference<LocalFileInfo>(eqLocalNodeInfo)(previousFiles),
+    array.difference<LocalFileInfo>(eqFsNode)(previousFiles),
     array.map(({ type, path }) => ({ type, path, change: localChangeType.added() })),
   );
   const updated: Array<LocalFileChange> = pipe(
@@ -105,7 +105,7 @@ export const getLocalChanges = (
     array.bind('latest', ({ previous }) =>
       pipe(
         latestFiles,
-        array.findFirst((latest) => eqLocalNodeInfo.equals(previous, latest)),
+        array.findFirst((latest) => eqFsNode.equals(previous, latest)),
         option.fold(() => [], array.of),
       ),
     ),
