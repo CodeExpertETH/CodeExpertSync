@@ -5,7 +5,6 @@ import { FileSystemStack } from '@/domain/FileSystem/fileSystemStack';
 export const HashInfoC = iots.strict({ hash: iots.string });
 
 export interface HashInfo {
-  type: 'file'; // fixme: not sure if this is smart...
   hash: string;
 }
 
