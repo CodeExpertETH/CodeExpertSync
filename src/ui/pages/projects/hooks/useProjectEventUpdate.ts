@@ -36,9 +36,7 @@ export const useProjectEventUpdate = (
           task.map((token) => {
             if (sse.current == null) {
               setSseStatus(remoteEither.pending);
-              sse.current = new EventSource(
-                `${config.CX_API_URL}/app/projectAccess?token=${token}`,
-              );
+              sse.current = new EventSource(`${config.CX_API_URL}/projectAccess?token=${token}`);
               sse.current.addEventListener('projectAccess', onProjectAdd);
               sse.current.addEventListener('error', onError);
               sse.current.addEventListener('open', onConnect);

@@ -32,7 +32,7 @@ const cleanUpEventListener = (
   onDenied: () => void,
   onError: (e: Event) => void,
 ) => {
-  sse.current?.removeEventListener('authToken', onAuthToken);
+  sse.current?.removeEventListener('granted', onAuthToken);
   sse.current?.removeEventListener('denied', onDenied);
   sse.current?.removeEventListener('error', onError);
   sse.current?.close();
@@ -85,12 +85,10 @@ export const useAuthState = (
 
     if (authState.is.waitingForAuthorization(state)) {
       if (sse.current == null) {
-        sse.current = new EventSource(
-          `${config.CX_API_URL}/app/oauth/listenForAuthToken/${clientId}`,
-        );
+        sse.current = new EventSource(`${config.CX_API_URL}/access/authorize?clientId=${clientId}`);
       }
 
-      sse.current?.addEventListener('authToken', onAuthToken, { once: true });
+      sse.current?.addEventListener('granted', onAuthToken, { once: true });
       sse.current?.addEventListener('denied', onDenied, { once: true });
       sse.current?.addEventListener('error', onError);
     } else {

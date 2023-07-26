@@ -120,7 +120,7 @@ export const mkProjectRepositoryTauri = (): task.Task<ProjectRepository> => {
 
         const removeProjectAccess: taskEither.TaskEither<Array<string>, void> = pipe(
           apiPostSigned({
-            path: 'app/projectAccess/remove',
+            path: 'projectAccess/remove',
             jwtPayload: { projectId },
             codec: iots.strict({ removed: iots.boolean }),
           }),

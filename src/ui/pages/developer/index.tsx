@@ -17,7 +17,7 @@ export function Developer() {
   const testAuth = () => {
     pipe(
       apiGetSigned({
-        path: 'app/assertAccess',
+        path: 'access/assertAccess',
         codec: iots.strict({ status: iots.string }),
       }),
       taskEither.map(constVoid),
