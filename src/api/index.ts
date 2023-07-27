@@ -17,7 +17,6 @@ import { PfsPath, ProjectPath } from '@/domain/FileSystem';
 import { os, path } from '@/lib/tauri';
 import { TauriException, fromTauriError } from '@/lib/tauri/TauriException';
 import { removeFile } from '@/lib/tauri/fs';
-import { panic } from '@/utils/error';
 
 const store = new TauriStore('settings.json');
 
@@ -28,17 +27,10 @@ export interface Api {
   buildTar(fileName: string, rootDir: ProjectPath, files: Array<PfsPath>): task.Task<string>;
   settingRead<T>(key: string, decoder: iots.Decoder<unknown, T>): taskOption.TaskOption<T>;
   settingWrite(key: string, value: unknown): task.Task<void>;
-  writeProjectFile(
-    filePath: string,
-    content: string,
-    readOnly: boolean,
-  ): taskEither.TaskEither<TauriException, void>;
   removeDir(filePath: string): taskEither.TaskEither<TauriException, void>;
-  createProjectDir(
-    filePath: string,
-    readOnly: boolean,
-  ): taskEither.TaskEither<TauriException, void>;
   createProjectPath(filePath: string): taskEither.TaskEither<TauriException, void>;
+  createProjectDir(filePath: string): taskEither.TaskEither<TauriException, void>;
+  writeProjectFile(filePath: string, content: string): taskEither.TaskEither<TauriException, void>;
   logout(): task.Task<void>;
   getSystemInfo: taskOption.TaskOption<string>;
   restart: task.Task<void>;
@@ -62,22 +54,15 @@ export const api: Api = {
   removeDir: (filePath) =>
     taskEither.tryCatch(() => removeDir(filePath, { recursive: true }), fromTauriError),
   createProjectPath: (path) =>
-    pipe(
-      api.settingRead('projectDir', iots.string),
-      taskOption.getOrElse(() => panic('Could not find project dir')),
-      task.chain((root) =>
-        taskEither.tryCatch(() => invoke('create_project_path', { path, root }), fromTauriError),
-      ),
-    ),
-  createProjectDir: (path, readOnly) =>
-    taskEither.tryCatch(() => invoke('create_project_dir', { path, readOnly }), fromTauriError),
-  writeProjectFile: (filePath, content, readOnly) =>
+    taskEither.tryCatch(() => invoke('create_project_path', { path }), fromTauriError),
+  createProjectDir: (path) =>
+    taskEither.tryCatch(() => invoke('create_project_dir', { path }), fromTauriError),
+  writeProjectFile: (filePath, content) =>
     taskEither.tryCatch(
       () =>
-        invoke('write_file', {
+        invoke('write_project_file', {
           path: filePath,
           contents: Array.from(new TextEncoder().encode(content)),
-          readOnly,
         }),
       fromTauriError,
     ),

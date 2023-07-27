@@ -1,5 +1,5 @@
 import { fs, invoke } from '@tauri-apps/api';
-import { FileEntry } from '@tauri-apps/api/fs';
+import { BinaryFileContents, FileEntry } from '@tauri-apps/api/fs';
 import { eq, pipe, string, task, taskEither, tree } from '@code-expert/prelude';
 import { TauriException, fromTauriError } from '@/lib/tauri/TauriException';
 
@@ -31,6 +31,17 @@ export const exists =
   (path: string): task.Task<boolean> =>
   () =>
     fs.exists(path);
+export const writeTextFile = taskEither.tryCatchK<
+  TauriException,
+  [path: string, contents: string],
+  void
+>(fs.writeTextFile, fromTauriError);
+export const writeBinaryFile = taskEither.tryCatchK<
+  TauriException,
+  [path: string, contents: BinaryFileContents],
+  void
+>(fs.writeBinaryFile, fromTauriError);
+export const createDir = taskEither.tryCatchK(fs.createDir, fromTauriError);
 
 export const readFsTree = (dir: string): taskEither.TaskEither<TauriException, tree.Tree<FsNode>> =>
   pipe(
