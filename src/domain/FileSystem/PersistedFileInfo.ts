@@ -1,4 +1,5 @@
 import { iots, pipe, task } from '@code-expert/prelude';
+import { ProjectPath } from '@/domain/FileSystem/Path';
 import { FsFile, FsFileC } from './FsNode';
 import { HashInfo, HashInfoC, hashInfoFromFsFile } from './HashInfo';
 import { PfsInfo, PfsInfoC } from './PfsInfo';
@@ -15,6 +16,6 @@ export const PersistedFileInfoC: iots.Type<PersistedFileInfo> = iots.intersectio
 // -------------------------------------------------------------------------------------------------
 
 export const fromRemoteFileInfo =
-  (stack: FileSystemStack, projectDir: string) =>
+  (stack: FileSystemStack, projectDir: ProjectPath) =>
   (file: RemoteFileInfo): task.Task<PersistedFileInfo> =>
     pipe(file, hashInfoFromFsFile(stack, projectDir));

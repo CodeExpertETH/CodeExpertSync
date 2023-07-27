@@ -3,12 +3,12 @@ import { FileEntry } from '@tauri-apps/api/fs';
 import { eq, pipe, string, task, taskEither, tree } from '@code-expert/prelude';
 import { TauriException, fromTauriError } from '@/lib/tauri/TauriException';
 
-export interface FsDir {
+interface FsDir {
   type: 'dir';
   path: string;
 }
 
-export interface FsFile {
+interface FsFile {
   type: 'file';
   path: string;
 }

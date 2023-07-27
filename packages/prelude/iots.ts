@@ -1,5 +1,6 @@
 import { $Unexpressable } from '@code-expert/type-utils';
 import { fold, mapLeft } from 'fp-ts/Either';
+import { Refinement } from 'fp-ts/Refinement';
 import { flow } from 'fp-ts/function';
 import * as t from 'io-ts';
 import { formatValidationErrors } from 'io-ts-reporters';
@@ -109,3 +110,17 @@ export const unsafeDecode =
         (a) => a,
       ),
     );
+
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface BrandIdentityC<C extends t.Any, B>
+  extends t.RefinementType<C, t.Branded<t.TypeOf<C>, B>, t.Branded<t.TypeOf<C>, B>, t.InputOf<C>> {}
+
+export const brandIdentity: <
+  C extends t.Any,
+  N extends string,
+  B extends { readonly [K in N]: symbol },
+>(
+  codec: C,
+  predicate: Refinement<t.TypeOf<C>, t.Branded<t.TypeOf<C>, B>>,
+  name: N,
+) => BrandIdentityC<C, B> = t.brand;

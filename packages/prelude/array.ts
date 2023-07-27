@@ -131,6 +131,24 @@ export const unfoldTaskK =
     return out;
   };
 
+// // second attempt:
+// export interface UnfoldE<U> {
+//   <F>(F: Applicative<F>): <A, B>(
+//     b: B,
+//     f: (b: B) => HKT<F, option.Option<readonly [A, B]>>,
+//   ) => HKT<F, HKT<U, B>>;
+// }
+//
+// const UnfoldE: UnfoldE<array.URI> =
+//   <F>(F: Applicative<F>) =>
+//   <A, B>(b: B, f: (b: B) => HKT<F, option.Option<readonly [A, B]>>) => {
+//   const out: HKT<F, Array<B>> = F.of([]);
+//   let bb: HKT<F, B> = F.of(b);
+//
+//     array....
+//   };
+
+// // first attempt:
 // const stopUnfold = Symbol();
 // type StopUnfold = typeof stopUnfold;
 // export const unfoldFromAlt =

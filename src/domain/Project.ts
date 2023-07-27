@@ -1,4 +1,5 @@
 import { iots, number, ord, tagged, task } from '@code-expert/prelude';
+import {getRelativeProjectPath, RelativeProjectPath} from '@/domain/FileSystem';
 import { FileSystemStack } from '@/domain/FileSystem/fileSystemStack';
 import { ProjectFiles } from '@/domain/ProjectFiles';
 import { ProjectMetadata } from '@/domain/ProjectMetadata';
@@ -26,18 +27,9 @@ export const ordProjectExercise = ord.contramap((x: Project) => x.value.exercise
 
 export const getProjectDirRelative: (
   stack: FileSystemStack,
-) => (project: Project) => task.Task<string> = (stack) =>
+) => (project: Project) => task.Task<RelativeProjectPath> = (stack) =>
   projectADT.fold({
-    remote: buildProjectPath(stack),
+    remote: ({ semester: s, courseName: c, exerciseName: e, taskName: t }) =>
+      getRelativeProjectPath(stack)(s, c, e, t),
     local: ({ basePath }) => task.of(basePath),
   });
-
-const buildProjectPath =
-  (stack: FileSystemStack) =>
-  ({ semester, courseName, exerciseName, taskName }: ProjectMetadata): task.Task<string> =>
-    stack.join(
-      stack.escape(semester),
-      stack.escape(courseName),
-      stack.escape(exerciseName),
-      stack.escape(taskName),
-    );

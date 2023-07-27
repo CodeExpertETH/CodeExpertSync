@@ -1,5 +1,6 @@
 import { array, monoid, nonEmptyArray, option, pipe, tagged } from '@code-expert/prelude';
-import { FsDir, FsFile, eqFsNode, isFile } from '@/lib/tauri/fs';
+import { eqFsNode, isFile } from '@/lib/tauri/fs';
+import { FsDir, FsFile } from './FsNode';
 import { LocalFileInfo } from './LocalFileInfo';
 import { RemoteNodeInfo } from './RemoteNodeInfo';
 
