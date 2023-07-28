@@ -1,4 +1,5 @@
 import { constVoid, task, taskEither } from '@code-expert/prelude';
+import { RelativeProjectPath } from '@/domain/FileSystem';
 import { ProjectId, projectADT } from '@/domain/Project';
 import { ProjectMetadata } from '@/domain/ProjectMetadata';
 import { SyncException } from '@/domain/SyncException';
@@ -19,7 +20,7 @@ export const remoteProject = projectADT.remote(metadata);
 
 export const localProject = projectADT.local({
   ...metadata,
-  basePath: '/tmp/cxexample',
+  basePath: '/tmp/cxexample' as RelativeProjectPath,
   files: [],
   syncedAt: new Date('2023-05-06T11:00:00Z'),
   syncState: syncStateADT.synced(changesADT.unknown()),

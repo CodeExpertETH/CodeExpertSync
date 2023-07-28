@@ -1,5 +1,5 @@
 import { iots, number, ord, tagged, task } from '@code-expert/prelude';
-import {getRelativeProjectPath, RelativeProjectPath} from '@/domain/FileSystem';
+import { RelativeProjectPath, getRelativeProjectPath } from '@/domain/FileSystem';
 import { FileSystemStack } from '@/domain/FileSystem/fileSystemStack';
 import { ProjectFiles } from '@/domain/ProjectFiles';
 import { ProjectMetadata } from '@/domain/ProjectMetadata';

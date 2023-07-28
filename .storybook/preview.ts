@@ -1,5 +1,6 @@
 import { Preview } from '@storybook/react';
 import React from 'react';
+import { RelativeProjectPath } from '../src/domain/FileSystem';
 import { ProjectId, projectADT } from '../src/domain/Project';
 import { changesADT, syncStateADT } from '../src/domain/SyncState';
 import { mkProjectRepositoryTesting } from '../src/infrastructure/testing/ProjectRepository';
@@ -17,7 +18,7 @@ const projectRepository = await mkProjectRepositoryTesting([
     taskOrder: 1,
     exerciseOrder: 1,
     semester: 'AS22',
-    basePath: '/tmp/cxsync-test',
+    basePath: '/tmp/cxsync-test' as RelativeProjectPath,
     files: [],
     syncedAt: new Date(),
     syncState: syncStateADT.synced(changesADT.unknown()),
