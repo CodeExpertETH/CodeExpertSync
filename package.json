@@ -70,6 +70,7 @@
     "react-fontawesome-svg-icon": "^1.1.2",
     "react-hotkeys-hook": "^4.4.0",
     "tauri-plugin-store-api": "git+https://github.com/tauri-apps/tauri-plugin-store",
+    "tslib": "^2.6.1",
     "vite-plugin-eslint": "^1.8.1",
     "vitest": "^0.32.4"
   },
