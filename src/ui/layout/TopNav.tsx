@@ -1,7 +1,7 @@
 import { Menu } from 'antd';
 import React from 'react';
 import { constFalse, constTrue } from '@code-expert/prelude';
-import codeExpertLogo from '@/assets/logo_invert.png';
+import logo from '@/assets/logo-inverted.svg';
 import { globalSetupState } from '@/domain/Setup';
 import { useGlobalContextWithActions } from '@/ui/GlobalContext';
 import { Icon } from '@/ui/foundation/Icons';
@@ -23,8 +23,8 @@ export const TopNav = () => {
   return (
     <HStack justify={'space-between'} align="center">
       <img
-        src={codeExpertLogo}
-        height="40"
+        src={logo}
+        height="64"
         alt="Code Expert"
         aria-hidden="true"
         onClick={() => navigateTo(routes.courses())}

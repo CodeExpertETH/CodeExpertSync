@@ -13,7 +13,8 @@ const StyledAlert = styled(Alert, () => ({
 }));
 
 const StyledLayoutHeader = styled(Layout.Header, ({ tokens }) => ({
-  paddingInline: `${tokens.paddingSM}px !important`,
+  paddingInlineStart: `4px !important`, // Magic number that works well for logo's padding
+  paddingInlineEnd: `${tokens.paddingSM}px !important`,
 }));
 
 const StyledContent = styled(Layout.Content, () => ({
