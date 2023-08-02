@@ -11,9 +11,7 @@ import {
   flow,
   iots,
   not,
-  number,
   option,
-  ord,
   pipe,
   string,
   task,
@@ -26,7 +24,6 @@ import {
   LocalFileInfo,
   PfsPath,
   ProjectPath,
-  RemoteDirInfo,
   RemoteFileChange,
   RemoteNodeChange,
   RemoteNodeInfo,
@@ -41,7 +38,6 @@ import {
   getProjectPath,
   getRemoteChanges,
   hashInfoFromFsFile,
-  isReadOnly,
   isValidDirName,
   isValidFileName,
   isWritable,
@@ -60,27 +56,11 @@ import {
 import { SyncException, fromHttpError, syncExceptionADT } from '@/domain/SyncException';
 import { changesADT, syncStateADT } from '@/domain/SyncState';
 import { fs as libFs, os as libOs, path as libPath } from '@/lib/tauri';
-import { FsNode, isDir, isFile } from '@/lib/tauri/fs';
+import { FsNode, isFile } from '@/lib/tauri/fs';
 import { useGlobalContext } from '@/ui/GlobalContext';
 import { useTimeContext } from '@/ui/contexts/TimeContext';
 import { apiGetSigned, apiPostSigned, requestBody } from '@/utils/api';
 import { panic } from '@/utils/error';
-
-const updateDir =
-  (projectDir: ProjectPath) =>
-  (fileInfo: RemoteDirInfo): taskEither.TaskEither<SyncException, void> =>
-    pipe(
-      taskEither.Do,
-      taskEither.bindTaskK('systemFilePath', () => libPath.join(projectDir, fileInfo.path)),
-      taskEither.chainW(({ systemFilePath }) =>
-        pipe(
-          api.createProjectDir(systemFilePath, isReadOnly(fileInfo)),
-          taskEither.mapLeft(({ message: reason }) =>
-            syncExceptionADT.fileSystemCorrupted({ path: systemFilePath, reason }),
-          ),
-        ),
-      ),
-    );
 
 const writeSingleFile = ({
   fileInfo,
@@ -92,36 +72,21 @@ const writeSingleFile = ({
   projectDir: ProjectPath;
 }): taskEither.TaskEither<SyncException, void> =>
   pipe(
-    taskEither.Do,
-    taskEither.bindTaskK('systemFilePath', () => libPath.join(projectDir, fileInfo.path)),
-    taskEither.chainFirst(({ systemFilePath }) =>
+    apiGetSigned({
+      path: `project/${projectId}/file`,
+      jwtPayload: { path: fileInfo.path },
+      codec: iots.string,
+      responseType: ResponseType.Text,
+    }),
+    taskEither.mapLeft(fromHttpError),
+    taskEither.chain((fileContent) =>
       pipe(
-        api.createProjectPath(projectDir),
+        api.writeProjectFile(projectDir, fileInfo.path, fileContent),
         taskEither.mapLeft(({ message: reason }) =>
-          syncExceptionADT.wide.fileSystemCorrupted({ path: projectDir, reason }),
-        ),
-        taskEither.chain(() =>
-          pipe(
-            apiGetSigned({
-              path: `project/${projectId}/file`,
-              jwtPayload: { path: fileInfo.path },
-              codec: iots.string,
-              responseType: ResponseType.Text,
-            }),
-            taskEither.mapLeft(fromHttpError),
-          ),
-        ),
-        taskEither.chain((fileContent) =>
-          pipe(
-            api.writeProjectFile(systemFilePath, fileContent, isReadOnly(fileInfo)),
-            taskEither.mapLeft(({ message: reason }) =>
-              syncExceptionADT.wide.fileSystemCorrupted({ path: projectDir, reason }),
-            ),
-          ),
+          syncExceptionADT.wide.fileSystemCorrupted({ path: fileInfo.path, reason }),
         ),
       ),
     ),
-    taskEither.map(constVoid),
   );
 
 const isVisibleFsNode = (node: FsNode): task.Task<boolean> =>
@@ -588,33 +553,23 @@ export const useProjectSync = () => {
           ),
         ),
         // download and write added and updated files
-        taskEither.chainFirst(({ filesToDownload, projectDir, projectInfoRemote }) =>
+        taskEither.chainFirst(({ filesToDownload, projectDir }) =>
           pipe(
-            projectInfoRemote.files,
-            array.filter(isDir),
-            array.sort(
-              ord.contramap((dir: { path: string }) => dir.path.split('/').length)(number.Ord),
-            ),
-            array.traverse(taskEither.ApplicativeSeq)(updateDir(projectDir)),
-            taskEither.chain(() =>
-              pipe(
-                filesToDownload,
-                option.foldW(
-                  () => taskEither.of<SyncException, void>(undefined),
-                  (filesToDownload) =>
-                    pipe(
-                      filesToDownload,
-                      array.traverse(taskEither.ApplicativeSeq)((fileInfo) =>
-                        writeSingleFile({
-                          fileInfo,
-                          projectId: project.value.projectId,
-                          projectDir,
-                        }),
-                      ),
-                      taskEither.map(constVoid),
-                    ),
+            filesToDownload,
+            option.foldW(
+              () => taskEither.of<SyncException, void>(undefined),
+              (files) =>
+                pipe(
+                  files,
+                  array.traverse(taskEither.ApplicativeSeq)((fileInfo) =>
+                    writeSingleFile({
+                      fileInfo,
+                      projectId: project.value.projectId,
+                      projectDir,
+                    }),
+                  ),
+                  taskEither.map(constVoid),
                 ),
-              ),
             ),
           ),
         ),

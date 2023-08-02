@@ -28,9 +28,11 @@ export interface Api {
   settingRead<T>(key: string, decoder: iots.Decoder<unknown, T>): taskOption.TaskOption<T>;
   settingWrite(key: string, value: unknown): task.Task<void>;
   removeDir(filePath: string): taskEither.TaskEither<TauriException, void>;
-  createProjectPath(filePath: string): taskEither.TaskEither<TauriException, void>;
-  createProjectDir(filePath: string): taskEither.TaskEither<TauriException, void>;
-  writeProjectFile(filePath: string, content: string): taskEither.TaskEither<TauriException, void>;
+  writeProjectFile(
+    project: ProjectPath,
+    file: PfsPath,
+    content: string,
+  ): taskEither.TaskEither<TauriException, void>;
   logout(): task.Task<void>;
   getSystemInfo: taskOption.TaskOption<string>;
   restart: task.Task<void>;
@@ -53,16 +55,13 @@ export const api: Api = {
       : store.delete(key).then(() => store.save()),
   removeDir: (filePath) =>
     taskEither.tryCatch(() => removeDir(filePath, { recursive: true }), fromTauriError),
-  createProjectPath: (path) =>
-    taskEither.tryCatch(() => invoke('create_project_path', { path }), fromTauriError),
-  createProjectDir: (path) =>
-    taskEither.tryCatch(() => invoke('create_project_dir', { path }), fromTauriError),
-  writeProjectFile: (filePath, content) =>
+  writeProjectFile: (project, file, content) =>
     taskEither.tryCatch(
       () =>
         invoke('write_project_file', {
-          path: filePath,
-          contents: Array.from(new TextEncoder().encode(content)),
+          project,
+          file,
+          content: Array.from(new TextEncoder().encode(content)),
         }),
       fromTauriError,
     ),

@@ -20,12 +20,6 @@ export const api: Api = {
   removeDir: () => {
     panic('[Storybook] Not implemented');
   },
-  createProjectDir: () => {
-    panic('[Storybook] Not implemented');
-  },
-  createProjectPath: () => {
-    panic('[Storybook] Not implemented');
-  },
   logout: () => task.of(undefined),
   getSystemInfo: taskOption.of('Storybook'),
   restart: task.of(undefined),
