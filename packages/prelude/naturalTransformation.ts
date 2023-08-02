@@ -3,7 +3,7 @@ import { identity, io, naturalTransformation as nt, record } from 'fp-ts';
 import { URIS, URIS2 } from 'fp-ts/HKT';
 import { flow, pipe } from 'fp-ts/function';
 
-export * from 'fp-ts/NaturalTransformation';
+export type * from 'fp-ts/NaturalTransformation';
 
 export interface ServiceKind<F extends URIS> {
   _F: F;
