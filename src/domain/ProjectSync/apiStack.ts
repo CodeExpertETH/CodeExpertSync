@@ -20,7 +20,7 @@ export const apiStack: ApiStack = {
   readRemoteProjectFile: (projectId, file) =>
     apiGetSigned({
       path: `project/${projectId}/file`,
-      jwtPayload: { path: file },
+      jwtPayload: { path: file }, // fixme: add version
       codec: iots.Uint8ArrayC,
       responseType: ResponseType.Binary,
     }),

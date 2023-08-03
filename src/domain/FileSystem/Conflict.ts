@@ -22,6 +22,7 @@ export const getConflicts = (
         remote,
         array.findFirst((changeRemote) => eqFsNode.equals(changeLocal, changeRemote)),
         option.map(({ change }) => change),
+        // fixme: don't do this: instead, replace array.intersection with a groupBy(getPath)
         option.getOrElseW(() => remoteChangeType.noChange()),
       ),
     })),

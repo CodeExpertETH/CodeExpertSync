@@ -5,7 +5,7 @@ import { LocalFileInfo } from './LocalFileInfo';
 import { RemoteFileInfo, RemoteNodeInfo } from './RemoteNodeInfo';
 
 export type RemoteChangeType =
-  | tagged.Tagged<'noChange'>
+  | tagged.Tagged<'noChange'> // fixme: seems to be unused - remove
   | tagged.Tagged<'updated', number>
   | tagged.Tagged<'removed'>
   | tagged.Tagged<'added', number>;
@@ -13,7 +13,7 @@ export type RemoteChangeType =
 export const remoteChangeType = tagged.build<RemoteChangeType>();
 
 export type LocalChangeType =
-  | tagged.Tagged<'noChange'>
+  | tagged.Tagged<'noChange'> // fixme: seems to be unused - remove
   | tagged.Tagged<'updated'>
   | tagged.Tagged<'removed'>
   | tagged.Tagged<'added'>;
@@ -73,7 +73,7 @@ export const getRemoteChanges = (
     array.map(({ type, path, version }) => ({
       type,
       path,
-      change: remoteChangeType.updated(version),
+      change: remoteChangeType.updated(version), // fixme: use latest version here
     })),
   );
   return pipe(
