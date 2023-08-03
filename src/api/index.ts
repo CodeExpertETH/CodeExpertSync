@@ -31,7 +31,7 @@ export interface Api {
   writeProjectFile(
     project: ProjectPath,
     file: PfsPath,
-    content: string,
+    content: Uint8Array,
   ): taskEither.TaskEither<TauriException, void>;
   logout(): task.Task<void>;
   getSystemInfo: taskOption.TaskOption<string>;
@@ -57,12 +57,7 @@ export const api: Api = {
     taskEither.tryCatch(() => removeDir(filePath, { recursive: true }), fromTauriError),
   writeProjectFile: (project, file, content) =>
     taskEither.tryCatch(
-      () =>
-        invoke('write_project_file', {
-          project,
-          file,
-          content: Array.from(new TextEncoder().encode(content)),
-        }),
+      () => invoke('write_project_file', { project, file, content }),
       fromTauriError,
     ),
   logout: () =>

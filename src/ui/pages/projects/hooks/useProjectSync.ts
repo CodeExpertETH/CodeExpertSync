@@ -25,6 +25,7 @@ import {
   PfsPath,
   ProjectPath,
   RemoteFileChange,
+  RemoteFileInfo,
   RemoteNodeChange,
   RemoteNodeInfo,
   RemoteNodeInfoC,
@@ -60,7 +61,7 @@ import { FsNode, isFile } from '@/lib/tauri/fs';
 import { useGlobalContext } from '@/ui/GlobalContext';
 import { useTimeContext } from '@/ui/contexts/TimeContext';
 import { apiGetSigned, apiPostSigned, requestBody } from '@/utils/api';
-import { panic } from '@/utils/error';
+import { invariant, panic } from '@/utils/error';
 
 const writeSingleFile = ({
   fileInfo,
@@ -75,8 +76,8 @@ const writeSingleFile = ({
     apiGetSigned({
       path: `project/${projectId}/file`,
       jwtPayload: { path: fileInfo.path },
-      codec: iots.string,
-      responseType: ResponseType.Text,
+      codec: iots.Uint8ArrayC,
+      responseType: ResponseType.Binary,
     }),
     taskEither.mapLeft(fromHttpError),
     taskEither.chain((fileContent) =>
@@ -149,7 +150,7 @@ const getProjectInfoRemote = (
     taskEither.mapLeft(fromHttpError),
   );
 
-const findClosestMap =
+const findClosest =
   (stack: FileSystemStack) =>
   <A>(lookup: (path: PfsPath) => option.Option<A>) =>
   (relPath: PfsPath): taskEither.TaskEither<SyncException, A> =>
@@ -165,7 +166,7 @@ const findClosestMap =
                 reason: 'Root directory must exist',
               }),
             ),
-            taskEither.chain(findClosestMap(stack)(lookup)),
+            taskEither.chain(findClosest(stack)(lookup)),
           ),
         taskEither.of,
       ),
@@ -182,7 +183,7 @@ const checkClosestExistingAncestorIsWritable: (
       taskEither.chainFirst(({ path }) =>
         pipe(
           path,
-          findClosestMap(stack)((closestPath) =>
+          findClosest(stack)((closestPath) =>
             pipe(
               remote,
               array.findFirst((i) => i.path === closestPath),
@@ -325,7 +326,7 @@ const getFilesToUpload =
 
 const getFilesToDownload =
   (projectInfoRemote: Array<RemoteNodeInfo>) =>
-  (remoteChanges: Array<RemoteNodeChange>): Array<RemoteNodeInfo> =>
+  (remoteChanges: Array<RemoteFileChange>): Array<RemoteFileInfo> =>
     pipe(
       projectInfoRemote,
       array.filter(({ path }) =>
@@ -342,6 +343,11 @@ const getFilesToDownload =
           array.exists((file) => file.path === path),
         ),
       ),
+      // fixme: remove this. possibly just filter remoteChanges for "added" and "updated"
+      array.map((nodeInfo) => {
+        invariant(isFile(nodeInfo), 'getFilesToDownload found a directory with remoteChangeType');
+        return nodeInfo;
+      }),
     );
 
 const getFilesToDelete = (remoteChanges: Array<RemoteNodeChange>): Array<RemoteFileChange> =>
@@ -463,7 +469,14 @@ export type RunProjectSync = (
   options?: { force?: ForceSyncDirection },
 ) => taskEither.TaskEither<SyncException, void>;
 
-const projectInfoStack: FileSystemStack = { ...libFs, ...libPath };
+const projectInfoStack: FileSystemStack = {
+  escape: libPath.escape,
+  join: libPath.join,
+  dirname: libPath.dirname,
+  stripAncestor: libPath.stripAncestor,
+  getFileHash: libFs.getFileHash,
+  removeFile: libFs.removeFile,
+};
 
 export const useProjectSync = () => {
   const time = useTimeContext();

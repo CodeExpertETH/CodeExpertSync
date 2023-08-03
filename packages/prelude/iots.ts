@@ -1,5 +1,5 @@
 import { $Unexpressable } from '@code-expert/type-utils';
-import { fold, mapLeft } from 'fp-ts/Either';
+import * as either from 'fp-ts/Either';
 import { Refinement } from 'fp-ts/Refinement';
 import { flow } from 'fp-ts/function';
 import * as t from 'io-ts';
@@ -71,6 +71,29 @@ const prefixedString = (prefix: string) =>
 export const prefixed = <A>(codec: t.Type<A, string>): t.Type<A, string> =>
   prefixedString(`${codec.name}-`).pipe(codec);
 
+export const Uint8ArrayC = new t.Type<Uint8Array, Array<number>>(
+  'Uint8Array',
+  (u): u is Uint8Array => u instanceof globalThis.Uint8Array,
+  (input, context) =>
+    input instanceof globalThis.Uint8Array
+      ? either.right(input)
+      : Array.isArray(input)
+      ? either.tryCatch(
+          () => new Uint8Array(input),
+          (): Array<t.ValidationError> => [
+            {
+              value: input,
+              context,
+              message: `Failed to construct Uint8Array from Array`,
+            },
+          ],
+        )
+      : typeof input === 'string'
+      ? either.right(new Uint8Array(new TextEncoder().encode(input)))
+      : t.failure(input, context, 'Expecting either Uint8Array, Array, or string'),
+  (a) => Array.from(a),
+);
+
 type TaggedC<T extends string, C extends t.Mixed> = C extends t.UndefinedC
   ? t.ExactC<t.TypeC<{ _tag: t.LiteralType<T> }>>
   : t.ExactC<t.TypeC<{ _tag: t.LiteralType<T>; value: C }>>;
@@ -102,8 +125,8 @@ export const unsafeDecode =
   <A, B>(decoder: t.Decoder<A, B>) =>
     flow(
       decoder.decode,
-      mapLeft(formatValidationErrors),
-      fold(
+      either.mapLeft(formatValidationErrors),
+      either.fold(
         (err) => {
           throw toThrowable(err);
         },
