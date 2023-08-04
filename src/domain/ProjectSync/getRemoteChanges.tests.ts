@@ -1,5 +1,6 @@
 import { fc } from '@code-expert/test-utils';
 import { NonEmptyArray } from 'fp-ts/NonEmptyArray';
+import { Lens } from 'monocle-ts';
 import * as nodePath from 'path';
 import { assert, describe, it } from 'vitest';
 import { nonEmptyArray, option, pipe, task, taskEither } from '@code-expert/prelude';
@@ -7,13 +8,17 @@ import {
   RemoteDirInfo,
   RemoteFileChange,
   RemoteFileInfo,
+  RemoteNodeInfo,
   getRemoteChanges,
   remoteChangeType,
 } from '@/domain/FileSystem';
 import { pfsPathArb } from '@/domain/FileSystem/Path.tests';
 import { FileSystemStack } from '@/domain/FileSystem/fileSystemStack';
+import { ordFsNode } from '@/lib/tauri/fs';
 import { escape } from '@/lib/tauri/path';
 import { panic } from '@/utils/error';
+
+const Version = Lens.fromProp<RemoteNodeInfo>()('version');
 
 export const nodeFsStack: FileSystemStack = {
   dirname: (path) => taskEither.fromIO(() => nodePath.dirname(path)),
@@ -47,17 +52,17 @@ describe('getRemoteChanges', () => {
   it('should classify missing files as "removed"', () => {
     const dirsArb = fc.array(remoteDirInfoArb);
     const commonFilesArb = fc.array(remoteFileInfoArb);
-    const removedFilesArb = fc.nonEmptyArray(remoteFileInfoArb);
+    const missingFilesArb = fc.nonEmptyArray(remoteFileInfoArb);
 
     const missingToRemoved = (
       dirs: Array<RemoteDirInfo>,
       commonFiles: Array<RemoteFileInfo>,
-      removedFiles: NonEmptyArray<RemoteFileInfo>,
+      missingFiles: NonEmptyArray<RemoteFileInfo>,
     ) =>
       assert.deepEqual(
-        getRemoteChanges([...commonFiles, ...removedFiles], [...commonFiles, ...dirs]),
+        getRemoteChanges([...commonFiles, ...missingFiles], [...commonFiles, ...dirs]),
         pipe(
-          removedFiles,
+          missingFiles,
           nonEmptyArray.map(
             (fileInfo): RemoteFileChange => ({
               path: fileInfo.path,
@@ -69,42 +74,128 @@ describe('getRemoteChanges', () => {
         ),
       );
 
-    fc.assert(fc.property(dirsArb, commonFilesArb, removedFilesArb, missingToRemoved));
+    fc.assert(fc.property(dirsArb, commonFilesArb, missingFilesArb, missingToRemoved));
   });
 
-  // it('should classify new files as "added"', () => {
-  //   const previous: Array<RemoteFileInfo> = [];
-  //   const latest: Array<RemoteNodeInfo> = [
-  //     { path: iots.brandFromLiteral('./main.py'), type: 'file', version: 1, permissions: 'rw' },
-  //   ];
-  //   assert.deepEqual(
-  //     getRemoteChanges(previous, latest),
-  //     option.some<NonEmptyArray<RemoteFileChange>>([
-  //       {
-  //         path: iots.brandFromLiteral('./main.py'),
-  //         type: 'file',
-  //         change: remoteChangeType.added(1),
-  //       },
-  //     ]),
-  //   );
-  // });
-  //
-  // it('should classify files with a different version as "updated"', () => {
-  //   const previous: Array<RemoteFileInfo> = [
-  //     { path: iots.brandFromLiteral('./main.py'), type: 'file', version: 1, permissions: 'rw' },
-  //   ];
-  //   const latest: Array<RemoteNodeInfo> = [
-  //     { path: iots.brandFromLiteral('./main.py'), type: 'file', version: 2, permissions: 'rw' },
-  //   ];
-  //   assert.deepEqual(
-  //     getRemoteChanges(previous, latest),
-  //     option.some<NonEmptyArray<RemoteFileChange>>([
-  //       {
-  //         path: iots.brandFromLiteral('./main.py'),
-  //         type: 'file',
-  //         change: remoteChangeType.updated(1),
-  //       },
-  //     ]),
-  //   );
-  // });
+  it('should classify new files as "added"', () => {
+    const dirsArb = fc.array(remoteDirInfoArb);
+    const commonFilesArb = fc.array(remoteFileInfoArb);
+    const newFilesArb = fc.nonEmptyArray(remoteFileInfoArb);
+
+    const newToAdded = (
+      dirs: Array<RemoteDirInfo>,
+      commonFiles: Array<RemoteFileInfo>,
+      newFiles: NonEmptyArray<RemoteFileInfo>,
+    ) =>
+      assert.deepEqual(
+        getRemoteChanges([...commonFiles], [...commonFiles, ...dirs, ...newFiles]),
+        pipe(
+          newFiles,
+          nonEmptyArray.map(
+            (fileInfo): RemoteFileChange => ({
+              path: fileInfo.path,
+              type: 'file',
+              change: remoteChangeType.added(fileInfo.version),
+            }),
+          ),
+          option.some,
+        ),
+      );
+
+    fc.assert(fc.property(dirsArb, commonFilesArb, newFilesArb, newToAdded));
+  });
+
+  it('should classify files with a different version as "updated"', () => {
+    const dirsArb = fc.array(remoteDirInfoArb);
+    const commonFilesArb = fc.array(remoteFileInfoArb);
+    const changedFilesArb = fc.nonEmptyArray(remoteFileInfoArb);
+
+    const incrementVersion = Version.modify((v) => v + 1);
+    const changedToUpdated = (
+      dirs: Array<RemoteDirInfo>,
+      commonFiles: Array<RemoteFileInfo>,
+      changedFiles: NonEmptyArray<RemoteFileInfo>,
+    ) =>
+      assert.deepEqual(
+        getRemoteChanges(
+          [...commonFiles, ...changedFiles],
+          [...commonFiles, ...dirs, ...changedFiles.map(incrementVersion)],
+        ),
+        pipe(
+          changedFiles,
+          nonEmptyArray.map(
+            (fileInfo): RemoteFileChange => ({
+              path: fileInfo.path,
+              type: 'file',
+              change: remoteChangeType.updated(fileInfo.version),
+            }),
+          ),
+          option.some,
+        ),
+      );
+
+    fc.assert(fc.property(dirsArb, commonFilesArb, changedFilesArb, changedToUpdated));
+  });
+
+  it('should do all three at the same time', () => {
+    const dirsArb = fc.array(remoteDirInfoArb);
+    const commonFilesArb = fc.array(remoteFileInfoArb);
+    const missingFilesArb = fc.nonEmptyArray(remoteFileInfoArb);
+    const newFilesArb = fc.nonEmptyArray(remoteFileInfoArb);
+    const changedFilesArb = fc.nonEmptyArray(remoteFileInfoArb);
+
+    const incrementVersion = Version.modify((v) => v + 1);
+    const toRemoved = (fileInfo: RemoteFileInfo): RemoteFileChange => ({
+      path: fileInfo.path,
+      type: 'file',
+      change: remoteChangeType.removed(),
+    });
+    const toAdded = (fileInfo: RemoteFileInfo): RemoteFileChange => ({
+      path: fileInfo.path,
+      type: 'file',
+      change: remoteChangeType.added(fileInfo.version),
+    });
+    const toUpdated = (fileInfo: RemoteFileInfo): RemoteFileChange => ({
+      path: fileInfo.path,
+      type: 'file',
+      change: remoteChangeType.updated(fileInfo.version),
+    });
+    const removedNewChanged = (
+      dirs: Array<RemoteDirInfo>,
+      commonFiles: Array<RemoteFileInfo>,
+      missingFiles: NonEmptyArray<RemoteFileInfo>,
+      newFiles: NonEmptyArray<RemoteFileInfo>,
+      changedFiles: NonEmptyArray<RemoteFileInfo>,
+    ) =>
+      assert.deepEqual(
+        pipe(
+          getRemoteChanges(
+            [...commonFiles, ...missingFiles, ...changedFiles],
+            [...commonFiles, ...dirs, ...newFiles, ...changedFiles.map(incrementVersion)],
+          ),
+          option.map(nonEmptyArray.sort<RemoteFileChange>(ordFsNode)),
+        ),
+        pipe(
+          [
+            nonEmptyArray.map(toRemoved)(missingFiles),
+            nonEmptyArray.map(toAdded)(newFiles),
+            nonEmptyArray.map(toUpdated)(changedFiles),
+          ],
+          nonEmptyArray.concatAll(nonEmptyArray.getSemigroup()),
+          nonEmptyArray.sort<RemoteFileChange>(ordFsNode),
+          option.some,
+        ),
+      );
+
+    fc.assert(
+      fc.property(
+        dirsArb,
+        commonFilesArb,
+        missingFilesArb,
+        newFilesArb,
+        changedFilesArb,
+        removedNewChanged,
+      ),
+    );
+  });
 });
