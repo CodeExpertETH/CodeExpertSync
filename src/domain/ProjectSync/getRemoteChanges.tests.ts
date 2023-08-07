@@ -19,6 +19,7 @@ import { escape } from '@/lib/tauri/path';
 import { panic } from '@/utils/error';
 
 const Version = Lens.fromProp<RemoteNodeInfo>()('version');
+const incrementVersion = Version.modify((v) => v + 1);
 
 export const nodeFsStack: FileSystemStack = {
   dirname: (path) => taskEither.fromIO(() => nodePath.dirname(path)),
@@ -49,6 +50,22 @@ const remoteDirInfoArb = fc.record<RemoteDirInfo>({
 });
 
 describe('getRemoteChanges', () => {
+  const toRemoved = (fileInfo: RemoteFileInfo): RemoteFileChange => ({
+    path: fileInfo.path,
+    type: 'file',
+    change: remoteChangeType.removed(),
+  });
+  const toAdded = (fileInfo: RemoteFileInfo): RemoteFileChange => ({
+    path: fileInfo.path,
+    type: 'file',
+    change: remoteChangeType.added(fileInfo.version),
+  });
+  const toUpdated = (fileInfo: RemoteFileInfo): RemoteFileChange => ({
+    path: fileInfo.path,
+    type: 'file',
+    change: remoteChangeType.updated(fileInfo.version),
+  });
+
   it('should classify missing files as "removed"', () => {
     const dirsArb = fc.array(remoteDirInfoArb);
     const commonFilesArb = fc.array(remoteFileInfoArb);
@@ -60,18 +77,9 @@ describe('getRemoteChanges', () => {
       missingFiles: NonEmptyArray<RemoteFileInfo>,
     ) =>
       assert.deepEqual(
+        // fixme: does concat order matter? how do we make it not matter?
         getRemoteChanges([...commonFiles, ...missingFiles], [...commonFiles, ...dirs]),
-        pipe(
-          missingFiles,
-          nonEmptyArray.map(
-            (fileInfo): RemoteFileChange => ({
-              path: fileInfo.path,
-              type: 'file',
-              change: remoteChangeType.removed(),
-            }),
-          ),
-          option.some,
-        ),
+        pipe(missingFiles, nonEmptyArray.map(toRemoved), option.some),
       );
 
     fc.assert(fc.property(dirsArb, commonFilesArb, missingFilesArb, missingToRemoved));
@@ -89,17 +97,7 @@ describe('getRemoteChanges', () => {
     ) =>
       assert.deepEqual(
         getRemoteChanges([...commonFiles], [...commonFiles, ...dirs, ...newFiles]),
-        pipe(
-          newFiles,
-          nonEmptyArray.map(
-            (fileInfo): RemoteFileChange => ({
-              path: fileInfo.path,
-              type: 'file',
-              change: remoteChangeType.added(fileInfo.version),
-            }),
-          ),
-          option.some,
-        ),
+        pipe(newFiles, nonEmptyArray.map(toAdded), option.some),
       );
 
     fc.assert(fc.property(dirsArb, commonFilesArb, newFilesArb, newToAdded));
@@ -110,7 +108,6 @@ describe('getRemoteChanges', () => {
     const commonFilesArb = fc.array(remoteFileInfoArb);
     const changedFilesArb = fc.nonEmptyArray(remoteFileInfoArb);
 
-    const incrementVersion = Version.modify((v) => v + 1);
     const changedToUpdated = (
       dirs: Array<RemoteDirInfo>,
       commonFiles: Array<RemoteFileInfo>,
@@ -121,17 +118,7 @@ describe('getRemoteChanges', () => {
           [...commonFiles, ...changedFiles],
           [...commonFiles, ...dirs, ...changedFiles.map(incrementVersion)],
         ),
-        pipe(
-          changedFiles,
-          nonEmptyArray.map(
-            (fileInfo): RemoteFileChange => ({
-              path: fileInfo.path,
-              type: 'file',
-              change: remoteChangeType.updated(fileInfo.version),
-            }),
-          ),
-          option.some,
-        ),
+        pipe(changedFiles, nonEmptyArray.map(toUpdated), option.some),
       );
 
     fc.assert(fc.property(dirsArb, commonFilesArb, changedFilesArb, changedToUpdated));
@@ -144,22 +131,6 @@ describe('getRemoteChanges', () => {
     const newFilesArb = fc.nonEmptyArray(remoteFileInfoArb);
     const changedFilesArb = fc.nonEmptyArray(remoteFileInfoArb);
 
-    const incrementVersion = Version.modify((v) => v + 1);
-    const toRemoved = (fileInfo: RemoteFileInfo): RemoteFileChange => ({
-      path: fileInfo.path,
-      type: 'file',
-      change: remoteChangeType.removed(),
-    });
-    const toAdded = (fileInfo: RemoteFileInfo): RemoteFileChange => ({
-      path: fileInfo.path,
-      type: 'file',
-      change: remoteChangeType.added(fileInfo.version),
-    });
-    const toUpdated = (fileInfo: RemoteFileInfo): RemoteFileChange => ({
-      path: fileInfo.path,
-      type: 'file',
-      change: remoteChangeType.updated(fileInfo.version),
-    });
     const removedNewChanged = (
       dirs: Array<RemoteDirInfo>,
       commonFiles: Array<RemoteFileInfo>,

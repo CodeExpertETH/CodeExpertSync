@@ -29,6 +29,7 @@ export const legalFileNameArb = fc
   )
   .map((elements) => elements.join(''));
 
+// todo: it is unclear how many "collisions" this produces, we might need a better solution
 export const pfsPathArb: fc.Arbitrary<PfsPath> = fc
   .tuple(fc.array(legalDirNameArb), legalFileNameArb)
   .map(([path, file]) => `./${path.join('/')}/${file}`)
