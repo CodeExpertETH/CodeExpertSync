@@ -9,6 +9,7 @@ import {
   constVoid,
   either,
   flow,
+  io,
   iots,
   not,
   option,
@@ -364,84 +365,89 @@ const getFilesToDelete = (remoteChanges: Array<RemoteNodeChange>): Array<RemoteF
     ),
   );
 
-export const uploadChangedFiles = (
-  fileName: string,
-  projectId: ProjectId,
-  projectDir: ProjectPath,
-  localChanges: Array<LocalFileChange>,
-): taskEither.TaskEither<SyncException, void> =>
-  pipe(
-    taskEither.Do,
-    taskEither.let('uploadFiles', () =>
-      pipe(
-        localChanges,
-        array.filter((c) =>
-          localChangeType.fold(c.change, {
-            noChange: constFalse,
-            added: constTrue,
-            removed: constFalse,
-            updated: constTrue,
+export const uploadChangedFiles =
+  (now: io.IO<Date>) =>
+  (
+    projectId: ProjectId,
+    projectDir: ProjectPath,
+    localChanges: Array<LocalFileChange>,
+  ): taskEither.TaskEither<SyncException, void> =>
+    pipe(
+      taskEither.Do,
+      taskEither.let('uploadFiles', () =>
+        pipe(
+          localChanges,
+          array.filter((c) =>
+            localChangeType.fold(c.change, {
+              noChange: constFalse,
+              added: constTrue,
+              removed: constFalse,
+              updated: constTrue,
+            }),
+          ),
+          array.map(({ path }) => path),
+        ),
+      ),
+      taskEither.bindTaskK('archivePath', () =>
+        pipe(
+          libOs.tempDir,
+          taskEither.getOrElse((e) => {
+            throw e;
+          }),
+          task.bindTo('tempDir'),
+          task.bind('t', () => task.fromIO(now)),
+          task.chain(({ tempDir, t }) =>
+            libPath.join(tempDir, `project_${projectId}_${t.getTime()}.tar.br`),
+          ),
+        ),
+      ),
+      taskEither.bindTaskK('tarHash', ({ uploadFiles, archivePath }) =>
+        api.buildTar(archivePath, projectDir, uploadFiles),
+      ),
+      taskEither.let('removeFiles', () =>
+        pipe(
+          localChanges,
+          array.filter((c) =>
+            localChangeType.fold(c.change, {
+              noChange: constFalse,
+              added: constFalse,
+              removed: constTrue,
+              updated: constFalse,
+            }),
+          ),
+          array.map(({ path }) => path),
+        ),
+      ),
+      taskEither.bindTaskK('body', ({ uploadFiles, archivePath }) =>
+        pipe(
+          array.isEmpty(uploadFiles)
+            ? taskEither.of(new Uint8Array())
+            : libFs.readBinaryFile(archivePath),
+          taskEither.getOrElse((e) => {
+            throw e;
           }),
         ),
-        array.map(({ path }) => path),
       ),
-    ),
-    taskEither.bindTaskK('archivePath', () =>
-      pipe(
-        libOs.tempDir,
-        taskEither.getOrElse((e) => {
-          throw e;
-        }),
-        task.chain((tempDir) => libPath.join(tempDir, fileName)),
-      ),
-    ),
-    taskEither.bindTaskK('tarHash', ({ uploadFiles, archivePath }) =>
-      api.buildTar(archivePath, projectDir, uploadFiles),
-    ),
-    taskEither.let('removeFiles', () =>
-      pipe(
-        localChanges,
-        array.filter((c) =>
-          localChangeType.fold(c.change, {
-            noChange: constFalse,
-            added: constFalse,
-            removed: constTrue,
-            updated: constFalse,
+      taskEither.chain(({ body, tarHash, removeFiles, uploadFiles }) =>
+        pipe(
+          apiPostSigned({
+            path: `project/${projectId}/files`,
+            jwtPayload: array.isEmpty(uploadFiles) ? { removeFiles } : { tarHash, removeFiles },
+            body: requestBody.binary({
+              body,
+              type: 'application/x-tar',
+              encoding: option.some('br'),
+            }),
+            codec: iots.strict({
+              _id: ProjectId,
+              files: iots.array(RemoteNodeInfoC),
+            }),
           }),
+          taskEither.mapLeft(fromHttpError),
         ),
-        array.map(({ path }) => path),
       ),
-    ),
-    taskEither.bindTaskK('body', ({ uploadFiles, archivePath }) =>
-      pipe(
-        array.isEmpty(uploadFiles)
-          ? taskEither.of(new Uint8Array())
-          : libFs.readBinaryFile(archivePath),
-        taskEither.getOrElse((e) => {
-          throw e;
-        }),
-      ),
-    ),
-    taskEither.chain(({ body, tarHash, removeFiles, uploadFiles }) =>
-      pipe(
-        apiPostSigned({
-          path: `project/${projectId}/files`,
-          jwtPayload: array.isEmpty(uploadFiles) ? { removeFiles } : { tarHash, removeFiles },
-          body: requestBody.binary({
-            body,
-            type: 'application/x-tar',
-            encoding: option.some('br'),
-          }),
-          codec: iots.strict({
-            _id: ProjectId,
-            files: iots.array(RemoteNodeInfoC),
-          }),
-        }),
-        taskEither.mapLeft(fromHttpError),
-      ),
-    ),
-    taskEither.map(constVoid),
-  );
+      taskEither.map(constVoid),
+    );
 
 const checkConflicts = <R>({
   localChanges,
@@ -556,12 +562,7 @@ export const useProjectSync = () => {
             option.fold(
               () => taskEither.of(undefined),
               (filesToUpload) =>
-                uploadChangedFiles(
-                  `project_${project.value.projectId}_${time.now().getTime()}.tar.br`,
-                  project.value.projectId,
-                  projectDir,
-                  filesToUpload,
-                ),
+                uploadChangedFiles(time.now)(project.value.projectId, projectDir, filesToUpload),
             ),
           ),
         ),
