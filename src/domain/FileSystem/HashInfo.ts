@@ -15,6 +15,7 @@ export const hashInfoFromFsFile =
     pipe(
       stack.join(projectDir, file.path),
       task.chain(stack.getFileHash),
+      // fixme: should we use panic here?
       taskEither.getOrElse((e) => {
         throw e;
       }),
