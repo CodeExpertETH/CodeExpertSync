@@ -3,7 +3,7 @@ import { NonEmptyArray } from 'fp-ts/NonEmptyArray';
 import { Lens } from 'monocle-ts';
 import * as nodePath from 'path';
 import { assert, describe, it } from 'vitest';
-import { nonEmptyArray, option, pipe, task, taskEither } from '@code-expert/prelude';
+import { nonEmptyArray, option, pipe, task, taskEither, taskOption } from '@code-expert/prelude';
 import {
   LocalFileChange,
   LocalFileInfo,
@@ -31,6 +31,10 @@ export const nodeFsStack: FileSystemStack = {
   escape,
   getFileHash: () => panic('getFileHash is not implemented on nodeFsStack'),
   removeFile: () => panic('removeFile is not implemented on nodeFsStack'),
+  basename: (path) => pipe(path.split('/'), (ps) => ps[ps.length - 1], taskOption.of),
+  tempDir: () => panic('tempDir is not implemented on nodeFsStack'),
+  readBinaryFile: () => panic('readBinaryFile is not implemented on nodeFsStack'),
+  readFsTree: () => panic('readFsTree is not implemented on nodeFsStack'),
 };
 
 const localFileInfoArb = fc.record<LocalFileInfo>({

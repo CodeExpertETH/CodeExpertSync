@@ -1,9 +1,8 @@
 import { fc } from '@code-expert/test-utils';
 import { NonEmptyArray } from 'fp-ts/NonEmptyArray';
 import { Lens } from 'monocle-ts';
-import * as nodePath from 'path';
 import { assert, describe, it } from 'vitest';
-import { nonEmptyArray, option, pipe, task, taskEither } from '@code-expert/prelude';
+import { nonEmptyArray, option, pipe } from '@code-expert/prelude';
 import {
   RemoteDirInfo,
   RemoteFileChange,
@@ -13,27 +12,10 @@ import {
   remoteChangeType,
 } from '@/domain/FileSystem';
 import { pfsPathArb } from '@/domain/FileSystem/Path.tests';
-import { FileSystemStack } from '@/domain/FileSystem/fileSystemStack';
 import { ordFsNode } from '@/lib/tauri/fs';
-import { escape } from '@/lib/tauri/path';
-import { panic } from '@/utils/error';
 
 const Version = Lens.fromProp<RemoteNodeInfo>()('version');
 const incrementVersion = Version.modify((v) => v + 1);
-
-export const nodeFsStack: FileSystemStack = {
-  dirname: (path) => taskEither.fromIO(() => nodePath.dirname(path)),
-  join: (...paths) => task.fromIO(() => nodePath.join(...paths)),
-  stripAncestor: (ancestor) => (to) =>
-    taskEither.fromIO(() => {
-      const relative = nodePath.relative(ancestor, to);
-      const normalized = nodePath.normalize(relative);
-      return nodePath.format({ dir: '.', base: normalized });
-    }),
-  escape,
-  getFileHash: () => panic('getFileHash is not implemented on nodeFsStack'),
-  removeFile: () => panic('removeFile is not implemented on nodeFsStack'),
-};
 
 const remoteFileInfoArb = fc.record<RemoteFileInfo>({
   type: fc.constant('file'),
