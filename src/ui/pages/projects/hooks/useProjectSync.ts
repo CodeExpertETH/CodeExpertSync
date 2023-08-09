@@ -22,6 +22,7 @@ import {
 import {
   LocalFileChange,
   LocalFileInfo,
+  PersistedFileInfo,
   PfsPath,
   ProjectPath,
   RemoteFileChange,
@@ -271,25 +272,37 @@ const isFileWritable =
       option.fold(constFalse, isWritable),
     );
 
-const validateAddedFileChange = (stack: FileSystemStack, remote: Array<RemoteNodeInfo>) =>
-  flow(
-    checkClosestExistingAncestorIsWritable(stack)(remote),
-    taskEither.chain(checkEveryNewAncestorIsValidDirName(stack)(remote)),
-    taskEither.chainFirst(checkValidFileName(stack)),
-  );
+const validateAddedFileChange: (
+  stack: FileSystemStack,
+) => (
+  remote: Array<RemoteNodeInfo>,
+) => (c: LocalFileChange) => taskEither.TaskEither<SyncException, LocalFileChange> =
+  (stack: FileSystemStack) => (remote: Array<RemoteNodeInfo>) =>
+    flow(
+      checkClosestExistingAncestorIsWritable(stack)(remote),
+      taskEither.chain(checkEveryNewAncestorIsValidDirName(stack)(remote)),
+      taskEither.chainFirst(checkValidFileName(stack)),
+    );
 
-const validateRemovedFileChange = (remote: Array<RemoteNodeInfo>, stack: FileSystemStack) =>
-  flow(
-    taskEither.fromPredicate(isFileWritable(remote), () =>
-      syncExceptionADT.readOnlyFilesChanged({
-        path: '',
-        reason: 'File is read-only',
-      }),
-    ),
-    taskEither.chain(checkClosestExistingAncestorIsWritable(stack)(remote)),
-  );
+const validateRemovedFileChange: (
+  stack: FileSystemStack,
+) => (
+  remote: Array<RemoteNodeInfo>,
+) => (c: LocalFileChange) => taskEither.TaskEither<SyncException, LocalFileChange> =
+  (stack) => (remote) =>
+    flow(
+      taskEither.fromPredicate(isFileWritable(remote), () =>
+        syncExceptionADT.readOnlyFilesChanged({
+          path: '',
+          reason: 'File is read-only',
+        }),
+      ),
+      taskEither.chain(checkClosestExistingAncestorIsWritable(stack)(remote)),
+    );
 
-const validateUpdatedFileChange = (remote: Array<RemoteNodeInfo>) =>
+const validateUpdatedFileChange: (
+  remote: Array<RemoteNodeInfo>,
+) => (c: LocalFileChange) => taskEither.TaskEither<SyncException, LocalFileChange> = (remote) =>
   taskEither.fromPredicate(isFileWritable(remote), () =>
     syncExceptionADT.readOnlyFilesChanged({ path: '', reason: 'File is read-only' }),
   );
@@ -322,8 +335,8 @@ const getFilesToUpload =
       taskEither.traverseArray((x) =>
         localChangeType.fold<taskEither.TaskEither<SyncException, LocalFileChange>>(x.change, {
           noChange: () => panic('File has no changes'),
-          added: () => validateAddedFileChange(stack, remote)(x),
-          removed: () => validateRemovedFileChange(remote, stack)(x),
+          added: () => validateAddedFileChange(stack)(remote)(x),
+          removed: () => validateRemovedFileChange(stack)(remote)(x),
           updated: () => validateUpdatedFileChange(remote)(x),
         }),
       ),
@@ -493,6 +506,60 @@ const projectInfoStack: FileSystemStack = {
   readFsTree: libFs.readFsTree,
 };
 
+type TotalSyncActions = {
+  upload: option.Option<Array<LocalFileChange>>;
+  download: option.Option<Array<RemoteNodeInfo>>;
+  delete: option.Option<Array<LocalFileChange>>;
+};
+const getSyncActions: (
+  force: ForceSyncDirection | undefined,
+  previous: option.Option<Array<PersistedFileInfo>>,
+  local: option.Option<Array<LocalFileInfo>>,
+  remote: Array<RemoteNodeInfo>,
+) => taskEither.TaskEither<SyncException, TotalSyncActions> = (
+  force,
+  projectInfoPrevious,
+  projectInfoLocal,
+  projectInfoRemote,
+) =>
+  pipe(
+    taskEither.Do,
+    taskEither.let('remoteChanges', () =>
+      pipe(
+        projectInfoPrevious,
+        option.fold(
+          // the project has never been synced before
+          () => getRemoteChanges([], projectInfoRemote),
+          (previous) => getRemoteChanges(previous, projectInfoRemote),
+        ),
+        option.filter(() => force == null || force === 'pull'),
+      ),
+    ),
+    taskEither.let('localChanges', () =>
+      pipe(
+        option.sequenceS({ local: projectInfoLocal, previous: projectInfoPrevious }),
+        option.chain(({ local, previous }) => getLocalChanges(previous, local)),
+        option.filter(() => force == null || force === 'push'),
+      ),
+    ),
+    taskEither.chainFirstEitherKW(checkConflicts),
+    taskEither.chain(({ localChanges, remoteChanges }) =>
+      pipe(
+        localChanges,
+        option.traverse(taskEither.ApplicativePar)((changes) =>
+          getFilesToUpload(projectInfoStack)(changes, projectInfoRemote),
+        ),
+        taskEither.map(
+          (upload): TotalSyncActions => ({
+            upload,
+            download: option.map(getFilesToDownload(projectInfoRemote))(remoteChanges),
+            delete: option.map(getFilesToDelete)(remoteChanges),
+          }),
+        ),
+      ),
+    ),
+  );
+
 export const useProjectSync = () => {
   const time = useTimeContext();
   const { projectRepository } = useGlobalContext();
@@ -531,43 +598,13 @@ export const useProjectSync = () => {
             ),
           ),
         ),
-        taskEither.let('remoteChanges', ({ projectInfoRemote, projectInfoPrevious }) =>
-          pipe(
-            projectInfoPrevious,
-            option.fold(
-              // the project has never been synced before
-              () => getRemoteChanges([], projectInfoRemote.files),
-              (previous) => getRemoteChanges(previous, projectInfoRemote.files),
-            ),
-            option.filter(() => force == null || force === 'pull'),
-          ),
-        ),
-        taskEither.let('localChanges', ({ projectInfoLocal, projectInfoPrevious }) =>
-          pipe(
-            option.sequenceS({ local: projectInfoLocal, previous: projectInfoPrevious }),
-            option.chain(({ local, previous }) => getLocalChanges(previous, local)),
-            option.filter(() => force == null || force === 'push'),
-          ),
-        ),
-        taskEither.chainFirstEitherKW(checkConflicts),
-        taskEither.bind('filesToUpload', ({ localChanges, projectInfoRemote }) =>
-          pipe(
-            localChanges,
-            option.traverse(taskEither.ApplicativePar)((changes) =>
-              getFilesToUpload(projectInfoStack)(changes, projectInfoRemote.files),
-            ),
-          ),
-        ),
-        taskEither.let('filesToDownload', ({ remoteChanges, projectInfoRemote }) =>
-          pipe(remoteChanges, option.map(getFilesToDownload(projectInfoRemote.files))),
-        ),
-        taskEither.let('filesToDelete', ({ remoteChanges }) =>
-          pipe(remoteChanges, option.map(getFilesToDelete)),
+        taskEither.bind('actions', ({ projectInfoPrevious, projectInfoLocal, projectInfoRemote }) =>
+          getSyncActions(force, projectInfoPrevious, projectInfoLocal, projectInfoRemote.files),
         ),
         // upload local changed files
-        taskEither.chainFirst(({ projectDir, filesToUpload }) =>
+        taskEither.chainFirst(({ projectDir, actions }) =>
           pipe(
-            filesToUpload,
+            actions.upload,
             option.fold(
               () => taskEither.of(undefined),
               (filesToUpload) =>
@@ -580,9 +617,9 @@ export const useProjectSync = () => {
           ),
         ),
         // download and write added and updated files
-        taskEither.chainFirst(({ filesToDownload, projectDir }) =>
+        taskEither.chainFirst(({ actions, projectDir }) =>
           pipe(
-            filesToDownload,
+            actions.download,
             option.foldW(
               () => taskEither.of<SyncException, void>(undefined),
               (files) =>
@@ -601,9 +638,9 @@ export const useProjectSync = () => {
           ),
         ),
         //delete remote removed files
-        taskEither.chainFirstTaskK(({ filesToDelete, projectDir }) =>
+        taskEither.chainFirstTaskK(({ actions, projectDir }) =>
           pipe(
-            filesToDelete,
+            actions.delete,
             option.foldW(
               () => task.of(undefined),
               (filesToDelete) =>
@@ -619,6 +656,7 @@ export const useProjectSync = () => {
         // update all project metadata
         taskEither.bindW('updatedProjectInfo', ({ projectDir }) =>
           pipe(
+            // fixme: why are we not using the result of uploadChangedFiles?
             getProjectInfoRemote(project.value.projectId),
             taskEither.chainW((projectInfoRemote) =>
               pipe(
