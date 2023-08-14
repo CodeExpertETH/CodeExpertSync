@@ -1,6 +1,6 @@
 import { fs, invoke } from '@tauri-apps/api';
 import { BinaryFileContents, FileEntry } from '@tauri-apps/api/fs';
-import { eq, pipe, string, task, taskEither, tree } from '@code-expert/prelude';
+import { eq, ord, pipe, string, task, taskEither, tree } from '@code-expert/prelude';
 import { TauriException, fromTauriError } from '@/lib/tauri/TauriException';
 
 interface FsDir {
@@ -19,6 +19,8 @@ export const eqFsNode = eq.struct({
   type: string.Eq,
   path: string.Eq,
 });
+
+export const ordFsNode = ord.fromCompare<FsNode>((a, b) => string.Ord.compare(a.path, b.path));
 
 export const isFile = <A extends FsNode>(a: A): a is Extract<A, FsFile> => a.type === 'file';
 export const isDir = <A extends FsNode>(a: A): a is Extract<A, FsDir> => a.type === 'dir';
