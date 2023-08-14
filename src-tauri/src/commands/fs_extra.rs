@@ -13,10 +13,10 @@ fn ensure_parent_exists(path: &Path) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn write_project_file(project: String, file: String, content: Vec<u8>) -> Result<(), String> {
-    let full_path = Path::new(&project).join(file);
-    ensure_parent_exists(&full_path)
-        .and_then(|()| File::create(full_path).map_err(|e| format!("Could not create file: {e}")))
+pub fn write_file_ancestors(file: String, content: Vec<u8>) -> Result<(), String> {
+    let path = Path::new(&file);
+    ensure_parent_exists(&path)
+        .and_then(|()| File::create(path).map_err(|e| format!("Could not create file: {e}")))
         .and_then(|mut f| {
             f.write_all(&content)
                 .map_err(|e| format!("Could not write to file: {e}"))

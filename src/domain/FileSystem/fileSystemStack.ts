@@ -13,4 +13,5 @@ export interface FileSystemStack {
   tempDir: taskEither.TaskEither<TauriException, string>;
   readBinaryFile(filePath: string): taskEither.TaskEither<TauriException, Uint8Array>;
   readFsTree(dir: string): taskEither.TaskEither<TauriException, tree.Tree<FsNode>>;
+  writeFileWithAncestors(filePath: string, content: Uint8Array): taskEither.TaskEither<TauriException, void>;
 }

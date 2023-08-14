@@ -59,6 +59,15 @@ export const readFsTree = (dir: string): taskEither.TaskEither<TauriException, t
 export const getFileHash = (path: string): taskEither.TaskEither<TauriException, string> =>
   taskEither.tryCatch(() => invoke('get_file_hash', { path }), fromTauriError);
 
+export const writeFileWithAncestors = (
+  file: string,
+  content: Uint8Array,
+): taskEither.TaskEither<TauriException, void> =>
+  taskEither.tryCatch(
+    () => invoke('write_file_ancestors', { file, content: Array.from(content) }),
+    fromTauriError,
+  );
+
 // -------------------------------------------------------------------------------------------------
 
 const fromFileEntry = ({ path, children }: FileEntry): FsNode => ({

@@ -58,38 +58,65 @@ import {
 import { SyncException, fromHttpError, syncExceptionADT } from '@/domain/SyncException';
 import { changesADT, syncStateADT } from '@/domain/SyncState';
 import { fs as libFs, os as libOs, path as libPath } from '@/lib/tauri';
+import { TauriException } from '@/lib/tauri/TauriException';
 import { FsNode, isFile } from '@/lib/tauri/fs';
 import { useGlobalContext } from '@/ui/GlobalContext';
 import { TimeContext, useTimeContext } from '@/ui/contexts/TimeContext';
-import { apiGetSigned, apiPostSigned, requestBody } from '@/utils/api';
+import { ApiError, apiGetSigned, apiPostSigned, requestBody } from '@/utils/api';
 import { invariant, panic } from '@/utils/error';
 
-const writeSingleFile = ({
-  fileInfo,
-  projectId,
-  projectDir,
-}: {
-  fileInfo: RemoteNodeInfo;
-  projectId: ProjectId;
-  projectDir: ProjectPath;
-}): taskEither.TaskEither<SyncException, void> =>
-  pipe(
+export interface ApiStack {
+  readRemoteProjectFile(
+    projectId: ProjectId,
+    file: PfsPath,
+  ): taskEither.TaskEither<ApiError, Uint8Array>;
+}
+
+const apiStack: ApiStack = {
+  readRemoteProjectFile: (projectId, file) =>
     apiGetSigned({
       path: `project/${projectId}/file`,
-      jwtPayload: { path: fileInfo.path },
+      jwtPayload: { path: file },
       codec: iots.Uint8ArrayC,
       responseType: ResponseType.Binary,
     }),
-    taskEither.mapLeft(fromHttpError),
-    taskEither.chain((fileContent) =>
-      pipe(
-        api.writeProjectFile(projectDir, fileInfo.path, fileContent),
-        taskEither.mapLeft(({ message: reason }) =>
-          syncExceptionADT.wide.fileSystemCorrupted({ path: fileInfo.path, reason }),
+};
+
+const writeProjectFile =
+  (stack: FileSystemStack) =>
+  (
+    projectDir: ProjectPath,
+    file: PfsPath,
+    content: Uint8Array,
+  ): taskEither.TaskEither<TauriException, void> =>
+    pipe(
+      stack.join(projectDir, file),
+      task.chain((path) => stack.writeFileWithAncestors(path, content)),
+    );
+
+const writeSingleFile =
+  (stack: FileSystemStack & ApiStack) =>
+  ({
+    fileInfo,
+    projectId,
+    projectDir,
+  }: {
+    fileInfo: RemoteNodeInfo;
+    projectId: ProjectId;
+    projectDir: ProjectPath;
+  }): taskEither.TaskEither<SyncException, void> =>
+    pipe(
+      stack.readRemoteProjectFile(projectId, fileInfo.path),
+      taskEither.mapLeft(fromHttpError),
+      taskEither.chain((fileContent) =>
+        pipe(
+          writeProjectFile(stack)(projectDir, fileInfo.path, fileContent),
+          taskEither.mapLeft(({ message: reason }) =>
+            syncExceptionADT.wide.fileSystemCorrupted({ path: fileInfo.path, reason }),
+          ),
         ),
       ),
-    ),
-  );
+    );
 
 const isVisibleFsNode =
   (stack: FileSystemStack) =>
@@ -384,7 +411,7 @@ const getFilesToDelete = (remoteChanges: Array<RemoteNodeChange>): Array<RemoteF
   );
 
 export const uploadChangedFiles =
-  (stack: FileSystemStack, time: TimeContext) =>
+  (stack: FileSystemStack & TimeContext) =>
   (
     projectId: ProjectId,
     projectDir: ProjectPath,
@@ -413,7 +440,7 @@ export const uploadChangedFiles =
             throw e;
           }),
           task.bindTo('tempDir'),
-          task.bind('t', () => task.fromIO(time.now)),
+          task.bind('t', () => task.fromIO(stack.now)),
           task.chain(({ tempDir, t }) =>
             stack.join(tempDir, `project_${projectId}_${t.getTime()}.tar.br`),
           ),
@@ -504,6 +531,7 @@ const projectInfoStack: FileSystemStack = {
   tempDir: libOs.tempDir,
   readBinaryFile: libFs.readBinaryFile,
   readFsTree: libFs.readFsTree,
+  writeFileWithAncestors: libFs.writeFileWithAncestors,
 };
 
 type TotalSyncActions = {
@@ -512,57 +540,57 @@ type TotalSyncActions = {
   delete: option.Option<Array<LocalFileChange>>;
 };
 const getSyncActions: (
+  stack: FileSystemStack,
+) => (
   force: ForceSyncDirection | undefined,
   previous: option.Option<Array<PersistedFileInfo>>,
   local: option.Option<Array<LocalFileInfo>>,
   remote: Array<RemoteNodeInfo>,
-) => taskEither.TaskEither<SyncException, TotalSyncActions> = (
-  force,
-  projectInfoPrevious,
-  projectInfoLocal,
-  projectInfoRemote,
-) =>
-  pipe(
-    taskEither.Do,
-    taskEither.let('remoteChanges', () =>
-      pipe(
-        projectInfoPrevious,
-        option.fold(
-          // the project has never been synced before
-          () => getRemoteChanges([], projectInfoRemote),
-          (previous) => getRemoteChanges(previous, projectInfoRemote),
-        ),
-        option.filter(() => force == null || force === 'pull'),
-      ),
-    ),
-    taskEither.let('localChanges', () =>
-      pipe(
-        option.sequenceS({ local: projectInfoLocal, previous: projectInfoPrevious }),
-        option.chain(({ local, previous }) => getLocalChanges(previous, local)),
-        option.filter(() => force == null || force === 'push'),
-      ),
-    ),
-    taskEither.chainFirstEitherKW(checkConflicts),
-    taskEither.chain(({ localChanges, remoteChanges }) =>
-      pipe(
-        localChanges,
-        option.traverse(taskEither.ApplicativePar)((changes) =>
-          getFilesToUpload(projectInfoStack)(changes, projectInfoRemote),
-        ),
-        taskEither.map(
-          (upload): TotalSyncActions => ({
-            upload,
-            download: option.map(getFilesToDownload(projectInfoRemote))(remoteChanges),
-            delete: option.map(getFilesToDelete)(remoteChanges),
-          }),
+) => taskEither.TaskEither<SyncException, TotalSyncActions> =
+  (stack) => (force, projectInfoPrevious, projectInfoLocal, projectInfoRemote) =>
+    pipe(
+      taskEither.Do,
+      taskEither.let('remoteChanges', () =>
+        pipe(
+          projectInfoPrevious,
+          option.fold(
+            // the project has never been synced before
+            () => getRemoteChanges([], projectInfoRemote),
+            (previous) => getRemoteChanges(previous, projectInfoRemote),
+          ),
+          option.filter(() => force == null || force === 'pull'),
         ),
       ),
-    ),
-  );
+      taskEither.let('localChanges', () =>
+        pipe(
+          option.sequenceS({ local: projectInfoLocal, previous: projectInfoPrevious }),
+          option.chain(({ local, previous }) => getLocalChanges(previous, local)),
+          option.filter(() => force == null || force === 'push'),
+        ),
+      ),
+      taskEither.chainFirstEitherKW(checkConflicts),
+      taskEither.chain(({ localChanges, remoteChanges }) =>
+        pipe(
+          localChanges,
+          option.traverse(taskEither.ApplicativePar)((changes) =>
+            getFilesToUpload(stack)(changes, projectInfoRemote),
+          ),
+          taskEither.map(
+            (upload): TotalSyncActions => ({
+              upload,
+              download: option.map(getFilesToDownload(projectInfoRemote))(remoteChanges),
+              delete: option.map(getFilesToDelete)(remoteChanges),
+            }),
+          ),
+        ),
+      ),
+    );
 
 export const useProjectSync = () => {
   const time = useTimeContext();
   const { projectRepository } = useGlobalContext();
+
+  const stack = { ...projectInfoStack, ...time, ...apiStack };
 
   return React.useCallback<RunProjectSync>(
     (project, { force } = {}) =>
@@ -576,11 +604,9 @@ export const useProjectSync = () => {
             taskEither.fromTaskOption(() => syncExceptionADT.projectDirMissing()),
           ),
         ),
-        taskEither.bindTaskK('projectDirRelative', () =>
-          getProjectDirRelative(projectInfoStack)(project),
-        ),
+        taskEither.bindTaskK('projectDirRelative', () => getProjectDirRelative(stack)(project)),
         taskEither.bindTaskK('projectDir', ({ rootDir, projectDirRelative }) =>
-          getProjectPath(projectInfoStack)(rootDir, projectDirRelative),
+          getProjectPath(stack)(rootDir, projectDirRelative),
         ),
         // change detection
         taskEither.let('projectInfoPrevious', () =>
@@ -594,12 +620,17 @@ export const useProjectSync = () => {
           pipe(
             projectPrism.local.getOption(project),
             option.traverse(taskEither.ApplicativePar)((project) =>
-              getProjectInfoLocal(projectInfoStack)(projectDir, project),
+              getProjectInfoLocal(stack)(projectDir, project),
             ),
           ),
         ),
         taskEither.bind('actions', ({ projectInfoPrevious, projectInfoLocal, projectInfoRemote }) =>
-          getSyncActions(force, projectInfoPrevious, projectInfoLocal, projectInfoRemote.files),
+          getSyncActions(stack)(
+            force,
+            projectInfoPrevious,
+            projectInfoLocal,
+            projectInfoRemote.files,
+          ),
         ),
         // upload local changed files
         taskEither.chainFirst(({ projectDir, actions }) =>
@@ -608,11 +639,7 @@ export const useProjectSync = () => {
             option.fold(
               () => taskEither.of(undefined),
               (filesToUpload) =>
-                uploadChangedFiles(projectInfoStack, time)(
-                  project.value.projectId,
-                  projectDir,
-                  filesToUpload,
-                ),
+                uploadChangedFiles(stack)(project.value.projectId, projectDir, filesToUpload),
             ),
           ),
         ),
@@ -626,7 +653,7 @@ export const useProjectSync = () => {
                 pipe(
                   files,
                   array.traverse(taskEither.ApplicativeSeq)((fileInfo) =>
-                    writeSingleFile({
+                    writeSingleFile(stack)({
                       fileInfo,
                       projectId: project.value.projectId,
                       projectDir,
@@ -646,9 +673,7 @@ export const useProjectSync = () => {
               (filesToDelete) =>
                 pipe(
                   filesToDelete,
-                  array.traverse(task.ApplicativeSeq)(
-                    deleteSingleFile(projectInfoStack, projectDir),
-                  ),
+                  array.traverse(task.ApplicativeSeq)(deleteSingleFile(stack, projectDir)),
                 ),
             ),
           ),
@@ -662,9 +687,7 @@ export const useProjectSync = () => {
               pipe(
                 projectInfoRemote.files,
                 array.filter(isFile),
-                array.traverse(task.ApplicativeSeq)(
-                  fromRemoteFileInfo(projectInfoStack, projectDir),
-                ),
+                array.traverse(task.ApplicativeSeq)(fromRemoteFileInfo(stack, projectDir)),
                 task.map((files) => ({
                   ...projectInfoRemote,
                   files,
