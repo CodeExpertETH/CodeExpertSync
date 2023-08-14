@@ -50,8 +50,11 @@ const fetch = <E, A>(
     taskEither.tryCatch(
       () => http.fetch(url, { headers: finalHeaders, body: finalBody, ...fetchOptions }),
       (e) =>
-        // A fetch() promise only rejects when a network error is encountered
-        // See https://developer.mozilla.org/en-US/docs/Web/API/fetch
+        // A standard Node fetch() promise only rejects when a network error is encountered
+        // (see https://developer.mozilla.org/en-US/docs/Web/API/fetch).
+        // However, this is the Tauri fetch implementation, which handles these errors and throws
+        // a string-based error instead. Here we try to parse the error response to understand
+        // whether a network issue was the source of the problem.
         typeof e === 'string' && e.startsWith('Network')
           ? httpError.wide.noNetwork()
           : httpError.wide.unknownBodyType([String(e)]),
