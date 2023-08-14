@@ -211,11 +211,15 @@ const viewFromSyncException: (env: {
             Could not connect to the server. Please make sure that your Internet connection is
             working or try again later.
           </Typography.Paragraph>
-          <Collapse>
-            <Collapse.Panel key="details" header="Show error details">
-              <Typography.Paragraph>{reason}</Typography.Paragraph>
-            </Collapse.Panel>
-          </Collapse>
+          <Collapse
+            items={[
+              {
+                key: 'details',
+                children: <Typography.Paragraph>{reason}</Typography.Paragraph>,
+                label: 'Show error details',
+              },
+            ]}
+          ></Collapse>
         </>
       ),
     }),
