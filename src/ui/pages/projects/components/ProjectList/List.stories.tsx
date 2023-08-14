@@ -5,6 +5,7 @@ import {
   openProject,
   remoteProject,
   removeProject,
+  revertFile,
   syncProject,
 } from '@/ui/pages/projects/components/ProjectList/testData';
 import { List } from './List';
@@ -18,6 +19,7 @@ const meta = {
     onOpen: openProject,
     onSync: syncProject,
     onRemove: removeProject,
+    onRevertFile: revertFile,
   },
 } satisfies Meta<typeof List>;
 

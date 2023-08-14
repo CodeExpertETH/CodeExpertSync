@@ -156,9 +156,9 @@ const checkClosestExistingAncestorIsWritable: (
   (stack) => (remote) =>
     flow(
       taskEither.of,
-      taskEither.chainFirst(({ path }) =>
+      taskEither.chainFirst((file) =>
         pipe(
-          path,
+          file.path,
           findClosest(stack)((closestPath) =>
             pipe(
               remote,
@@ -167,10 +167,7 @@ const checkClosestExistingAncestorIsWritable: (
             ),
           ),
           taskEither.filterOrElse(boolean.isTrue, () =>
-            syncExceptionADT.wide.readOnlyFilesChanged({
-              path,
-              reason: 'Parent directory is read-only',
-            }),
+            syncExceptionADT.wide.fileAddedToReadOnlyDir(file),
           ),
         ),
       ),
@@ -264,11 +261,8 @@ const validateRemovedFileChange: (
 ) => (c: LocalFileChange) => taskEither.TaskEither<SyncException, LocalFileChange> =
   (stack) => (remote) =>
     flow(
-      taskEither.fromPredicate(isFileWritable(remote), () =>
-        syncExceptionADT.readOnlyFilesChanged({
-          path: '',
-          reason: 'File is read-only',
-        }),
+      taskEither.fromPredicate(isFileWritable(remote), (file) =>
+        syncExceptionADT.readOnlyFileChanged(file),
       ),
       taskEither.chain(checkClosestExistingAncestorIsWritable(stack)(remote)),
     );
@@ -276,8 +270,8 @@ const validateRemovedFileChange: (
 const validateUpdatedFileChange: (
   remote: Array<RemoteNodeInfo>,
 ) => (c: LocalFileChange) => taskEither.TaskEither<SyncException, LocalFileChange> = (remote) =>
-  taskEither.fromPredicate(isFileWritable(remote), () =>
-    syncExceptionADT.readOnlyFilesChanged({ path: '', reason: 'File is read-only' }),
+  taskEither.fromPredicate(isFileWritable(remote), (file) =>
+    syncExceptionADT.readOnlyFileChanged(file),
   );
 
 // TODO: filter localChanges that are in conflict with remoteChanges
@@ -468,7 +462,7 @@ export type RunProjectSync = (
 
 type TotalSyncActions = {
   upload: option.Option<Array<LocalFileChange>>;
-  download: option.Option<Array<RemoteNodeInfo>>;
+  download: option.Option<Array<RemoteFileInfo>>;
   delete: option.Option<Array<LocalFileChange>>;
 };
 const getSyncActions: (
@@ -585,7 +579,7 @@ export const useProjectSync = () => {
                   files,
                   array.traverse(taskEither.ApplicativeSeq)((fileInfo) =>
                     downloadFile(stack)({
-                      fileInfo,
+                      file: fileInfo,
                       projectId: project.value.projectId,
                       projectDir,
                     }),

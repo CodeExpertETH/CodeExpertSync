@@ -12,7 +12,10 @@ import {
   taskEither,
 } from '@code-expert/prelude';
 import { ClientId } from '@/domain/ClientId';
-import { ordProjectExercise } from '@/domain/Project';
+import { fileSystemStack } from '@/domain/FileSystem/fileSystemStack';
+import { getProjectPath, ordProjectExercise } from '@/domain/Project';
+import { apiStack } from '@/domain/ProjectSync/apiStack';
+import { downloadFile } from '@/domain/ProjectSync/downloadFile';
 import { globalSetupState, setupState } from '@/domain/Setup';
 import { useGlobalContextWithActions } from '@/ui/GlobalContext';
 import { CourseHeader } from '@/ui/components/CourseHeader';
@@ -93,6 +96,22 @@ export function Projects({ clientId, course }: { clientId: ClientId; course: Cou
                       return task.of(undefined);
                     },
                     () => projectRepository.removeProject(projectId),
+                  ),
+                )
+              }
+              onRevertFile={(projectId, file) =>
+                pipe(
+                  projectRepository.getProject(projectId),
+                  taskEither.fromTaskOption(() =>
+                    panic('Could not revert file in non-existent project'),
+                  ),
+                  taskEither.chain(getProjectPath({ ...fileSystemStack, ...apiStack })),
+                  taskEither.chain((projectDir) =>
+                    downloadFile({ ...fileSystemStack, ...apiStack })({
+                      projectId,
+                      file,
+                      projectDir,
+                    }),
                   ),
                 )
               }

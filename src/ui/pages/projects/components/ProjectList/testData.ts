@@ -1,5 +1,5 @@
 import { constVoid, task, taskEither } from '@code-expert/prelude';
-import { RelativeProjectPath } from '@/domain/FileSystem';
+import { FsFile, RelativeProjectPath } from '@/domain/FileSystem';
 import { ProjectId, projectADT } from '@/domain/Project';
 import { ProjectMetadata } from '@/domain/ProjectMetadata';
 import { SyncException } from '@/domain/SyncException';
@@ -37,3 +37,8 @@ export const syncProject: (id: ProjectId) => taskEither.TaskEither<SyncException
 
 export const removeProject: (id: ProjectId) => task.Task<void> = () =>
   task.delay(DELAY)(task.of(undefined));
+
+export const revertFile: (
+  id: ProjectId,
+  file: FsFile,
+) => taskEither.TaskEither<SyncException, void> = () => task.delay(DELAY)(taskEither.of(undefined));

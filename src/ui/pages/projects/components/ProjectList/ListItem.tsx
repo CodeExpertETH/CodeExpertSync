@@ -1,7 +1,7 @@
 import { Alert, Button, Collapse, List, Typography } from 'antd';
 import React, { useEffect } from 'react';
-import { constNull, io, remoteEither, task, taskEither } from '@code-expert/prelude';
-import { invalidFileNameMessage } from '@/domain/FileSystem';
+import { constNull, flow, io, remoteEither, task, taskEither } from '@code-expert/prelude';
+import { FsFile, invalidFileNameMessage } from '@/domain/FileSystem';
 import { Project, ProjectId, projectADT } from '@/domain/Project';
 import { SyncException, syncExceptionADT } from '@/domain/SyncException';
 import { ActionMenu } from '@/ui/components/ActionMenu';
@@ -48,15 +48,22 @@ export interface ListItemProps {
   onOpen: (id: ProjectId) => taskEither.TaskEither<string, void>;
   onSync: (id: ProjectId, force?: ForceSyncDirection) => taskEither.TaskEither<SyncException, void>;
   onRemove: (id: ProjectId) => task.Task<void>;
+  onRevertFile: (id: ProjectId, file: FsFile) => taskEither.TaskEither<SyncException, void>;
 }
 
-export const ListItem = ({ project, onOpen, onSync, onRemove }: ListItemProps) => {
+export const ListItem = ({ project, onOpen, onSync, onRemove, onRevertFile }: ListItemProps) => {
   const { now } = useTimeContext();
   const { navigateTo } = useRoute();
 
   const [openStateRD, runOpen] = useTask(onOpen);
-  const [syncStateRD, runSync] = useTask(onSync);
   const [removalStateRD, runRemove] = useTask(onRemove);
+  const [syncStateRD, runSync] = useTask(onSync);
+  const [revertFileStateRD, runRevert] = useTask(
+    flow(
+      onRevertFile,
+      taskEither.chainFirstIOK(() => () => runSync(project.value.projectId)),
+    ),
+  );
 
   const callWhenSynced = useCallWhen(projectADT.is.local(project));
 
@@ -69,14 +76,18 @@ export const ListItem = ({ project, onOpen, onSync, onRemove }: ListItemProps) =
     }
   }, [callWhenSynced, project, runOpen, runSync]);
 
+  const syncEnv: ViewFromSyncExceptionEnv = {
+    choseProjectDir: () => navigateTo(routes.settings()),
+    forcePush: () => runSync(project.value.projectId, 'push'),
+    forcePull: () => runSync(project.value.projectId, 'pull'),
+    revertFile: (file) => runRevert(project.value.projectId, file),
+  };
+
   // All states combined. Order matters: the first failure gets precedence.
   const actionStates = remoteEither.sequenceT(
     viewFromStringException(openStateRD),
-    viewFromSyncException({
-      choseProjectDir: () => navigateTo(routes.settings()),
-      forcePush: () => runSync(project.value.projectId, 'push'),
-      forcePull: () => runSync(project.value.projectId, 'pull'),
-    })(syncStateRD),
+    viewFromSyncException(syncEnv)(revertFileStateRD),
+    viewFromSyncException(syncEnv)(syncStateRD),
   );
 
   const syncButtonState = fromProject(project, remoteEither.isPending(syncStateRD));
@@ -147,16 +158,22 @@ const viewFromStringException: <A>(
   e: remoteEither.RemoteEither<string, A>,
 ) => remoteEither.RemoteEither<React.ReactElement, A> = remoteEither.mapLeft((x) => <>{x}</>);
 
-const viewFromSyncException: (env: {
+interface ViewFromSyncExceptionEnv {
   choseProjectDir: () => void;
   forcePush: () => void;
   forcePull: () => void;
-}) => <A>(
+  revertFile: (file: FsFile) => void;
+}
+
+const viewFromSyncException: (
+  env: ViewFromSyncExceptionEnv,
+) => <A>(
   e: remoteEither.RemoteEither<SyncException, A>,
 ) => remoteEither.RemoteEither<React.ReactElement, A> = ({
   choseProjectDir,
   forcePush,
   forcePull,
+  revertFile,
 }) =>
   remoteEither.mapLeft(
     syncExceptionADT.fold({
@@ -172,9 +189,32 @@ const viewFromSyncException: (env: {
           </HStack>
         </>
       ),
-      readOnlyFilesChanged: ({ path, reason }) => (
+      fileAddedToReadOnlyDir: (file) => (
+        <Typography.Paragraph>
+          You added a file to a read-only directory. Please remove it to continue syncing:
+          <br />{' '}
+          <HStack align="center" gap="xs">
+            <Icon name={'file'} />
+            <strong>{file.path}</strong>
+          </HStack>
+        </Typography.Paragraph>
+      ),
+      readOnlyFileChanged: (file) => (
         <>
-          Read-only files changed: {reason} ({path})
+          <Typography.Paragraph>
+            You changed a read-only file:
+            <br />
+            <HStack align="center" gap="xs">
+              <Icon name={'file'} />
+              <strong>{file.path}</strong>
+            </HStack>
+          </Typography.Paragraph>
+          <Typography.Paragraph>
+            Save your changes elsewhere and then revert back to the original file.
+          </Typography.Paragraph>
+          <HStack gap="xs" justify="center">
+            <Button onClick={() => revertFile(file)}>Revert changes</Button>
+          </HStack>
         </>
       ),
       invalidFilename: (filename) => (
