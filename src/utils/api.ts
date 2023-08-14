@@ -131,7 +131,7 @@ const fromHttpError = <A>(
     either.mapLeft(
       httpError.fold({
         noNetwork: () => apiError.wide.noNetwork(),
-        invalidPayload: (errs) => panic(`Payload did not match specification: ${errs.join('; ')}`),
+        unknownBodyType: (errs) => panic(`Payload did not match specification: ${errs.join('; ')}`),
       }),
     ),
     either.chain(

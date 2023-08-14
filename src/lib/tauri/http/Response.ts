@@ -27,7 +27,7 @@ export const parseResponse: <E, A>(codecs: {
 }) => (r: http.Response<unknown>) => either.Either<HttpError, either.Either<E, A>> = (codecs) =>
   flow(
     mkResponseCodec(codecs).decode,
-    either.bimap(flow(iots.formatValidationErrors, httpError.invalidPayload), (res) =>
+    either.bimap(flow(iots.formatValidationErrors, httpError.unknownBodyType), (res) =>
       res.ok ? either.right(res.data) : either.left(res.data),
     ),
   );

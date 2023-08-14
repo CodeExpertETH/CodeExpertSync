@@ -49,10 +49,12 @@ const fetch = <E, A>(
   return pipe(
     taskEither.tryCatch(
       () => http.fetch(url, { headers: finalHeaders, body: finalBody, ...fetchOptions }),
-      () =>
+      (e) =>
         // A fetch() promise only rejects when a network error is encountered
         // See https://developer.mozilla.org/en-US/docs/Web/API/fetch
-        httpError.wide.noNetwork(),
+        typeof e === 'string' && e.startsWith('Network')
+          ? httpError.wide.noNetwork()
+          : httpError.wide.unknownBodyType([String(e)]),
     ),
     taskEither.chainEitherK(parseResponse({ valueCodec, errorCodec })),
   );
