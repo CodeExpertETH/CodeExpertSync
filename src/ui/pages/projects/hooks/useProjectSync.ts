@@ -548,11 +548,10 @@ export const useProjectSync = () => {
   const time = useTimeContext();
   const { projectRepository } = useGlobalContext();
 
-  const stack = { ...projectInfoStack, ...time, ...apiStack };
-
   return React.useCallback<RunProjectSync>(
-    (project, { force } = {}) =>
-      pipe(
+    (project, { force } = {}) => {
+      const stack = { ...projectInfoStack, ...time, ...apiStack };
+      return pipe(
         taskEither.Do,
 
         // setup
@@ -671,7 +670,8 @@ export const useProjectSync = () => {
           ),
         ),
         taskEither.map(constVoid),
-      ),
+      );
+    },
     [projectRepository, time],
   );
 };
