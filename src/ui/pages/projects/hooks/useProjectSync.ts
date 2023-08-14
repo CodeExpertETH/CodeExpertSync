@@ -55,68 +55,16 @@ import {
   projectADT,
   projectPrism,
 } from '@/domain/Project';
+import { ApiStack } from '@/domain/ProjectSync/apiStack';
+import { downloadFile } from '@/domain/ProjectSync/downloadFile';
 import { SyncException, fromHttpError, syncExceptionADT } from '@/domain/SyncException';
 import { changesADT, syncStateADT } from '@/domain/SyncState';
 import { fs as libFs, os as libOs, path as libPath } from '@/lib/tauri';
-import { TauriException } from '@/lib/tauri/TauriException';
 import { FsNode, isFile } from '@/lib/tauri/fs';
 import { useGlobalContext } from '@/ui/GlobalContext';
 import { TimeContext, useTimeContext } from '@/ui/contexts/TimeContext';
-import { ApiError, apiGetSigned, apiPostSigned, requestBody } from '@/utils/api';
+import { apiGetSigned, apiPostSigned, requestBody } from '@/utils/api';
 import { invariant, panic } from '@/utils/error';
-
-export interface ApiStack {
-  readRemoteProjectFile(
-    projectId: ProjectId,
-    file: PfsPath,
-  ): taskEither.TaskEither<ApiError, Uint8Array>;
-}
-
-const apiStack: ApiStack = {
-  readRemoteProjectFile: (projectId, file) =>
-    apiGetSigned({
-      path: `project/${projectId}/file`,
-      jwtPayload: { path: file },
-      codec: iots.Uint8ArrayC,
-      responseType: ResponseType.Binary,
-    }),
-};
-
-const writeProjectFile =
-  (stack: FileSystemStack) =>
-  (
-    projectDir: ProjectPath,
-    file: PfsPath,
-    content: Uint8Array,
-  ): taskEither.TaskEither<TauriException, void> =>
-    pipe(
-      stack.join(projectDir, file),
-      task.chain((path) => stack.writeFileWithAncestors(path, content)),
-    );
-
-const writeSingleFile =
-  (stack: FileSystemStack & ApiStack) =>
-  ({
-    fileInfo,
-    projectId,
-    projectDir,
-  }: {
-    fileInfo: RemoteNodeInfo;
-    projectId: ProjectId;
-    projectDir: ProjectPath;
-  }): taskEither.TaskEither<SyncException, void> =>
-    pipe(
-      stack.readRemoteProjectFile(projectId, fileInfo.path),
-      taskEither.mapLeft(fromHttpError),
-      taskEither.chain((fileContent) =>
-        pipe(
-          writeProjectFile(stack)(projectDir, fileInfo.path, fileContent),
-          taskEither.mapLeft(({ message: reason }) =>
-            syncExceptionADT.wide.fileSystemCorrupted({ path: fileInfo.path, reason }),
-          ),
-        ),
-      ),
-    );
 
 const isVisibleFsNode =
   (stack: FileSystemStack) =>
@@ -534,6 +482,16 @@ const projectInfoStack: FileSystemStack = {
   writeFileWithAncestors: libFs.writeFileWithAncestors,
 };
 
+export const apiStack: ApiStack = {
+  readRemoteProjectFile: (projectId, file) =>
+    apiGetSigned({
+      path: `project/${projectId}/file`,
+      jwtPayload: { path: file },
+      codec: iots.Uint8ArrayC,
+      responseType: ResponseType.Binary,
+    }),
+};
+
 type TotalSyncActions = {
   upload: option.Option<Array<LocalFileChange>>;
   download: option.Option<Array<RemoteNodeInfo>>;
@@ -653,7 +611,7 @@ export const useProjectSync = () => {
                 pipe(
                   files,
                   array.traverse(taskEither.ApplicativeSeq)((fileInfo) =>
-                    writeSingleFile(stack)({
+                    downloadFile(stack)({
                       fileInfo,
                       projectId: project.value.projectId,
                       projectDir,
