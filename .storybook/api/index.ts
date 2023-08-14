@@ -14,9 +14,6 @@ export const api: Api = {
     settingsStore.set(key, value);
     return Promise.resolve(undefined);
   },
-  writeProjectFile: () => {
-    panic('[Storybook] Not implemented');
-  },
   removeDir: () => {
     panic('[Storybook] Not implemented');
   },
