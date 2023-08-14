@@ -9,11 +9,11 @@ export type SSEException = tagged.Tagged<'disconnected'>;
 export const sseExceptionADT = tagged.build<SSEException>();
 
 export const useProjectEventUpdate = (
-  onProjectAdded: () => void,
+  onProjectAccessGranted: () => void,
   clientId: ClientId,
 ): remoteEither.RemoteEither<SSEException, EventSource> => {
   const sse = React.useRef<EventSource | null>(null);
-  // TODO: this doesn't need to be more than a Option<SseException>. Separate this hook into useEventSource(...): RemoteEither<SSEException, EventSource> and useEventListener(eventSource, 'projectAcces', onProjectAdded)
+  // TODO: this doesn't need to be more than a Option<SseException>. Separate this hook into useEventSource(...): RemoteEither<SSEException, EventSource> and useEventListener(eventSource, 'projectAccess', onProjectAccessGranted)
   const [sseStatus, setSseStatus] = React.useState<
     remoteEither.RemoteEither<SSEException, EventSource>
   >(remoteEither.initial);
@@ -37,7 +37,7 @@ export const useProjectEventUpdate = (
             if (sse.current == null) {
               setSseStatus(remoteEither.pending);
               sse.current = new EventSource(`${config.CX_API_URL}/projectAccess?token=${token}`);
-              sse.current.addEventListener('projectAccess', onProjectAdd);
+              sse.current.addEventListener('projectAccess', onProjectAccessGranted);
               sse.current.addEventListener('error', onError);
               sse.current.addEventListener('open', onConnect);
               sse.current.addEventListener('close', onDisconnect);
@@ -48,8 +48,14 @@ export const useProjectEventUpdate = (
       }
     };
 
+    const onError = (_e: Event) => {
+      cleanUp();
+      timeout = setTimeout(registerEventSource, 2500);
+      setSseStatus(remoteEither.left(sseExceptionADT.disconnected()));
+    };
+
     const cleanUp = () => {
-      sse.current?.removeEventListener('projectAccess', onProjectAdd);
+      sse.current?.removeEventListener('projectAccess', onProjectAccessGranted);
       sse.current?.removeEventListener('error', onError);
       sse.current?.removeEventListener('open', onConnect);
       sse.current?.removeEventListener('close', onDisconnect);
@@ -59,21 +65,11 @@ export const useProjectEventUpdate = (
         clearTimeout(timeout);
       }
     };
-    const onProjectAdd = () => {
-      onProjectAdded();
-    };
-    const onError = (_e: Event) => {
-      cleanUp();
-      if (timeout != null) {
-        clearTimeout(timeout);
-      }
-      timeout = setTimeout(registerEventSource, 2500);
-      setSseStatus(remoteEither.left(sseExceptionADT.disconnected()));
-    };
 
     registerEventSource();
 
     return cleanUp;
-  }, [onProjectAdded, clientId, onConnect, onDisconnect]);
+  }, [onProjectAccessGranted, clientId, onConnect, onDisconnect]);
+
   return sseStatus;
 };
