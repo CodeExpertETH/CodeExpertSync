@@ -1,6 +1,5 @@
 /// <reference types="vitest" />
 import react from '@vitejs/plugin-react';
-import Path from 'path';
 import { defineConfig, loadEnv } from 'vite';
 import eslint from 'vite-plugin-eslint';
 import topLevelAwait from 'vite-plugin-top-level-await';
@@ -42,12 +41,12 @@ export default defineConfig(({ mode }) => ({
   },
   resolve: {
     alias: {
-      api: Path.join(__dirname, 'src', 'api'),
-      '@/': `${Path.join(__dirname, `src`)}${Path.sep}`, // Trailing Path.sep is intentional!
-      '@code-expert/prelude': Path.join(__dirname, 'packages', 'prelude'),
-      '@code-expert/test-utils': Path.join(__dirname, 'packages', 'test-utils'),
-      '@code-expert/type-utils': Path.join(__dirname, 'packages', 'type-utils'),
-      '@code-expert/fp-ts-remote': Path.join(__dirname, 'packages', 'fp-ts-remote'),
+      api: '/src/api',
+      '@/': `/src/`, // Trailing Path.sep is intentional!
+      '@code-expert/prelude': '/packages/prelude',
+      '@code-expert/test-utils': '/packages/test-utils',
+      '@code-expert/type-utils': '/packages/type-utils',
+      '@code-expert/fp-ts-remote': '/packages/fp-ts-remote',
     },
   },
   test: {
