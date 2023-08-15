@@ -1,5 +1,6 @@
 /// <reference types="vitest" />
 import react from '@vitejs/plugin-react';
+import { URL, fileURLToPath } from 'url';
 import { defineConfig, loadEnv } from 'vite';
 import eslint from 'vite-plugin-eslint';
 import topLevelAwait from 'vite-plugin-top-level-await';
@@ -41,12 +42,12 @@ export default defineConfig(({ mode }) => ({
   },
   resolve: {
     alias: {
-      api: '/src/api',
-      '@/': `/src/`, // Trailing Path.sep is intentional!
-      '@code-expert/prelude': '/packages/prelude',
-      '@code-expert/test-utils': '/packages/test-utils',
-      '@code-expert/type-utils': '/packages/type-utils',
-      '@code-expert/fp-ts-remote': '/packages/fp-ts-remote',
+      api: fileURLToPath(new URL('./src/api', import.meta.url)),
+      '@/': fileURLToPath(new URL('./src/', import.meta.url)), // Trailing '/' is intentional!
+      '@code-expert/prelude': fileURLToPath(new URL('./prelude', import.meta.url)),
+      '@code-expert/test-utils': fileURLToPath(new URL('./test-utils', import.meta.url)),
+      '@code-expert/type-utils': fileURLToPath(new URL('./type-utils', import.meta.url)),
+      '@code-expert/fp-ts-remote': fileURLToPath(new URL('./fp-ts-remote', import.meta.url)),
     },
   },
   test: {
