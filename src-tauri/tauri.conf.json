@@ -27,7 +27,7 @@
       "http": {
         "request": true,
         "scope": [
-          "http://localhost:*",
+          "http://localhost/*",
           "https://api.expert.ethz.ch/*",
           "https://api.expert-dev.ethz.ch/*"
         ]
