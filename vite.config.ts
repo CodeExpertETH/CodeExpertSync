@@ -43,7 +43,7 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       api: Path.join(__dirname, 'src', 'api'),
-      '@/': Path.join(__dirname, `src${Path.sep}`), // Trailing Path.sep is intentional!
+      '@/': `${Path.join(__dirname, `src`)}${Path.sep}`, // Trailing Path.sep is intentional!
       '@code-expert/prelude': Path.join(__dirname, 'packages', 'prelude'),
       '@code-expert/test-utils': Path.join(__dirname, 'packages', 'test-utils'),
       '@code-expert/type-utils': Path.join(__dirname, 'packages', 'type-utils'),
