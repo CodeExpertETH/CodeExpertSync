@@ -1,4 +1,5 @@
 import { task, taskEither, taskOption, tree } from '@code-expert/prelude';
+import { fs as libFs, os as libOs, path as libPath } from '@/lib/tauri';
 import { TauriException } from '@/lib/tauri/TauriException';
 import { FsNode } from '@/lib/tauri/fs';
 
@@ -18,3 +19,22 @@ export interface FileSystemStack {
     content: Uint8Array,
   ): taskEither.TaskEither<TauriException, void>;
 }
+
+/**
+ * Notes:
+ * - This instance should not be defined here, but passed as an environment dependency
+ * - Such low-level file system operations should likely not be part of the domain
+ */
+export const fileSystemStack: FileSystemStack = {
+  escape: libPath.escape,
+  join: libPath.join,
+  dirname: libPath.dirname,
+  stripAncestor: libPath.stripAncestor,
+  getFileHash: libFs.getFileHash,
+  removeFile: libFs.removeFile,
+  basename: libPath.basename,
+  tempDir: libOs.tempDir,
+  readBinaryFile: libFs.readBinaryFile,
+  readFsTree: libFs.readFsTree,
+  writeFileWithAncestors: libFs.writeFileWithAncestors,
+};

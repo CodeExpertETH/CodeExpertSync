@@ -1,4 +1,3 @@
-import { ResponseType } from '@tauri-apps/api/http';
 import { api } from 'api';
 import React from 'react';
 import {
@@ -46,7 +45,7 @@ import {
   localChangeType,
   remoteChangeType,
 } from '@/domain/FileSystem';
-import { FileSystemStack } from '@/domain/FileSystem/fileSystemStack';
+import { FileSystemStack, fileSystemStack } from '@/domain/FileSystem/fileSystemStack';
 import {
   LocalProject,
   Project,
@@ -55,11 +54,10 @@ import {
   projectADT,
   projectPrism,
 } from '@/domain/Project';
-import { ApiStack } from '@/domain/ProjectSync/apiStack';
+import { apiStack } from '@/domain/ProjectSync/apiStack';
 import { downloadFile } from '@/domain/ProjectSync/downloadFile';
 import { SyncException, fromHttpError, syncExceptionADT } from '@/domain/SyncException';
 import { changesADT, syncStateADT } from '@/domain/SyncState';
-import { fs as libFs, os as libOs, path as libPath } from '@/lib/tauri';
 import { FsNode, isFile } from '@/lib/tauri/fs';
 import { useGlobalContext } from '@/ui/GlobalContext';
 import { TimeContext, useTimeContext } from '@/ui/contexts/TimeContext';
@@ -468,30 +466,6 @@ export type RunProjectSync = (
   options?: { force?: ForceSyncDirection },
 ) => taskEither.TaskEither<SyncException, void>;
 
-const projectInfoStack: FileSystemStack = {
-  escape: libPath.escape,
-  join: libPath.join,
-  dirname: libPath.dirname,
-  stripAncestor: libPath.stripAncestor,
-  getFileHash: libFs.getFileHash,
-  removeFile: libFs.removeFile,
-  basename: libPath.basename,
-  tempDir: libOs.tempDir,
-  readBinaryFile: libFs.readBinaryFile,
-  readFsTree: libFs.readFsTree,
-  writeFileWithAncestors: libFs.writeFileWithAncestors,
-};
-
-export const apiStack: ApiStack = {
-  readRemoteProjectFile: (projectId, file) =>
-    apiGetSigned({
-      path: `project/${projectId}/file`,
-      jwtPayload: { path: file },
-      codec: iots.Uint8ArrayC,
-      responseType: ResponseType.Binary,
-    }),
-};
-
 type TotalSyncActions = {
   upload: option.Option<Array<LocalFileChange>>;
   download: option.Option<Array<RemoteNodeInfo>>;
@@ -550,7 +524,7 @@ export const useProjectSync = () => {
 
   return React.useCallback<RunProjectSync>(
     (project, { force } = {}) => {
-      const stack = { ...projectInfoStack, ...time, ...apiStack };
+      const stack = { ...fileSystemStack, ...time, ...apiStack };
       return pipe(
         taskEither.Do,
 
