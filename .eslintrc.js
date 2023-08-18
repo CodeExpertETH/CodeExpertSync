@@ -23,5 +23,6 @@ module.exports = {
     'import/namespace': 'off',
     'import/named': 'off',
     'import/no-named-as-default-member': 'off',
+    "@typescript-eslint/method-signature-style": "error",
   },
 };

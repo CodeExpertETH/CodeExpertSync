@@ -5,10 +5,10 @@ import { ProjectId } from '@/domain/Project';
 import { ApiError, apiGetSigned } from '@/utils/api';
 
 export interface ApiStack {
-  readRemoteProjectFile(
+  readRemoteProjectFile: (
     projectId: ProjectId,
     file: PfsPath,
-  ): taskEither.TaskEither<ApiError, Uint8Array>;
+  ) => taskEither.TaskEither<ApiError, Uint8Array>;
 }
 
 /**

@@ -45,9 +45,9 @@ const StyledButton = styled(Button, ({ tokens }) => ({
 
 export interface ListItemProps {
   project: Project;
-  onOpen(id: ProjectId): taskEither.TaskEither<string, void>;
-  onSync(id: ProjectId, force?: ForceSyncDirection): taskEither.TaskEither<SyncException, void>;
-  onRemove(id: ProjectId): task.Task<void>;
+  onOpen: (id: ProjectId) => taskEither.TaskEither<string, void>;
+  onSync: (id: ProjectId, force?: ForceSyncDirection) => taskEither.TaskEither<SyncException, void>;
+  onRemove: (id: ProjectId) => task.Task<void>;
 }
 
 export const ListItem = ({ project, onOpen, onSync, onRemove }: ListItemProps) => {
@@ -148,9 +148,9 @@ const viewFromStringException: <A>(
 ) => remoteEither.RemoteEither<React.ReactElement, A> = remoteEither.mapLeft((x) => <>{x}</>);
 
 const viewFromSyncException: (env: {
-  choseProjectDir(): void;
-  forcePush(): void;
-  forcePull(): void;
+  choseProjectDir: () => void;
+  forcePush: () => void;
+  forcePull: () => void;
 }) => <A>(
   e: remoteEither.RemoteEither<SyncException, A>,
 ) => remoteEither.RemoteEither<React.ReactElement, A> = ({

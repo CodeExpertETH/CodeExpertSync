@@ -7,11 +7,11 @@ const renderLoading = () => <Loading delayTime={200} />;
 export interface GuardRemoteProps<A> {
   value: remote.Remote<A>;
   /* Renders only if all values are non-nullable */
-  render(a: A): React.ReactNode;
+  render: (a: A) => React.ReactNode;
   /* Renders a fallback if in unasked state */
-  initial?(): React.ReactNode;
+  initial?: () => React.ReactNode;
   /* Renders a fallback if in loading state */
-  pending?(): React.ReactNode;
+  pending?: () => React.ReactNode;
 }
 
 /**
@@ -29,13 +29,13 @@ export function GuardRemote<A>({
 export interface GuardRemoteEitherProps<E, A> {
   value: remoteEither.RemoteEither<E, A>;
   /* Renders only if all values are non-nullable */
-  render(a: A): React.ReactNode;
+  render: (a: A) => React.ReactNode;
   /* Renders on error */
-  failure(e: E): React.ReactNode;
+  failure: (e: E) => React.ReactNode;
   /* Renders a fallback if in unasked state */
-  initial?(): React.ReactNode;
+  initial?: () => React.ReactNode;
   /* Renders a fallback if in loading state */
-  pending?(): React.ReactNode;
+  pending?: () => React.ReactNode;
 }
 
 /**

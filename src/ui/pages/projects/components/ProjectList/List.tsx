@@ -18,9 +18,9 @@ const StyledCard = styled(Card, ({ tokens }) => ({
 export interface ListProps {
   exerciseName: string;
   projects: Array<Project>;
-  onOpen(id: ProjectId): taskEither.TaskEither<string, void>;
-  onSync(id: ProjectId, force?: ForceSyncDirection): taskEither.TaskEither<SyncException, void>;
-  onRemove(id: ProjectId): task.Task<void>;
+  onOpen: (id: ProjectId) => taskEither.TaskEither<string, void>;
+  onSync: (id: ProjectId, force?: ForceSyncDirection) => taskEither.TaskEither<SyncException, void>;
+  onRemove: (id: ProjectId) => task.Task<void>;
 }
 
 export const List = ({ exerciseName, projects, onOpen, onSync, onRemove }: ListProps) => (

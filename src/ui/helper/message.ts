@@ -21,11 +21,11 @@ export type Message<F> = {
    * If the argument is an exception, the message is shown.
    * Otherwise, the argument is converted from an error to an exception.
    */
-  error(a: unknown, duration?: number): F;
-  info(a: Content, duration?: number): F;
-  loading(a: Content, duration?: number): F;
-  success(a: Content, duration?: number): F;
-  warning(a: Content, duration?: number): F;
+  error: (a: unknown, duration?: number) => F;
+  info: (a: Content, duration?: number) => F;
+  loading: (a: Content, duration?: number) => F;
+  success: (a: Content, duration?: number) => F;
+  warning: (a: Content, duration?: number) => F;
 };
 
 declare module '@code-expert/prelude' {

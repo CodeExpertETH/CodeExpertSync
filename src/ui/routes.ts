@@ -14,7 +14,7 @@ export const routes = tagged.build<Route>();
 
 // -------------------------------------------------------------------------------------------------
 
-type RouteContext = { currentRoute: Route; navigateTo(route: Route): void };
+type RouteContext = { currentRoute: Route; navigateTo: (route: Route) => void };
 
 const context = React.createContext<RouteContext | undefined>(undefined);
 

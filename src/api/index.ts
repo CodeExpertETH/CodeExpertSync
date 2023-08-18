@@ -23,12 +23,12 @@ const store = new TauriStore('settings.json');
 export interface Api {
   getVersion: task.Task<string>;
   create_keys: task.Task<string>;
-  create_jwt_tokens(claims: Record<string, unknown>): taskEither.TaskEither<string, string>;
-  buildTar(fileName: string, rootDir: ProjectPath, files: Array<PfsPath>): task.Task<string>;
-  settingRead<T>(key: string, decoder: iots.Decoder<unknown, T>): taskOption.TaskOption<T>;
-  settingWrite(key: string, value: unknown): task.Task<void>;
-  removeDir(filePath: string): taskEither.TaskEither<TauriException, void>;
-  logout(): task.Task<void>;
+  create_jwt_tokens: (claims: Record<string, unknown>) => taskEither.TaskEither<string, string>;
+  buildTar: (fileName: string, rootDir: ProjectPath, files: Array<PfsPath>) => task.Task<string>;
+  settingRead: <T>(key: string, decoder: iots.Decoder<unknown, T>) => taskOption.TaskOption<T>;
+  settingWrite: (key: string, value: unknown) => task.Task<void>;
+  removeDir: (filePath: string) => taskEither.TaskEither<TauriException, void>;
+  logout: () => task.Task<void>;
   getSystemInfo: taskOption.TaskOption<string>;
   restart: task.Task<void>;
 }

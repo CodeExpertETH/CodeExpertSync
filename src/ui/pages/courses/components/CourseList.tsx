@@ -11,7 +11,7 @@ const StyledAntList = styled(AntList as typeof AntList<CourseItem>, ({ tokens })
 
 export interface CourseListProps {
   courses: Array<CourseItem>;
-  onOpen(course: CourseItem): void;
+  onOpen: (course: CourseItem) => void;
 }
 
 export const CourseList = ({ courses, onOpen }: CourseListProps) =>
@@ -65,7 +65,7 @@ const StyledButton = styled(Button, ({ tokens }) => ({
 
 interface ListItemProps {
   course: CourseItem;
-  onOpen(course: CourseItem): void;
+  onOpen: (course: CourseItem) => void;
 }
 
 const ListItem = ({ course, onOpen }: ListItemProps) => (

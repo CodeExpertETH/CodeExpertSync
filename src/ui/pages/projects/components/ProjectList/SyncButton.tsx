@@ -85,7 +85,7 @@ const SwapAfterDelay = ({
   return showInitial ? initialEl : delayedEl;
 };
 
-const Synced = ({ now, syncedAt, onClick }: { now: Date; syncedAt: Date; onClick(): void }) => {
+const Synced = ({ now, syncedAt, onClick }: { now: Date; syncedAt: Date; onClick: () => void }) => {
   const { tokens } = useTheme();
   return (
     <SwapAfterDelay
@@ -110,7 +110,15 @@ const Synced = ({ now, syncedAt, onClick }: { now: Date; syncedAt: Date; onClick
   );
 };
 
-const Errored = ({ now, syncedAt, onClick }: { now: Date; syncedAt: Date; onClick(): void }) => {
+const Errored = ({
+  now,
+  syncedAt,
+  onClick,
+}: {
+  now: Date;
+  syncedAt: Date;
+  onClick: () => void;
+}) => {
   const { tokens } = useTheme();
   return (
     <SwapAfterDelay

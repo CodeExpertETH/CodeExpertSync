@@ -14,15 +14,15 @@ import {
 } from './';
 
 type TestService<F extends URIS> = {
-  true(): Kind<F, boolean>;
-  length(s: string): Kind<F, number>;
-  repeat<A>(a: A, n: number): Kind<F, Array<A>>;
+  true: () => Kind<F, boolean>;
+  length: (s: string) => Kind<F, number>;
+  repeat: <A>(a: A, n: number) => Kind<F, Array<A>>;
 };
 
 type TestService2<F extends URIS2, E> = {
-  true(): Kind2<F, E, boolean>;
-  length(s: string): Kind2<F, E, number>;
-  repeat<A>(a: A, n: number): Kind2<F, E, Array<A>>;
+  true: () => Kind2<F, E, boolean>;
+  length: (s: string) => Kind2<F, E, number>;
+  repeat: <A>(a: A, n: number) => Kind2<F, E, Array<A>>;
 };
 
 declare module './naturalTransformation' {
