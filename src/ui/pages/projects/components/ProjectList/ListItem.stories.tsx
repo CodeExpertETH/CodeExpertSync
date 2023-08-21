@@ -7,6 +7,7 @@ import {
   localProject,
   openProject,
   removeProject,
+  revertFile,
   syncProject,
 } from '@/ui/pages/projects/components/ProjectList/testData';
 import { ListItem } from './ListItem';
@@ -19,6 +20,7 @@ const meta = {
     onOpen: openProject,
     onSync: syncProject,
     onRemove: removeProject,
+    onRevertFile: revertFile,
   },
   render: (props) => (
     <List size="small">

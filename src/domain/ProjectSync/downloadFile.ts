@@ -1,5 +1,5 @@
 import { pipe, task, taskEither } from '@code-expert/prelude';
-import { PfsPath, ProjectPath, RemoteNodeInfo } from '@/domain/FileSystem';
+import { PfsPath, ProjectPath, RemoteFileInfo } from '@/domain/FileSystem';
 import { FileSystemStack } from '@/domain/FileSystem/fileSystemStack';
 import { ProjectId } from '@/domain/Project';
 import { ApiStack } from '@/domain/ProjectSync/apiStack';
@@ -9,22 +9,22 @@ import { TauriException } from '@/lib/tauri/TauriException';
 export const downloadFile =
   (stack: FileSystemStack & ApiStack) =>
   ({
-    fileInfo,
+    file,
     projectId,
     projectDir,
   }: {
-    fileInfo: RemoteNodeInfo;
+    file: RemoteFileInfo;
     projectId: ProjectId;
     projectDir: ProjectPath;
   }): taskEither.TaskEither<SyncException, void> =>
     pipe(
-      stack.readRemoteProjectFile(projectId, fileInfo.path),
+      stack.readRemoteProjectFile(projectId, file.path),
       taskEither.mapLeft(fromHttpError),
       taskEither.chain((fileContent) =>
         pipe(
-          writeProjectFile(stack)(projectDir, fileInfo.path, fileContent),
+          writeProjectFile(stack)(projectDir, file.path, fileContent),
           taskEither.mapLeft(({ message: reason }) =>
-            syncExceptionADT.wide.fileSystemCorrupted({ path: fileInfo.path, reason }),
+            syncExceptionADT.wide.fileSystemCorrupted({ path: file.path, reason }),
           ),
         ),
       ),

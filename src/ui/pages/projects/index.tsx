@@ -12,7 +12,10 @@ import {
   taskEither,
 } from '@code-expert/prelude';
 import { ClientId } from '@/domain/ClientId';
-import { ordProjectExercise } from '@/domain/Project';
+import { fileSystemStack } from '@/domain/FileSystem/fileSystemStack';
+import { getProjectPath, ordProjectExercise } from '@/domain/Project';
+import { apiStack } from '@/domain/ProjectSync/apiStack';
+import { downloadFile } from '@/domain/ProjectSync/downloadFile';
 import { globalSetupState, setupState } from '@/domain/Setup';
 import { useGlobalContextWithActions } from '@/ui/GlobalContext';
 import { CourseHeader } from '@/ui/components/CourseHeader';
@@ -28,6 +31,8 @@ import { useProjectSync } from '@/ui/pages/projects/hooks/useProjectSync';
 import { routes, useRoute } from '@/ui/routes';
 import { panic } from '@/utils/error';
 import { useProjectEventUpdate } from './hooks/useProjectEventUpdate';
+
+const stack = { ...fileSystemStack, ...apiStack };
 
 export function Projects({ clientId, course }: { clientId: ClientId; course: CourseItem }) {
   const [{ projectRepository, online }, dispatch] = useGlobalContextWithActions();
@@ -93,6 +98,18 @@ export function Projects({ clientId, course }: { clientId: ClientId; course: Cou
                       return task.of(undefined);
                     },
                     () => projectRepository.removeProject(projectId),
+                  ),
+                )
+              }
+              onRevertFile={(projectId, file) =>
+                pipe(
+                  projectRepository.getProject(projectId),
+                  taskEither.fromTaskOption(() =>
+                    panic('Could not revert file in non-existent project'),
+                  ),
+                  taskEither.chain(getProjectPath(stack)),
+                  taskEither.chain((path) =>
+                    downloadFile(stack)({ projectId, file, projectDir: path.absolute }),
                   ),
                 )
               }
