@@ -32,6 +32,8 @@ import { routes, useRoute } from '@/ui/routes';
 import { panic } from '@/utils/error';
 import { useProjectEventUpdate } from './hooks/useProjectEventUpdate';
 
+const stack = { ...fileSystemStack, ...apiStack };
+
 export function Projects({ clientId, course }: { clientId: ClientId; course: CourseItem }) {
   const [{ projectRepository, online }, dispatch] = useGlobalContextWithActions();
   const projects = pipe(
@@ -105,9 +107,9 @@ export function Projects({ clientId, course }: { clientId: ClientId; course: Cou
                   taskEither.fromTaskOption(() =>
                     panic('Could not revert file in non-existent project'),
                   ),
-                  taskEither.chain(getProjectPath({ ...fileSystemStack, ...apiStack })),
+                  taskEither.chain(getProjectPath(stack)),
                   taskEither.chain((projectDir) =>
-                    downloadFile({ ...fileSystemStack, ...apiStack })({
+                    downloadFile(stack)({
                       projectId,
                       file,
                       projectDir,
