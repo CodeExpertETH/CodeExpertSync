@@ -233,13 +233,14 @@ const checkEveryNewAncestorIsValidDirName =
     );
   };
 
-const isFileWritable =
+const findRemoteForLocalFileChange =
   (remote: Array<RemoteNodeInfo>) =>
-  (c: LocalFileChange): boolean =>
+  (local: LocalFileChange): RemoteFileInfo =>
     pipe(
       remote,
-      array.findFirst((i) => i.path === c.path),
-      option.fold(constFalse, isWritable),
+      array.filter(isFile),
+      array.findFirst((i) => i.path === local.path),
+      option.getOrElseW(() => panic('Expected to find local file in list of remote files.')),
     );
 
 const validateAddedFileChange: (
@@ -261,17 +262,27 @@ const validateRemovedFileChange: (
 ) => (c: LocalFileChange) => taskEither.TaskEither<SyncException, LocalFileChange> =
   (stack) => (remote) =>
     flow(
-      taskEither.fromPredicate(isFileWritable(remote), (file) =>
-        syncExceptionADT.readOnlyFileChanged(file),
+      taskEither.of,
+      taskEither.chainFirstEitherKW(
+        flow(
+          findRemoteForLocalFileChange(remote),
+          either.fromPredicate(isWritable, syncExceptionADT.readOnlyFileChanged),
+        ),
       ),
       taskEither.chain(checkClosestExistingAncestorIsWritable(stack)(remote)),
     );
 
 const validateUpdatedFileChange: (
   remote: Array<RemoteNodeInfo>,
-) => (c: LocalFileChange) => taskEither.TaskEither<SyncException, LocalFileChange> = (remote) =>
-  taskEither.fromPredicate(isFileWritable(remote), (file) =>
-    syncExceptionADT.readOnlyFileChanged(file),
+) => (c: LocalFileChange) => either.Either<SyncException, LocalFileChange> = (remote) =>
+  flow(
+    either.of,
+    either.chainFirst(
+      flow(
+        findRemoteForLocalFileChange(remote),
+        either.fromPredicate(isWritable, syncExceptionADT.readOnlyFileChanged),
+      ),
+    ),
   );
 
 // TODO: filter localChanges that are in conflict with remoteChanges
@@ -304,7 +315,7 @@ const getFilesToUpload =
           noChange: () => panic('File has no changes'),
           added: () => validateAddedFileChange(stack)(remote)(x),
           removed: () => validateRemovedFileChange(stack)(remote)(x),
-          updated: () => validateUpdatedFileChange(remote)(x),
+          updated: () => pipe(x, validateUpdatedFileChange(remote), taskEither.fromEither),
         }),
       ),
       taskEither.map(array.unsafeFromReadonly),
@@ -446,10 +457,7 @@ const checkConflicts = <R>({
     option.chain(({ local, remote }) => getConflicts(local, remote)),
     option.fold(
       () => either.right(undefined),
-      (conflicts) => {
-        console.log(conflicts);
-        return either.left(syncExceptionADT.conflictingChanges());
-      },
+      flow(syncExceptionADT.conflictingChanges, either.left),
     ),
   );
 
@@ -494,7 +502,7 @@ const getSyncActions: (
           option.filter(() => force == null || force === 'push'),
         ),
       ),
-      taskEither.chainFirstEitherKW(checkConflicts),
+      taskEither.chainFirstEitherKW(checkConflicts), // Validated + conflict free change
       taskEither.chain(({ localChanges, remoteChanges }) =>
         pipe(
           localChanges,

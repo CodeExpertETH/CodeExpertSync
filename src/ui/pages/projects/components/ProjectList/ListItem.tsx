@@ -1,7 +1,7 @@
 import { Alert, Button, Collapse, List, Typography } from 'antd';
 import React, { useEffect } from 'react';
 import { constNull, flow, io, remoteEither, task, taskEither } from '@code-expert/prelude';
-import { FsFile, invalidFileNameMessage } from '@/domain/FileSystem';
+import { RemoteFileInfo, invalidFileNameMessage } from '@/domain/FileSystem';
 import { Project, ProjectId, projectADT } from '@/domain/Project';
 import { SyncException, syncExceptionADT } from '@/domain/SyncException';
 import { ActionMenu } from '@/ui/components/ActionMenu';
@@ -48,7 +48,7 @@ export interface ListItemProps {
   onOpen: (id: ProjectId) => taskEither.TaskEither<string, void>;
   onSync: (id: ProjectId, force?: ForceSyncDirection) => taskEither.TaskEither<SyncException, void>;
   onRemove: (id: ProjectId) => task.Task<void>;
-  onRevertFile: (id: ProjectId, file: FsFile) => taskEither.TaskEither<SyncException, void>;
+  onRevertFile: (id: ProjectId, file: RemoteFileInfo) => taskEither.TaskEither<SyncException, void>;
 }
 
 export const ListItem = ({ project, onOpen, onSync, onRemove, onRevertFile }: ListItemProps) => {
@@ -162,7 +162,7 @@ interface ViewFromSyncExceptionEnv {
   choseProjectDir: () => void;
   forcePush: () => void;
   forcePull: () => void;
-  revertFile: (file: FsFile) => void;
+  revertFile: (file: RemoteFileInfo) => void;
 }
 
 const viewFromSyncException: (

@@ -1,12 +1,12 @@
 import { tagged } from '@code-expert/prelude';
-import { FsFile } from '@/domain/FileSystem';
+import { Conflict, FsFile, RemoteFileInfo } from '@/domain/FileSystem';
 import { apiError } from '@/utils/api';
 import { panic } from '@/utils/error';
 
 export type SyncException =
-  | tagged.Tagged<'conflictingChanges'>
+  | tagged.Tagged<'conflictingChanges', NonEmptyArray<Conflict>>
   | tagged.Tagged<'fileAddedToReadOnlyDir', FsFile>
-  | tagged.Tagged<'readOnlyFileChanged', FsFile>
+  | tagged.Tagged<'readOnlyFileChanged', RemoteFileInfo>
   | tagged.Tagged<'invalidFilename', string>
   // | tagged.Tagged<'fileSizeExceeded'>
   | tagged.Tagged<'fileSystemCorrupted', { path: string; reason: string }>

@@ -1,7 +1,7 @@
 import { List as AntList, Card, Typography } from 'antd';
 import React from 'react';
 import { array, pipe, task, taskEither } from '@code-expert/prelude';
-import { FsFile } from '@/domain/FileSystem';
+import { RemoteFileInfo } from '@/domain/FileSystem';
 import { Project, ProjectId, ordProjectTask } from '@/domain/Project';
 import { SyncException } from '@/domain/SyncException';
 import { VStack } from '@/ui/foundation/Layout';
@@ -22,7 +22,7 @@ export interface ListProps {
   onOpen: (id: ProjectId) => taskEither.TaskEither<string, void>;
   onSync: (id: ProjectId, force?: ForceSyncDirection) => taskEither.TaskEither<SyncException, void>;
   onRemove: (id: ProjectId) => task.Task<void>;
-  onRevertFile: (id: ProjectId, file: FsFile) => taskEither.TaskEither<SyncException, void>;
+  onRevertFile: (id: ProjectId, file: RemoteFileInfo) => taskEither.TaskEither<SyncException, void>;
 }
 
 export const List = ({ exerciseName, projects, ...itemEnv }: ListProps) => (

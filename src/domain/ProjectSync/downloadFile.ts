@@ -1,5 +1,5 @@
 import { pipe, task, taskEither } from '@code-expert/prelude';
-import { FsFile, PfsPath, ProjectPath } from '@/domain/FileSystem';
+import { PfsPath, ProjectPath, RemoteFileInfo } from '@/domain/FileSystem';
 import { FileSystemStack } from '@/domain/FileSystem/fileSystemStack';
 import { ProjectId } from '@/domain/Project';
 import { ApiStack } from '@/domain/ProjectSync/apiStack';
@@ -13,7 +13,7 @@ export const downloadFile =
     projectId,
     projectDir,
   }: {
-    file: FsFile;
+    file: RemoteFileInfo;
     projectId: ProjectId;
     projectDir: ProjectPath;
   }): taskEither.TaskEither<SyncException, void> =>
