@@ -45,7 +45,12 @@ export const getProjectDirRelative: (
 
 export const getProjectPath =
   (stack: FileSystemStack & ApiStack) =>
-  (project: Project): taskEither.TaskEither<SyncException, ProjectPath> =>
+  (
+    project: Project,
+  ): taskEither.TaskEither<
+    SyncException,
+    { absolute: ProjectPath; relative: RelativeProjectPath }
+  > =>
     pipe(
       taskEither.Do,
       taskEither.bind('rootDir', () =>
@@ -54,6 +59,9 @@ export const getProjectPath =
           taskEither.fromTaskOption(() => syncExceptionADT.wide.projectDirMissing()),
         ),
       ),
-      taskEither.bindTaskK('relDir', () => getProjectDirRelative(stack)(project)),
-      taskEither.chainTaskK(({ rootDir, relDir }) => fsGetProjectPath(stack)(rootDir, relDir)),
+      taskEither.bindTaskK('relative', () => getProjectDirRelative(stack)(project)),
+      taskEither.bindTaskK('absolute', ({ rootDir, relative }) =>
+        fsGetProjectPath(stack)(rootDir, relative),
+      ),
+      taskEither.map(({ relative, absolute }) => ({ relative, absolute })),
     );

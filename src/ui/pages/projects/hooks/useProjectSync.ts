@@ -29,14 +29,12 @@ import {
   RemoteNodeChange,
   RemoteNodeInfo,
   RemoteNodeInfoC,
-  RootPathC,
   deleteSingleFile,
   fromRemoteFileInfo,
   getConflicts,
   getLocalChanges,
   getPfsParent,
   getPfsPath,
-  getProjectPath,
   getRemoteChanges,
   hashInfoFromFsFile,
   isValidDirName,
@@ -50,7 +48,7 @@ import {
   LocalProject,
   Project,
   ProjectId,
-  getProjectDirRelative,
+  getProjectPath,
   projectADT,
   projectPrism,
 } from '@/domain/Project';
@@ -529,18 +527,8 @@ export const useProjectSync = () => {
       const stack = { ...fileSystemStack, ...time, ...apiStack };
       return pipe(
         taskEither.Do,
-
         // setup
-        taskEither.bind('rootDir', () =>
-          pipe(
-            api.settingRead('projectDir', RootPathC),
-            taskEither.fromTaskOption(() => syncExceptionADT.projectDirMissing()),
-          ),
-        ),
-        taskEither.bindTaskK('projectDirRelative', () => getProjectDirRelative(stack)(project)),
-        taskEither.bindTaskK('projectDir', ({ rootDir, projectDirRelative }) =>
-          getProjectPath(stack)(rootDir, projectDirRelative),
-        ),
+        taskEither.bind('projectPath', () => getProjectPath(stack)(project)),
         // change detection
         taskEither.let('projectInfoPrevious', () =>
           pipe(
@@ -549,11 +537,11 @@ export const useProjectSync = () => {
           ),
         ),
         taskEither.bindW('projectInfoRemote', () => getProjectInfoRemote(project.value.projectId)),
-        taskEither.bind('projectInfoLocal', ({ projectDir }) =>
+        taskEither.bind('projectInfoLocal', ({ projectPath }) =>
           pipe(
             projectPrism.local.getOption(project),
             option.traverse(taskEither.ApplicativePar)((project) =>
-              getProjectInfoLocal(stack)(projectDir, project),
+              getProjectInfoLocal(stack)(projectPath.absolute, project),
             ),
           ),
         ),
@@ -566,18 +554,22 @@ export const useProjectSync = () => {
           ),
         ),
         // upload local changed files
-        taskEither.chainFirst(({ projectDir, actions }) =>
+        taskEither.chainFirst(({ projectPath, actions }) =>
           pipe(
             actions.upload,
             option.fold(
               () => taskEither.of(undefined),
               (filesToUpload) =>
-                uploadChangedFiles(stack)(project.value.projectId, projectDir, filesToUpload),
+                uploadChangedFiles(stack)(
+                  project.value.projectId,
+                  projectPath.absolute,
+                  filesToUpload,
+                ),
             ),
           ),
         ),
         // download and write added and updated files
-        taskEither.chainFirst(({ actions, projectDir }) =>
+        taskEither.chainFirst(({ actions, projectPath }) =>
           pipe(
             actions.download,
             option.foldW(
@@ -589,7 +581,7 @@ export const useProjectSync = () => {
                     downloadFile(stack)({
                       file: fileInfo,
                       projectId: project.value.projectId,
-                      projectDir,
+                      projectDir: projectPath.absolute,
                     }),
                   ),
                   taskEither.map(constVoid),
@@ -598,7 +590,7 @@ export const useProjectSync = () => {
           ),
         ),
         //delete remote removed files
-        taskEither.chainFirstTaskK(({ actions, projectDir }) =>
+        taskEither.chainFirstTaskK(({ actions, projectPath }) =>
           pipe(
             actions.delete,
             option.foldW(
@@ -606,13 +598,15 @@ export const useProjectSync = () => {
               (filesToDelete) =>
                 pipe(
                   filesToDelete,
-                  array.traverse(task.ApplicativeSeq)(deleteSingleFile(stack, projectDir)),
+                  array.traverse(task.ApplicativeSeq)(
+                    deleteSingleFile(stack, projectPath.absolute),
+                  ),
                 ),
             ),
           ),
         ),
         // update all project metadata
-        taskEither.bindW('updatedProjectInfo', ({ projectDir }) =>
+        taskEither.bindW('updatedProjectInfo', ({ projectPath }) =>
           pipe(
             // fixme: why are we not using the result of uploadChangedFiles?
             getProjectInfoRemote(project.value.projectId),
@@ -620,7 +614,9 @@ export const useProjectSync = () => {
               pipe(
                 projectInfoRemote.files,
                 array.filter(isFile),
-                array.traverse(task.ApplicativeSeq)(fromRemoteFileInfo(stack, projectDir)),
+                array.traverse(task.ApplicativeSeq)(
+                  fromRemoteFileInfo(stack, projectPath.absolute),
+                ),
                 task.map((files) => ({
                   ...projectInfoRemote,
                   files,
@@ -631,12 +627,12 @@ export const useProjectSync = () => {
           ),
         ),
         // store new state
-        taskEither.chainFirstTaskK(({ updatedProjectInfo, projectDirRelative }) =>
+        taskEither.chainFirstTaskK(({ updatedProjectInfo, projectPath }) =>
           projectRepository.upsertOne(
             projectADT.local({
               ...project.value,
               files: updatedProjectInfo.files,
-              basePath: projectDirRelative,
+              basePath: projectPath.relative,
               syncedAt: time.now(),
               syncState: projectADT.fold(project, {
                 remote: () => syncStateADT.synced(changesADT.unknown()),
