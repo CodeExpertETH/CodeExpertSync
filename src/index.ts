@@ -74,7 +74,7 @@ function renderError({ message, stack }: Error) {
       <summary>Show error details</summary>
       <div>
         <h3>Message</h3>
-        <p>${message}</p>
+        <p><pre>${message}</pre></p>
         <h3>Stack trace</h3>
         <pre><code>${stack ?? 'No stack trace available.'}</code></pre>
       </div>

@@ -90,6 +90,7 @@ body {
 .fatal-error details div {
   padding-block: 8px;
 }
+.fatal-error pre,
 .fatal-error code {
   line-height: 1.8;
   font-size: 12px;
