@@ -30,7 +30,7 @@ const cleanUpEventListener = (
   sse: React.MutableRefObject<EventSource | null>,
   onAuthToken: ({ data }: { data: string }) => Promise<void>,
   onDenied: () => void,
-  onError: (e: Event) => void,
+  onError: () => void,
 ) => {
   sse.current?.removeEventListener('granted', onAuthToken);
   sse.current?.removeEventListener('denied', onDenied);
@@ -79,8 +79,8 @@ export const useAuthState = (
         panic('Invalid state. Please try again.');
       }
     };
-    const onError = (e: Event) => {
-      throw e;
+    const onError = function (this: EventSource) {
+      panic(`SSE connection error: could not connect to ${this.url}.`);
     };
 
     if (authState.is.waitingForAuthorization(state)) {
