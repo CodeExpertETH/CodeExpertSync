@@ -24,7 +24,10 @@ export const downloadFile =
         pipe(
           writeProjectFile(stack)(projectDir, file.path, fileContent),
           taskEither.mapLeft(({ message: reason }) =>
-            syncExceptionADT.wide.fileSystemCorrupted({ path: file.path, reason }),
+            syncExceptionADT.wide.fileSystemCorrupted({
+              path: file.path,
+              reason: `Could not write project file (${reason})`,
+            }),
           ),
         ),
       ),

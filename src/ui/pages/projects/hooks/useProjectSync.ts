@@ -81,11 +81,11 @@ const getProjectInfoLocal =
     _: LocalProject,
   ): taskEither.TaskEither<SyncException, Array<LocalFileInfo>> =>
     pipe(
-      stack.readFsTree(projectPath),
+      stack.readFsTree(projectPath + '/bla'),
       taskEither.mapLeft((e) =>
         syncExceptionADT.fileSystemCorrupted({
           path: projectPath,
-          reason: e.message,
+          reason: `Could not read FS tree (${e.message})`,
         }),
       ),
       taskEither.map((x) => tree.toArray(x)),
@@ -99,7 +99,7 @@ const getProjectInfoLocal =
               (e) =>
                 syncExceptionADT.fileSystemCorrupted({
                   path: projectPath,
-                  reason: e.message,
+                  reason: `Could not get PFS path (${e.message})`,
                 }),
               (relative) => ({ path: relative, type }),
             ),
@@ -137,7 +137,7 @@ const findClosest =
             taskEither.fromTaskOption(() =>
               syncExceptionADT.fileSystemCorrupted({
                 path: relPath,
-                reason: 'Root directory must exist',
+                reason: 'PFS root directory does not exist',
               }),
             ),
             taskEither.chain(findClosest(stack)(lookup)),
@@ -217,8 +217,13 @@ const checkEveryNewAncestorIsValidDirName =
               paths,
               array.filter(isNew),
               array.traverse(taskOption.ApplicativePar)(stack.basename),
-              taskOption.filter(array.every(isValidDirName)),
               taskEither.fromTaskOption(() =>
+                syncExceptionADT.wide.fileSystemCorrupted({
+                  path: paths.join('/'),
+                  reason: 'Could not find basename',
+                }),
+              ),
+              taskEither.filterOrElse(array.every(isValidDirName), () =>
                 syncExceptionADT.wide.fileSystemCorrupted({
                   path: paths.join('/'),
                   reason: 'Parent directory has invalid name',

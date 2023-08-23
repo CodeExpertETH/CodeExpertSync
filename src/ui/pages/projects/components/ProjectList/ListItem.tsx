@@ -232,7 +232,21 @@ const viewFromSyncException: (
       ),
       fileSystemCorrupted: ({ path, reason }) => (
         <>
-          Problems with the file system: {reason} ({path})
+          <Typography.Paragraph>
+            The app’s file system is broken for this file:
+            <br />
+            <HStack align="baseline" gap="xs">
+              <Icon name={'file'} />
+              <strong>{path}</strong>
+            </HStack>
+          </Typography.Paragraph>
+          <Typography.Paragraph>
+            With the following reason:
+            <pre>{reason}</pre>
+          </Typography.Paragraph>
+          <Typography.Paragraph>
+            Try removing the project directory from your computer or contact support.
+          </Typography.Paragraph>
         </>
       ),
       projectDirMissing: () => (
