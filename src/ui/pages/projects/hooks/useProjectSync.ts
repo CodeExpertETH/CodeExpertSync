@@ -81,7 +81,7 @@ const getProjectInfoLocal =
     _: LocalProject,
   ): taskEither.TaskEither<SyncException, Array<LocalFileInfo>> =>
     pipe(
-      stack.readFsTree(projectPath + '/bla'),
+      stack.readFsTree(projectPath),
       taskEither.mapLeft((e) =>
         syncExceptionADT.fileSystemCorrupted({
           path: projectPath,
