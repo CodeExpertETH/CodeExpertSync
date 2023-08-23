@@ -21,16 +21,13 @@ const debouncedErrorHandler = debounce(handleError, 100);
 window.addEventListener('error', (evt) => debouncedErrorHandler(evt.error));
 window.addEventListener('unhandledrejection', (evt) => debouncedErrorHandler(evt.reason));
 
-// WebKit doesn't handle top-level await errors correctly, so we try/catch here
-// See https://bugs.webkit.org/show_bug.cgi?id=258662
-try {
-  const container = document.getElementById('root');
-  if (!container) throw new Error('Root element (#root) not found, could not render.');
-  const { render } = await import('@/ui/App');
-  await render(container);
-} catch (err) {
-  debouncedErrorHandler(err);
-}
+import('@/ui/App')
+  .then(({ render }) => {
+    const container = document.getElementById('root');
+    if (!container) throw new Error('Root element (#root) not found, could not render.');
+    return render(container);
+  })
+  .catch(debouncedErrorHandler);
 
 // -------------------------------------------------------------------------------------------------
 
