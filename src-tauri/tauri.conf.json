@@ -31,8 +31,7 @@
           "http://localhost:3100/*",
           "http://localhost:1420/*",
           "https://api.expert.ethz.ch/*",
-          "https://api.expert-dev.ethz.ch/*",
-          "http://expert-dev.ethz.ch:3000/*"
+          "https://api.expert-dev.ethz.ch/*"
         ]
       }
     },
@@ -55,7 +54,7 @@
       "longDescription": "",
       "macOS": {
         "entitlements": null,
-        "exceptionDomain": "expert-dev.ethz.ch",
+        "exceptionDomain": "",
         "frameworks": [],
         "providerShortName": null,
         "signingIdentity": null
@@ -75,7 +74,7 @@
     "updater": {
       "active": true,
       "endpoints": [
-        "https://update-desktop-rduxf6hsba-oa.a.run.app?current_version={{current_version}}&target={{target}}&arch={{arch}}"
+        "https://api.expert.ethz.ch/update/check?version={{current_version}}&target={{target}}&arch={{arch}}"
       ],
       "dialog": false,
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEM2REM4NDYxNTEyQzRFN0IKUldSN1RpeFJZWVRjeHBFTXN1alp6cktrYm1BZkhMMHNzYUQ4dkc1WmNjZjdCbHQ3a3E2UVVEUHQK"
