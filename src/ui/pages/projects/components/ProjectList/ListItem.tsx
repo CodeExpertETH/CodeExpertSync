@@ -122,7 +122,7 @@ export const ListItem = ({ project, onOpen, onSync, onRemove, onRevertFile }: Li
                     onClick: onOpenClick,
                   },
                   {
-                    label: 'Sync to local computer',
+                    label: 'Synchronise project',
                     key: 'sync',
                     icon: <Icon name="sync" />,
                     onClick: () => runSync(project.value.projectId),
