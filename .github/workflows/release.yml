@@ -35,6 +35,9 @@ jobs:
         with:
           node-version: 'lts/*'
           cache: 'yarn' # Set this to npm, yarn or pnpm.
+      - name: Setup aarch64 requirements
+        if: matrix.platform == 'macos-13'
+        run: "rustup target add aarch64-apple-darwin"
       - name: Install app dependencies and build web
         run: yarn && yarn build
 
