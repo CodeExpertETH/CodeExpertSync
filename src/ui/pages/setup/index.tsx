@@ -4,7 +4,7 @@ import React from 'react';
 import { boolean, pipe, taskOption } from '@code-expert/prelude';
 import { ClientId } from '@/domain/ClientId';
 import { SetupState, setupState } from '@/domain/Setup';
-import { useGlobalContextWithActions } from '@/ui/GlobalContext';
+import { useGlobalContext } from '@/ui/GlobalContext';
 import { GuardRemote } from '@/ui/components/GuardRemoteData';
 import { VStack } from '@/ui/foundation/Layout';
 import { useAsync } from '@/ui/hooks/useAsync';
@@ -14,7 +14,7 @@ import { SyncStep } from '@/ui/pages/setup/SyncStep';
 import { panic } from '@/utils/error';
 
 export function Setup(props: { state: SetupState }) {
-  const [{ online }] = useGlobalContextWithActions();
+  const { online } = useGlobalContext();
 
   const clientId = useAsync(
     () =>

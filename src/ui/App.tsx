@@ -5,7 +5,7 @@ import { pipe, task } from '@code-expert/prelude';
 import { registerApp } from '@/application/registerApp';
 import { globalSetupState } from '@/domain/Setup';
 import { mkProjectRepositoryTauri } from '@/infrastructure/tauri/ProjectRepository';
-import { GlobalContextProvider, useGlobalContextWithActions } from '@/ui/GlobalContext';
+import { GlobalContextProvider, useGlobalContext } from '@/ui/GlobalContext';
 import { ErrorBoundary } from '@/ui/components/ErrorBoundary';
 import { GuardRemote } from '@/ui/components/GuardRemoteData';
 import { TimeContextProvider, timeContext } from '@/ui/contexts/TimeContext';
@@ -43,7 +43,7 @@ export const render = (container: HTMLElement): Promise<void> =>
   );
 
 export function App() {
-  const [{ setupState }] = useGlobalContextWithActions();
+  const { setupState } = useGlobalContext();
   const { currentRoute, navigateTo } = useRoute();
   const [clientIdRD, refreshClientId] = useTask(registerApp);
 

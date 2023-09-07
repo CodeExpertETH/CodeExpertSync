@@ -54,7 +54,7 @@ export const GlobalContextProvider = React.memo(function GlobalContextProvider({
     if (state == null) {
       pipe(
         getSetupState(projectRepository),
-        task.map((setupState) => {
+        task.chainIOK((setupState) => () => {
           stateDispatch({
             _init: initialState({
               setupState,

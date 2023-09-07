@@ -3,13 +3,13 @@ import React from 'react';
 import { constFalse, constTrue } from '@code-expert/prelude';
 import logo from '@/assets/logo-inverted.svg';
 import { globalSetupState } from '@/domain/Setup';
-import { useGlobalContextWithActions } from '@/ui/GlobalContext';
+import { useGlobalContext } from '@/ui/GlobalContext';
 import { Icon } from '@/ui/foundation/Icons';
 import { HStack } from '@/ui/foundation/Layout';
 import { routes, useRoute } from '@/ui/routes';
 
 export const TopNav = () => {
-  const [{ setupState, online }] = useGlobalContextWithActions();
+  const { setupState, online } = useGlobalContext();
   const { navigateTo } = useRoute();
 
   const onClick = ({ key }: { key: string }) => {

@@ -1,6 +1,6 @@
 import { Alert, Layout } from 'antd';
 import React from 'react';
-import { useGlobalContextWithActions } from '@/ui/GlobalContext';
+import { useGlobalContext } from '@/ui/GlobalContext';
 import { styled } from '@/ui/foundation/Theme';
 import { TopNav } from './TopNav';
 
@@ -26,7 +26,7 @@ export interface AppLayoutProps {
 }
 
 export const AppLayout = ({ children }: AppLayoutProps) => {
-  const [{ online }] = useGlobalContextWithActions();
+  const { online } = useGlobalContext();
 
   return (
     <StyledLayout>
