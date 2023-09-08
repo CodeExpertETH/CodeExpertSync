@@ -3,7 +3,9 @@ import { createRoot } from 'react-dom/client';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { pipe, task } from '@code-expert/prelude';
 import { registerApp } from '@/application/registerApp';
+import { ClientId } from '@/domain/ClientId';
 import { globalSetupState } from '@/domain/Setup';
+import { mkApiConnectionAtom } from '@/infrastructure/tauri/ApiConnectionRepository';
 import { mkProjectRepositoryTauri } from '@/infrastructure/tauri/ProjectRepository';
 import { GlobalContextProvider, useGlobalContext } from '@/ui/GlobalContext';
 import { ErrorBoundary } from '@/ui/components/ErrorBoundary';
@@ -15,6 +17,7 @@ import { Courses } from '@/ui/pages/courses';
 import { Developer } from '@/ui/pages/developer';
 import { Logout } from '@/ui/pages/logout';
 import { Projects } from '@/ui/pages/projects';
+import { useProjectEventUpdate } from '@/ui/pages/projects/hooks/useProjectEventUpdate';
 import { Settings } from '@/ui/pages/settings';
 import { Setup } from '@/ui/pages/setup';
 import { Updater } from '@/ui/pages/update';
@@ -28,7 +31,10 @@ export const render = (container: HTMLElement): Promise<void> =>
       root.render(
         <React.StrictMode>
           <ErrorBoundary>
-            <GlobalContextProvider projectRepository={projectRepository}>
+            <GlobalContextProvider
+              projectRepository={projectRepository}
+              apiConnectionAtom={mkApiConnectionAtom()}
+            >
               <RouteContextProvider>
                 <TimeContextProvider value={timeContext}>
                   <App />
@@ -42,9 +48,23 @@ export const render = (container: HTMLElement): Promise<void> =>
     task.toPromise,
   );
 
+function Main({ clientId }: { clientId: ClientId }) {
+  const { projectRepository, apiConnectionAtom } = useGlobalContext();
+  const { currentRoute } = useRoute();
+  useProjectEventUpdate(projectRepository.fetchChanges, clientId, apiConnectionAtom);
+
+  return routes.fold(currentRoute, {
+    settings: () => <Settings />,
+    logout: () => <Logout />,
+    courses: () => <Courses />,
+    projects: ({ course }) => <Projects course={course} />,
+    developer: () => <Developer />,
+  });
+}
+
 export function App() {
   const { setupState } = useGlobalContext();
-  const { currentRoute, navigateTo } = useRoute();
+  const { navigateTo } = useRoute();
   const [clientIdRD, refreshClientId] = useTask(registerApp);
 
   useHotkeys('ctrl+c+x', () => {
@@ -59,48 +79,15 @@ export function App() {
     <GuardRemote
       value={clientIdRD}
       pending={() => <div>Loading …</div>}
-      render={(clientId) =>
-        globalSetupState.fold(setupState, {
-          setup: ({ state }) => (
-            <AppLayout>
-              <Setup state={state} />
-            </AppLayout>
-          ),
-          update: ({ manifest }) => (
-            <AppLayout>
-              <Updater manifest={manifest} />
-            </AppLayout>
-          ),
-          setupDone: () =>
-            routes.fold(currentRoute, {
-              settings: () => (
-                <AppLayout>
-                  <Settings />
-                </AppLayout>
-              ),
-              logout: () => (
-                <AppLayout>
-                  <Logout />
-                </AppLayout>
-              ),
-              courses: () => (
-                <AppLayout>
-                  <Courses />
-                </AppLayout>
-              ),
-              projects: ({ course }) => (
-                <AppLayout>
-                  <Projects clientId={clientId} course={course} />
-                </AppLayout>
-              ),
-              developer: () => (
-                <AppLayout>
-                  <Developer />
-                </AppLayout>
-              ),
-            }),
-        })
-      }
+      render={(clientId) => (
+        <AppLayout setup={globalSetupState.is.setup(setupState)}>
+          {globalSetupState.fold(setupState, {
+            setup: ({ state }) => <Setup state={state} clientId={clientId} />,
+            update: ({ manifest }) => <Updater manifest={manifest} />,
+            setupDone: () => <Main clientId={clientId} />,
+          })}
+        </AppLayout>
+      )}
     />
   );
 }

@@ -9,7 +9,7 @@ import { HStack } from '@/ui/foundation/Layout';
 import { routes, useRoute } from '@/ui/routes';
 
 export const TopNav = () => {
-  const { setupState, online } = useGlobalContext();
+  const { setupState, connectionStatus } = useGlobalContext();
   const { navigateTo } = useRoute();
 
   const onClick = ({ key }: { key: string }) => {
@@ -36,7 +36,7 @@ export const TopNav = () => {
         onClick={onClick}
         disabled={globalSetupState.fold(setupState, {
           setup: constTrue,
-          setupDone: online ? constFalse : constTrue,
+          setupDone: connectionStatus === 'online' ? constFalse : constTrue,
           update: constTrue,
         })}
         triggerSubMenuAction="click"

@@ -11,7 +11,6 @@ import {
   task,
   taskEither,
 } from '@code-expert/prelude';
-import { ClientId } from '@/domain/ClientId';
 import { fileSystemStack } from '@/domain/FileSystem/fileSystemStack';
 import { getProjectPath, ordProjectExercise } from '@/domain/Project';
 import { apiStack } from '@/domain/ProjectSync/apiStack';
@@ -23,19 +22,17 @@ import { VStack } from '@/ui/foundation/Layout';
 import { notificationIO } from '@/ui/helper/notifications';
 import { PageLayout } from '@/ui/layout/PageLayout';
 import { CourseItem, courseItemEq, fromProject } from '@/ui/pages/courses/components/model';
-import ProjectEventStatus from '@/ui/pages/projects/components/ProjectEventStatus';
 import { ProjectList } from '@/ui/pages/projects/components/ProjectList';
 import { projectsByExercise } from '@/ui/pages/projects/components/ProjectList/model/Exercise';
 import { useProjectOpen } from '@/ui/pages/projects/hooks/useProjectOpen';
 import { useProjectSync } from '@/ui/pages/projects/hooks/useProjectSync';
 import { routes, useRoute } from '@/ui/routes';
 import { panic } from '@/utils/error';
-import { useProjectEventUpdate } from './hooks/useProjectEventUpdate';
 
 const stack = { ...fileSystemStack, ...apiStack };
 
-export function Projects({ clientId, course }: { clientId: ClientId; course: CourseItem }) {
-  const [{ projectRepository, online }, dispatch] = useGlobalContextWithActions();
+export function Projects({ course }: { course: CourseItem }) {
+  const [{ projectRepository, connectionStatus }, dispatch] = useGlobalContextWithActions();
   const projects = pipe(
     useProperty(projectRepository.projects),
     array.filter((project) => courseItemEq.equals(fromProject(project), course)),
@@ -48,11 +45,8 @@ export function Projects({ clientId, course }: { clientId: ClientId; course: Cou
     navigateTo(routes.courses());
   };
 
-  const sseStatus = useProjectEventUpdate(projectRepository.fetchChanges, clientId);
-
   return (
     <PageLayout>
-      <ProjectEventStatus status={sseStatus} />
       <CourseHeader semester={course.semester} title={course.name} goOverview={goOverview} />
       {pipe(
         projects,
@@ -71,7 +65,8 @@ export function Projects({ clientId, course }: { clientId: ClientId; course: Cou
               )}
               onSync={(projectId, force) =>
                 pipe(
-                  online,
+                  // todo disable buttons instead?
+                  connectionStatus === 'online',
                   boolean.fold(
                     () => {
                       notificationIO.warning('No internet connection', 5)();
@@ -91,7 +86,8 @@ export function Projects({ clientId, course }: { clientId: ClientId; course: Cou
               }
               onRemove={(projectId) =>
                 pipe(
-                  online,
+                  // todo disable buttons instead?
+                  connectionStatus === 'online',
                   boolean.fold(
                     () => {
                       notificationIO.warning('No internet connection', 5)();

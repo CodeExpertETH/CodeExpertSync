@@ -11,6 +11,10 @@ export const sequenceT = apply.sequenceT(task.ApplyPar);
 
 export const toPromise = <A>(t: task.Task<A>): Promise<A> => t();
 
+/**
+ * This is intentionally typed to accept only Task<void>, to make it harder to just discard inner values which possible carry error channels, e.g. Option or Either.
+ * If you need to move into imperative territory and want to process the inner value further, use {@link toPromise}.
+ */
 export const run = (t: task.Task<void>): void => void t();
 
 export const exists: <A>(f: (a: A) => boolean) => (fa: task.Task<A>) => Promise<boolean> = (f) =>

@@ -1,8 +1,11 @@
+import { useProperty } from '@frp-ts/react';
 import { useEffect, useState } from 'react';
+import { adt } from '@code-expert/prelude';
+import { ApiConnectionProperty } from '@/infrastructure/tauri/ApiConnectionRepository';
 
 export const isNavigator = typeof navigator !== 'undefined';
 
-export interface UseNetworkState {
+export interface NetworkStatus {
   /**
    * @desc Whether browser connected to the network or not.
    */
@@ -20,7 +23,7 @@ export interface UseNetworkState {
 
 const nav: Navigator | undefined = isNavigator ? navigator : undefined;
 
-function getConnectionState(previousState?: UseNetworkState): UseNetworkState {
+function getNetworkStatus(previousState?: NetworkStatus): NetworkStatus {
   const online = nav?.onLine ?? false;
   const previousOnline = previousState?.online ?? false;
 
@@ -31,22 +34,37 @@ function getConnectionState(previousState?: UseNetworkState): UseNetworkState {
   };
 }
 
-export default function useNetworkState(initialState?: () => UseNetworkState): UseNetworkState {
-  const [state, setState] = useState(initialState ?? getConnectionState);
+export type ConnectionStatus = 'online' | 'noConnection' | 'noNetwork';
+
+export const foldConnectionStatus = adt.foldFromKeys<ConnectionStatus>({
+  online: null,
+  noConnection: null,
+  noNetwork: null,
+});
+
+export default function useConnectionStatus(
+  apiConnectionProperty: ApiConnectionProperty,
+): ConnectionStatus {
+  const [networkAvailable, setNetworkAvailable] = useState(getNetworkStatus);
+  const apiConnectionStatus = useProperty(apiConnectionProperty);
 
   useEffect(() => {
-    const handleStateChange = () => {
-      setState(getConnectionState);
+    const networkHandler = () => {
+      setNetworkAvailable(getNetworkStatus);
     };
 
-    window.addEventListener('online', handleStateChange, { passive: true });
-    window.addEventListener('offline', handleStateChange, { passive: true });
+    window.addEventListener('online', networkHandler, { passive: true });
+    window.addEventListener('offline', networkHandler, { passive: true });
 
     return () => {
-      window.removeEventListener('online', handleStateChange);
-      window.removeEventListener('offline', handleStateChange);
+      window.removeEventListener('online', networkHandler);
+      window.removeEventListener('offline', networkHandler);
     };
   }, []);
 
-  return state;
+  return networkAvailable.online && apiConnectionStatus === 'connected'
+    ? 'online'
+    : networkAvailable.online
+    ? 'noConnection'
+    : 'noNetwork';
 }

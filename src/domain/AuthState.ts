@@ -3,6 +3,7 @@ import React from 'react';
 import { constVoid, flow, pipe, tagged, task, taskEither } from '@code-expert/prelude';
 import { getAccess } from '@/api/oauth/getAccess';
 import { config } from '@/config';
+import { notification } from '@/ui/helper/notifications';
 import useTimeout from '@/ui/hooks/useTimeout';
 import { apiErrorToMessage } from '@/utils/api';
 import { pkceChallenge } from '@/utils/crypto';
@@ -80,7 +81,12 @@ export const useAuthState = (
       }
     };
     const onError = function (this: EventSource) {
-      panic(`SSE connection error: could not connect to ${this.url}.`);
+      notification.warning(
+        'Our servers are unreachable. Check your internet connection and/or try again later.',
+        10,
+      );
+      cleanUpEventListener(sse, onAuthToken, onDenied, onError);
+      setState(startingAuthorization(clientId));
     };
 
     if (authState.is.waitingForAuthorization(state)) {

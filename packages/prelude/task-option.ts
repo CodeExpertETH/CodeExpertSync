@@ -8,6 +8,10 @@ export const sequenceS = apply.sequenceS(taskOption.ApplicativePar);
 
 export const sequenceT = apply.sequenceT(taskOption.ApplicativePar);
 
+/**
+ * This is intentionally typed to accept only {@link taskOption.TaskOption TaskOption<void>}, to make it harder to just discard the case where the inner {@link option.Option Option} is {@link option.None None}.
+ * If you need to move into imperative territory and want to process the inner Option further, use {@link task.toPromise}.
+ */
 export const run: (onNone: Lazy<void>) => (fa: taskOption.TaskOption<void>) => void = (onNone) =>
   flow(taskOption.match(onNone, identity), (t) => void t());
 

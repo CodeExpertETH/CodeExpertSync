@@ -11,10 +11,14 @@ import ProjectEventStatus from '@/ui/pages/projects/components/ProjectEventStatu
 import { useProjectEventUpdate } from '@/ui/pages/projects/hooks/useProjectEventUpdate';
 
 export const SyncStep = ({ clientId }: { clientId: ClientId }) => {
-  const [{ projectRepository }, dispatch] = useGlobalContextWithActions();
+  const [{ projectRepository, apiConnectionAtom }, dispatch] = useGlobalContextWithActions();
   const projects = useProperty(projectRepository.projects);
 
-  const sseStatus = useProjectEventUpdate(projectRepository.fetchChanges, clientId);
+  const sseStatus = useProjectEventUpdate(
+    projectRepository.fetchChanges,
+    clientId,
+    apiConnectionAtom,
+  );
 
   React.useEffect(() => {
     pipe(

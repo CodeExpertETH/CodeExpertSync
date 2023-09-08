@@ -1,4 +1,5 @@
 import { Alert, Button, Typography } from 'antd';
+import { api } from 'api';
 import React from 'react';
 import { pipe, task } from '@code-expert/prelude';
 import { authState, useAuthState } from '@/domain/AuthState';
@@ -30,11 +31,12 @@ const AuthWarning = ({
 export const LoginStep = ({ clientId }: { clientId: ClientId }) => {
   const [{ projectRepository }, dispatch] = useGlobalContextWithActions();
 
-  const { state, startAuthorization, cancelAuthorization } = useAuthState(clientId, () =>
+  const { state, startAuthorization, cancelAuthorization } = useAuthState(
+    clientId,
     pipe(
-      getSetupState(projectRepository),
+      api.settingWrite('login', 'done'),
+      task.chain(() => getSetupState(projectRepository)),
       task.map((state) => dispatch({ setupState: state })),
-      task.run,
     ),
   );
 

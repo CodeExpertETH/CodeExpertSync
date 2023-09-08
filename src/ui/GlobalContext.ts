@@ -4,7 +4,8 @@ import React, { useEffect } from 'react';
 import { pipe, task } from '@code-expert/prelude';
 import { ProjectRepository } from '@/domain/ProjectRepository';
 import { GlobalSetupState, getSetupState, globalSetupState } from '@/domain/Setup';
-import useNetworkState from '@/ui/hooks/useNetwork';
+import { ApiConnectionAtom } from '@/infrastructure/tauri/ApiConnectionRepository';
+import useConnectionStatus, { ConnectionStatus } from '@/ui/hooks/useNetwork';
 import { updateStateADT, useUpdate } from '@/ui/pages/update/hooks/useUpdate';
 import { panic } from '@/utils/error';
 import Loading from './components/Loading';
@@ -12,10 +13,14 @@ import Loading from './components/Loading';
 export interface GlobalContext {
   readonly setupState: GlobalSetupState;
   readonly projectRepository: ProjectRepository;
-  readonly online: boolean;
+  readonly apiConnectionAtom: ApiConnectionAtom;
+  readonly connectionStatus: ConnectionStatus;
 }
 
-type MandatoryFields = keyof Pick<GlobalContext, 'setupState' | 'projectRepository' | 'online'>;
+type MandatoryFields = keyof Pick<
+  GlobalContext,
+  'setupState' | 'projectRepository' | 'apiConnectionAtom' | 'connectionStatus'
+>;
 
 export function initialState(
   defaults: Pick<GlobalContext, MandatoryFields> & Partial<Omit<GlobalContext, MandatoryFields>>,
@@ -44,11 +49,18 @@ const context = React.createContext<[GlobalContext, React.Dispatch<Action>]>(
 export const GlobalContextProvider = React.memo(function GlobalContextProvider({
   children,
   projectRepository,
-}: React.PropsWithChildren<{ projectRepository: ProjectRepository }>) {
+  apiConnectionAtom,
+}: React.PropsWithChildren<{
+  projectRepository: ProjectRepository;
+  apiConnectionAtom: ApiConnectionAtom;
+}>) {
   const [state, stateDispatch] = React.useReducer(reducer, undefined);
   const updateState = useUpdate();
+  const connectionStatus = useConnectionStatus(apiConnectionAtom);
 
-  const { online } = useNetworkState();
+  useEffect(() => {
+    stateDispatch({ connectionStatus });
+  }, [connectionStatus]);
 
   useEffect(() => {
     if (state == null) {
@@ -59,14 +71,15 @@ export const GlobalContextProvider = React.memo(function GlobalContextProvider({
             _init: initialState({
               setupState,
               projectRepository,
-              online,
+              apiConnectionAtom,
+              connectionStatus,
             }),
           });
         }),
         task.run,
       );
     }
-  }, [online, projectRepository, state]);
+  }, [apiConnectionAtom, connectionStatus, projectRepository, state]);
 
   useEffect(() => {
     void pipe(
@@ -79,14 +92,15 @@ export const GlobalContextProvider = React.memo(function GlobalContextProvider({
               _init: initialState({
                 setupState: globalSetupState.update({ manifest }),
                 projectRepository,
-                online,
+                apiConnectionAtom,
+                connectionStatus,
               }),
             });
           }
         },
       }),
     );
-  }, [projectRepository, state, updateState, online]);
+  }, [apiConnectionAtom, connectionStatus, projectRepository, state, updateState]);
 
   return state == null
     ? React.createElement(Loading, { delayTime: 1000 })

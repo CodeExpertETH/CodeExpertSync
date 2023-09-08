@@ -2,15 +2,18 @@ import React from 'react';
 import { pipe, remoteEither, tagged, task, taskEither } from '@code-expert/prelude';
 import { config } from '@/config';
 import { ClientId } from '@/domain/ClientId';
+import { ApiConnectionAtom } from '@/infrastructure/tauri/ApiConnectionRepository';
 import { panic } from '@/utils/error';
 import { createToken } from '@/utils/jwt';
 
 export type SSEException = tagged.Tagged<'disconnected'>;
 export const sseExceptionADT = tagged.build<SSEException>();
 
+// TODO: this return value is no longer used, get rid of it
 export const useProjectEventUpdate = (
   onProjectAccessGranted: () => void,
   clientId: ClientId,
+  apiConnectionAtom: ApiConnectionAtom,
 ): remoteEither.RemoteEither<SSEException, EventSource> => {
   const sse = React.useRef<EventSource | null>(null);
   // TODO: this doesn't need to be more than a Option<SseException>. Separate this hook into useEventSource(...): RemoteEither<SSEException, EventSource> and useEventListener(eventSource, 'projectAccess', onProjectAccessGranted)
@@ -18,18 +21,23 @@ export const useProjectEventUpdate = (
     remoteEither.RemoteEither<SSEException, EventSource>
   >(remoteEither.initial);
 
-  const onConnect = React.useCallback(function (this: EventSource) {
-    setSseStatus(remoteEither.right(this));
-  }, []);
-
-  const onDisconnect = React.useCallback(() => {
-    setSseStatus(remoteEither.initial);
-  }, []);
-
   React.useEffect(() => {
+    let retryCount = 0;
+
+    const onConnect = function (this: EventSource) {
+      apiConnectionAtom.set('connected');
+      retryCount = 0;
+      setSseStatus(remoteEither.right(this));
+    };
+
+    const onDisconnect = () => {
+      setSseStatus(remoteEither.initial);
+    };
+
     let timeout: NodeJS.Timeout | null = null;
     const registerEventSource = () => {
       if (sse.current == null) {
+        retryCount += 1;
         pipe(
           createToken(clientId)(),
           taskEither.getOrElse(panic),
@@ -50,8 +58,15 @@ export const useProjectEventUpdate = (
 
     const onError = (_e: Event) => {
       cleanUp();
-      timeout = setTimeout(registerEventSource, 2500);
       setSseStatus(remoteEither.left(sseExceptionADT.disconnected()));
+      if (retryCount === 0) {
+        // immediately try again after a disconnect
+        registerEventSource();
+      } else {
+        // otherwise, delay the retry
+        apiConnectionAtom.set('disconnected');
+        timeout = setTimeout(registerEventSource, 2500);
+      }
     };
 
     const cleanUp = () => {
@@ -69,7 +84,7 @@ export const useProjectEventUpdate = (
     registerEventSource();
 
     return cleanUp;
-  }, [onProjectAccessGranted, clientId, onConnect, onDisconnect]);
+  }, [onProjectAccessGranted, clientId, apiConnectionAtom]);
 
   return sseStatus;
 };

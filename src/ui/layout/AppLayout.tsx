@@ -1,7 +1,9 @@
 import { Alert, Layout } from 'antd';
 import React from 'react';
+import { constNull } from '@code-expert/prelude';
 import { useGlobalContext } from '@/ui/GlobalContext';
 import { styled } from '@/ui/foundation/Theme';
+import { foldConnectionStatus } from '@/ui/hooks/useNetwork';
 import { TopNav } from './TopNav';
 
 const StyledLayout = styled(Layout, () => ({
@@ -22,21 +24,34 @@ const StyledContent = styled(Layout.Content, () => ({
 }));
 
 export interface AppLayoutProps {
+  setup?: boolean;
   children: React.ReactNode;
 }
 
-export const AppLayout = ({ children }: AppLayoutProps) => {
-  const { online } = useGlobalContext();
+export const AppLayout = ({ setup = false, children }: AppLayoutProps) => {
+  const { connectionStatus } = useGlobalContext();
 
   return (
     <StyledLayout>
-      {online ? null : (
-        <StyledAlert
-          message="You are offline. Please check your internet connection."
-          type="warning"
-          showIcon
-        />
-      )}
+      {setup
+        ? null
+        : foldConnectionStatus(connectionStatus, {
+            noNetwork: () => (
+              <StyledAlert
+                message="You are offline. Please check your internet connection."
+                type="warning"
+                showIcon
+              />
+            ),
+            noConnection: () => (
+              <StyledAlert
+                message="Our servers are unreachable. Trying to reconnect..."
+                type="warning"
+                showIcon
+              />
+            ),
+            online: constNull,
+          })}
       <StyledLayoutHeader>
         <TopNav />
       </StyledLayoutHeader>

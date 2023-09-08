@@ -3,29 +3,37 @@ import { homeDir } from '@tauri-apps/api/path';
 import { Typography } from 'antd';
 import { api } from 'api';
 import React from 'react';
-import { pipe, task } from '@code-expert/prelude';
+import { constVoid, option, pipe, task, taskOption } from '@code-expert/prelude';
 import { getSetupState } from '@/domain/Setup';
 import { useGlobalContextWithActions } from '@/ui/GlobalContext';
 import { EditableCard } from '@/ui/components/EditableCard';
 
+const selectProjectDir: task.Task<string | Array<string> | null> = async () =>
+  open({
+    directory: true,
+    multiple: false,
+    defaultPath: await homeDir(),
+  });
+
 export const ProjectDirStep = () => {
   const [{ projectRepository }, dispatch] = useGlobalContextWithActions();
 
-  const selectDir = async () => {
-    const projectDir = await open({
-      directory: true,
-      multiple: false,
-      defaultPath: await homeDir(),
-    });
-    if (projectDir != null) {
+  const selectDir: task.Task<void> = pipe(
+    selectProjectDir,
+    task.map(option.fromPredicate((projectDir) => typeof projectDir === 'string')),
+    taskOption.chainTaskK((projectDir) =>
       pipe(
         api.settingWrite('projectDir', projectDir),
         task.chain(() => getSetupState(projectRepository)),
-        task.map((state) => dispatch({ setupState: state })),
-        task.run,
-      );
-    }
-  };
+      ),
+    ),
+    task.chainIOK(
+      option.fold(
+        () => constVoid,
+        (state) => () => dispatch({ setupState: state }),
+      ),
+    ),
+  );
 
   return (
     <>
