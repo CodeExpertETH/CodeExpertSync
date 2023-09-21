@@ -31,7 +31,8 @@
           "http://localhost:3100/*",
           "http://localhost:1420/*",
           "https://api.expert.ethz.ch/*",
-          "https://api.expert-dev.ethz.ch/*"
+          "https://api.expert-dev.ethz.ch/*",
+          "http://expert-dev.ethz.ch:3000/*"
         ]
       }
     },
@@ -54,7 +55,7 @@
       "longDescription": "",
       "macOS": {
         "entitlements": null,
-        "exceptionDomain": "",
+        "exceptionDomain": "expert-dev.ethz.ch",
         "frameworks": [],
         "providerShortName": null,
         "signingIdentity": null
