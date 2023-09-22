@@ -3,6 +3,7 @@ import React from 'react';
 import { RelativeProjectPath } from '../src/domain/FileSystem';
 import { ProjectId, projectADT } from '../src/domain/Project';
 import { changesADT, syncStateADT } from '../src/domain/SyncState';
+import { mkApiConnectionAtom } from '../src/infrastructure/tauri/ApiConnectionRepository';
 import { mkProjectRepositoryTesting } from '../src/infrastructure/testing/ProjectRepository';
 import { GlobalContextProvider } from '../src/ui/GlobalContext';
 import { TimeContextProvider } from '../src/ui/contexts/TimeContext';
@@ -25,6 +26,8 @@ const projectRepository = await mkProjectRepositoryTesting([
   }),
 ]);
 
+const apiConnectionAtom = mkApiConnectionAtom();
+
 const testTimeContext = {
   now: () => new Date('2023-05-06T11:00:00Z'),
 };
@@ -43,7 +46,11 @@ const preview: Preview = {
   },
   decorators: [
     (Story) =>
-      React.createElement(GlobalContextProvider, { projectRepository }, React.createElement(Story)),
+      React.createElement(
+        GlobalContextProvider,
+        { projectRepository, apiConnectionAtom },
+        React.createElement(Story),
+      ),
     (Story) => React.createElement(RouteContextProvider, {}, React.createElement(Story)),
     (Story) =>
       React.createElement(
