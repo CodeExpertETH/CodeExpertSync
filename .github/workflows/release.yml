@@ -49,12 +49,17 @@ jobs:
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v3
-      - name: setup node
+      - name: Rust setup
+        uses: hecrj/setup-rust-action@v2
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+      - name: Sync node version and setup cache
         uses: actions/setup-node@v3
         with:
-          node-version: lts/*
-      - name: install Rust stable
-        uses: dtolnay/rust-toolchain@stable
+          node-version: 'lts/*'
+          cache: 'yarn' # Set this to npm, yarn or pnpm.
       - name: install dependencies (ubuntu only)
         if: matrix.platform == 'ubuntu-20.04'
         run: |
@@ -64,7 +69,7 @@ jobs:
         if: matrix.platform == 'macos-13'
         run: "rustup target add aarch64-apple-darwin"
       - name: install frontend dependencies
-        run: npm install # change this to npm or pnpm depending on which one you use
+        run: yarn && yarn build
       - name: install AzureSignTool (windows only)
         if: matrix.platform == 'windows-latest'
         run: |
@@ -110,21 +115,6 @@ jobs:
           Set-Content -Path "./secrets.json" -Value $content
         shell: powershell
       - uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
-          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
-        with:
-          releaseId: ${{ needs.create-release.outputs.release_id }}
-
-      - name: setup env for mac arm (Mac only)
-        if: matrix.platform == 'macos-latest'
-        run: |
-          rustup target add aarch64-apple-darwin
-          npm run installNodeArmDarwin
-      - name: build for mac arm (Mac only)
-        if: matrix.platform == 'macos-latest'
-        uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
