@@ -63,7 +63,7 @@ jobs:
       - name: Build the app Windows
         if: ${{ matrix.platform == 'windows-latest' }}
         run: |
-          yarn tauri build --release
+          yarn tauri build '-- --release'
       - name: Sign Windows App (EV)
         if: ${{ matrix.platform == 'windows-latest' }}
         run: |
