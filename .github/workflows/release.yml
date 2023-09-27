@@ -40,8 +40,8 @@ jobs:
         run: "rustup target add aarch64-apple-darwin"
       - name: Install app dependencies and build web
         run: yarn && yarn build
-
-      - name: Build the app
+      - name: Build the app Linux & Mac
+        if: ${{ matrix.platform != 'windows' }}
         uses: tauri-apps/tauri-action@dev
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -59,6 +59,11 @@ jobs:
           releaseDraft: true
           includeDebug: false
           prerelease: false
+
+      - name: Build the app Windows
+        if: ${{ matrix.platform == 'windows' }}
+        run: |
+          yarn tauri build --release
       - name: Sign Windows App (EV)
         if: ${{ matrix.platform == 'windows' }}
         run: |
@@ -77,3 +82,12 @@ jobs:
           7z a -mx=0 src-tauri\target\release\bundle\msi\code_expert_sync_${{ github.ref_name }}_x64_en-US.msi.zip .\src-tauri\target\release\bundle\msi\code_expert_sync_${{ github.ref_name }}_x64_en-US.msi
           # Generate the `msi.sig` file for the updater!
           yarn tauri signer sign src-tauri\target\release\bundle\msi\code_expert_sync_${{ github.ref_name }}_x64_en-US.msi.zip --private-key ${{ secrets.TAURI_PRIVATE_KEY }} --password ${{ secrets.TAURI_KEY_PASSWORD }}
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        if: ${{ matrix.platform == 'windows' }}
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: src-tauri\target\release\*
+          tag: ${{ github.ref }}
+          overwrite: true
+          file_glob: true
