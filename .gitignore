@@ -12,8 +12,8 @@ build/
 *.d.ts.map
 
 ### dotenv ###
-.env
-.env.*
+#.env
+#.env.*
 
 ### Yarn ###
 .yarn/*
