@@ -1,7 +1,12 @@
-name: 'publish'
-
-on: pull_request
-
+name: Release
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+env:
+  NODE_OPTIONS: "--max_old_space_size=4096"
+  TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
 jobs:
   create-release:
     permissions:
