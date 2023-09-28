@@ -1,3 +1,5 @@
+#![windows_subsystem = "windows"]
+
 use tauri::Manager;
 use tauri_plugin_positioner::{Position, WindowExt};
 
