@@ -1,34 +1,47 @@
 import { fs, invoke } from '@tauri-apps/api';
-import { BinaryFileContents, FileEntry } from '@tauri-apps/api/fs';
-import { eq, ord, pipe, string, task, taskEither, tree } from '@code-expert/prelude';
+import { BinaryFileContents, FileEntry, FsDirOptions, FsOptions } from '@tauri-apps/api/fs';
+import { flow, pipe, task, taskEither, tree } from '@code-expert/prelude';
+import { NativePath, isoNativePath } from '@/domain/FileSystem/NativePath';
 import { TauriException, fromTauriError } from '@/lib/tauri/TauriException';
 
-interface FsDir {
+interface DirNode {
   type: 'dir';
-  path: string;
 }
 
-interface FsFile {
+interface FileNode {
   type: 'file';
-  path: string;
+}
+
+type Node = DirNode | FileNode;
+
+interface FsDir extends DirNode {
+  path: NativePath;
+}
+
+interface FsFile extends FileNode {
+  path: NativePath;
 }
 
 export type FsNode = FsDir | FsFile;
 
-export const eqFsNode = eq.struct({
-  type: string.Eq,
-  path: string.Eq,
-});
+export const isFile = <A extends Node>(a: A): a is Extract<A, FileNode> => a.type === 'file';
 
-export const ordFsNode = ord.fromCompare<FsNode>((a, b) => string.Ord.compare(a.path, b.path));
+export const readDir = (path: NativePath, options?: FsDirOptions) =>
+  taskEither.tryCatch(() => fs.readDir(isoNativePath.unwrap(path), options), fromTauriError);
 
-export const isFile = <A extends FsNode>(a: A): a is Extract<A, FsFile> => a.type === 'file';
-export const isDir = <A extends FsNode>(a: A): a is Extract<A, FsDir> => a.type === 'dir';
+export const readBinaryFile = flow(
+  isoNativePath.unwrap,
+  taskEither.tryCatchK(fs.readBinaryFile, fromTauriError),
+);
 
-export const readDir = taskEither.tryCatchK(fs.readDir, fromTauriError);
-export const readBinaryFile = taskEither.tryCatchK(fs.readBinaryFile, fromTauriError);
-export const readTextFile = taskEither.tryCatchK(fs.readTextFile, fromTauriError);
-export const removeFile = taskEither.tryCatchK(fs.removeFile, fromTauriError);
+export const readTextFile = flow(
+  isoNativePath.unwrap,
+  taskEither.tryCatchK(fs.readTextFile, fromTauriError),
+);
+
+export const removeFile = (path: NativePath, options?: FsOptions) =>
+  taskEither.tryCatch(() => fs.removeFile(isoNativePath.unwrap(path), options), fromTauriError);
+
 export const exists =
   (path: string): task.Task<boolean> =>
   () =>
@@ -45,7 +58,9 @@ export const writeBinaryFile = taskEither.tryCatchK<
 >(fs.writeBinaryFile, fromTauriError);
 export const createDir = taskEither.tryCatchK(fs.createDir, fromTauriError);
 
-export const readFsTree = (dir: string): taskEither.TaskEither<TauriException, tree.Tree<FsNode>> =>
+export const readFsTree = (
+  dir: NativePath,
+): taskEither.TaskEither<TauriException, tree.Tree<FsNode>> =>
   pipe(
     readDir(dir, { recursive: true }),
     taskEither.map((files) =>
@@ -56,21 +71,28 @@ export const readFsTree = (dir: string): taskEither.TaskEither<TauriException, t
     ),
   );
 
-export const getFileHash = (path: string): taskEither.TaskEither<TauriException, string> =>
-  taskEither.tryCatch(() => invoke('get_file_hash', { path }), fromTauriError);
+export const getFileHash: (path: NativePath) => taskEither.TaskEither<TauriException, string> =
+  flow(
+    isoNativePath.unwrap,
+    taskEither.tryCatchK((path) => invoke('get_file_hash', { path }), fromTauriError),
+  );
 
 export const writeFileWithAncestors = (
-  file: string,
+  file: NativePath,
   content: Uint8Array,
 ): taskEither.TaskEither<TauriException, void> =>
   taskEither.tryCatch(
-    () => invoke('write_file_ancestors', { file, content: Array.from(content) }),
+    () =>
+      invoke('write_file_ancestors', {
+        file: isoNativePath.unwrap(file),
+        content: Array.from(content),
+      }),
     fromTauriError,
   );
 
 // -------------------------------------------------------------------------------------------------
 
 const fromFileEntry = ({ path, children }: FileEntry): FsNode => ({
-  path,
+  path: isoNativePath.wrap(path),
   type: children == null ? 'file' : 'dir',
 });

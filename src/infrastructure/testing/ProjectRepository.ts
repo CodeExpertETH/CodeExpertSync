@@ -15,6 +15,9 @@ export const mkProjectRepositoryTesting = (initial: Array<Project>): ProjectRepo
           array.findFirst((x) => x.value.projectId === projectId),
         ),
       ),
+    getProjectDir: () => {
+      throw new Error('Not implemented');
+    },
     removeProject: (projectId) =>
       pipe(
         projectsDb.get,

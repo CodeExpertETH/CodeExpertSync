@@ -10,6 +10,7 @@ export * from 'io-ts';
 export {
   date,
   DateFromISOString,
+  fromNewtype,
   nonEmptyArray,
   withFallback,
   withMessage,
@@ -147,3 +148,11 @@ export const brandIdentity: <
   predicate: Refinement<t.TypeOf<C>, t.Branded<t.TypeOf<C>, B>>,
   name: N,
 ) => BrandIdentityC<C, B> = t.brand;
+
+/**
+ * Pipeable alternative for iots.Type.validate.
+ */
+export const validate =
+  <I, A>(codec: t.Decoder<I, A>, c: t.Context) =>
+  (i: I): t.Validation<A> =>
+    codec.validate(i, c);

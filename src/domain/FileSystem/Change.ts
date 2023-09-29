@@ -1,7 +1,8 @@
 import { array, monoid, nonEmptyArray, option, pipe, tagged } from '@code-expert/prelude';
-import { eqFsNode, isFile } from '@/lib/tauri/fs';
-import { FsDir, FsFile } from './FsNode';
+import { isFile } from '@/lib/tauri/fs';
+import { FsDir, FsFile, eqFsNode } from './FsNode';
 import { LocalFileInfo } from './LocalFileInfo';
+import { eqPfsPath } from './PfsPath';
 import { RemoteFileInfo, RemoteNodeInfo } from './RemoteNodeInfo';
 
 export type RemoteChangeType =
@@ -66,7 +67,7 @@ export const getRemoteChanges = (
     array.filter((ls) =>
       pipe(
         latestFiles,
-        array.findFirst((cs) => cs.path === ls.path),
+        array.findFirst((cs) => eqPfsPath.equals(cs.path, ls.path)),
         option.exists((cs) => cs.version !== ls.version),
       ),
     ),

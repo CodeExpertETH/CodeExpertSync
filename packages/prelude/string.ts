@@ -1,4 +1,5 @@
 import * as array from 'fp-ts/Array';
+import { Endomorphism } from 'fp-ts/Endomorphism';
 import * as monoid from 'fp-ts/Monoid';
 import type { Ord } from 'fp-ts/Ord';
 import { sign } from 'fp-ts/Ordering';
@@ -77,3 +78,9 @@ export const splitAt =
   (index: number) =>
   (s: string): option.Option<[string, string]> =>
     option.when(s.length > index, () => [s.slice(0, index), s.slice(index)]);
+
+// TODO replace with fp-ts-std
+export const prepend =
+  (prepended: string): Endomorphism<string> =>
+  (s) =>
+    prepended + s;

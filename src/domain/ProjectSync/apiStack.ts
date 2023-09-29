@@ -1,6 +1,6 @@
 import { ResponseType } from '@tauri-apps/api/http';
 import { iots, taskEither } from '@code-expert/prelude';
-import { PfsPath } from '@/domain/FileSystem';
+import { PfsPath, PfsPathFromStringC } from '@/domain/FileSystem';
 import { ProjectId } from '@/domain/Project';
 import { ApiError, apiGetSigned } from '@/utils/api';
 
@@ -20,7 +20,7 @@ export const apiStack: ApiStack = {
   readRemoteProjectFile: (projectId, file) =>
     apiGetSigned({
       path: `project/${projectId}/file`,
-      jwtPayload: { path: file },
+      jwtPayload: { path: PfsPathFromStringC.encode(file) },
       codec: iots.Uint8ArrayC,
       responseType: ResponseType.Binary,
     }),

@@ -16,6 +16,28 @@ import { panic } from '@/utils/error';
 
 const store = new TauriStore('project_metadata.json');
 
+// Decompose the input to ensure that no excess properties are persisted
+const storeProject = ({
+  projectId,
+  exerciseName,
+  taskOrder,
+  exerciseOrder,
+  projectName,
+  taskName,
+  courseName,
+  semester,
+}: ProjectMetadata) =>
+  store.set(projectId, {
+    projectId,
+    exerciseName,
+    taskOrder,
+    exerciseOrder,
+    projectName,
+    taskName,
+    courseName,
+    semester,
+  });
+
 export const projectMetadataStore = {
   find: (projectId: ProjectId): taskOption.TaskOption<ProjectMetadata> =>
     pipe(
@@ -27,8 +49,8 @@ export const projectMetadataStore = {
       taskOption.tryCatch(() => store.values()),
       taskOption.chainOptionK(flow(iots.array(ProjectMetadata).decode, option.fromEither)),
     ),
-  write: (value: ProjectMetadata): taskOption.TaskOption<void> =>
-    taskOption.tryCatch(() => store.set(value.projectId, value).then(() => store.save())),
+  write: (metadata: ProjectMetadata): taskOption.TaskOption<void> =>
+    taskOption.tryCatch(() => storeProject(metadata).then(() => store.save())),
   remove: (projectId: ProjectId): task.Task<void> =>
     pipe(
       taskOption.tryCatch(() => store.delete(projectId).then(() => store.save())),
@@ -42,7 +64,7 @@ export const projectMetadataStore = {
           either.getOrElseW((errs) =>
             panic(`Project metadata is incorrect: ${iots.formatValidationErrors(errs).join('; ')}`),
           ),
-          array.map((x) => store.set(x.projectId, x)),
+          array.map(storeProject),
           (xs) => Promise.allSettled(xs),
         ),
       ),

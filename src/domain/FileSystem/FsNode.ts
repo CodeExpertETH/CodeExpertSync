@@ -1,6 +1,7 @@
-import { constVoid, iots, pipe, task } from '@code-expert/prelude';
-import { FileSystemStack } from '@/domain/FileSystem/fileSystemStack';
-import { PfsPath, PfsPathC, ProjectPath } from './Path';
+import { constVoid, eq, iots, pipe, string, task, taskEither } from '@code-expert/prelude';
+import { PfsPath, PfsPathFromStringC, eqPfsPath } from './PfsPath';
+import { ProjectDir, projectEntryToNativePath } from './ProjectDir';
+import { FileSystemStack } from './fileSystemStack';
 
 export interface FsDir {
   type: 'dir';
@@ -12,19 +13,37 @@ export interface FsFile {
   path: PfsPath;
 }
 
-export const FsDirC: iots.Type<FsDir> = iots.strict({
-  type: iots.literal('dir'),
-  path: PfsPathC,
-});
+type FsNode = FsDir | FsFile;
 
-export const FsFileC: iots.Type<FsFile> = iots.strict({
-  type: iots.literal('file'),
-  path: PfsPathC,
+// -------------------------------------------------------------------------------------------------
+// Type class instances
+// -------------------------------------------------------------------------------------------------
+
+export const eqFsNode: eq.Eq<FsNode> = eq.struct({
+  type: string.Eq,
+  path: eqPfsPath,
 });
 
 // -------------------------------------------------------------------------------------------------
+// Codecs to convert between the API representation and the internal cxsync representation
+// -------------------------------------------------------------------------------------------------
 
+export const FsDirC = iots.strict({ type: iots.literal('dir'), path: PfsPathFromStringC });
+export const FsFileC = iots.strict({ type: iots.literal('file'), path: PfsPathFromStringC });
+
+// -------------------------------------------------------------------------------------------------
+// Domain functions
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * Tries to delete a single file.
+ * Errors are silently ignored.
+ */
 export const deleteSingleFile =
-  (stack: FileSystemStack, projectDir: ProjectPath) =>
+  (stack: FileSystemStack, projectDir: ProjectDir) =>
   (file: FsFile): task.Task<void> =>
-    pipe(stack.join(projectDir, file.path), task.chainFirst(stack.removeFile), task.map(constVoid));
+    pipe(
+      projectEntryToNativePath(stack)(projectDir, file.path),
+      taskEither.chain(stack.removeFile),
+      task.map(constVoid),
+    );

@@ -1,6 +1,7 @@
 import { Preview } from '@storybook/react';
 import React from 'react';
-import { RelativeProjectPath } from '../src/domain/FileSystem';
+import { iots } from '@code-expert/prelude';
+import { unsafeProjectBasePathFromPath } from '../src/domain/FileSystem';
 import { ProjectId, projectADT } from '../src/domain/Project';
 import { changesADT, syncStateADT } from '../src/domain/SyncState';
 import { mkApiConnectionAtom } from '../src/infrastructure/tauri/ApiConnectionRepository';
@@ -9,7 +10,7 @@ import { GlobalContextProvider } from '../src/ui/GlobalContext';
 import { TimeContextProvider } from '../src/ui/contexts/TimeContext';
 import { RouteContextProvider } from '../src/ui/routes';
 
-const projectRepository = await mkProjectRepositoryTesting([
+const projectRepository = mkProjectRepositoryTesting([
   projectADT.local({
     projectId: 'p1' as ProjectId,
     exerciseName: 'Exercise One',
@@ -19,7 +20,10 @@ const projectRepository = await mkProjectRepositoryTesting([
     taskOrder: 1,
     exerciseOrder: 1,
     semester: { season: 'A', year: 2022 },
-    basePath: '/tmp/cxsync-test' as RelativeProjectPath,
+    basePath: unsafeProjectBasePathFromPath([
+      iots.brandFromLiteral('tmp'),
+      iots.brandFromLiteral('cxsync-test'),
+    ]),
     files: [],
     syncedAt: new Date(),
     syncState: syncStateADT.synced(changesADT.unknown()),

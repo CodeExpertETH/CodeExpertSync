@@ -1,7 +1,7 @@
 import { Alert, Button, Collapse, List, Typography } from 'antd';
 import React, { useEffect } from 'react';
 import { constNull, flow, io, remoteEither, task, taskEither } from '@code-expert/prelude';
-import { RemoteFileInfo, invalidFileNameMessage } from '@/domain/FileSystem';
+import { RemoteFileInfo, invalidFileNameMessage, showPfsPath } from '@/domain/FileSystem';
 import { Project, ProjectId, projectADT } from '@/domain/Project';
 import { SyncException, syncExceptionADT } from '@/domain/SyncException';
 import { ActionMenu } from '@/ui/components/ActionMenu';
@@ -195,7 +195,7 @@ const viewFromSyncException: (
           <br />{' '}
           <HStack align="center" gap="xs">
             <Icon name={'file'} />
-            <strong>{file.path}</strong>
+            <strong>{showPfsPath.show(file.path)}</strong>
           </HStack>
         </Typography.Paragraph>
       ),
@@ -206,7 +206,7 @@ const viewFromSyncException: (
             <br />
             <HStack align="center" gap="xs">
               <Icon name={'file'} />
-              <strong>{file.path}</strong>
+              <strong>{showPfsPath.show(file.path)}</strong>
             </HStack>
           </Typography.Paragraph>
           <Typography.Paragraph>
