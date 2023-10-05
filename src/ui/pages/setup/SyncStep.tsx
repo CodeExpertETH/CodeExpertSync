@@ -7,6 +7,7 @@ import { ClientId } from '@/domain/ClientId';
 import { getSetupState } from '@/domain/Setup';
 import { useGlobalContextWithActions } from '@/ui/GlobalContext';
 import { Icon } from '@/ui/foundation/Icons';
+import { VStack } from '@/ui/foundation/Layout';
 import ProjectEventStatus from '@/ui/pages/projects/components/ProjectEventStatus';
 import { useProjectEventUpdate } from '@/ui/pages/projects/hooks/useProjectEventUpdate';
 
@@ -38,12 +39,16 @@ export const SyncStep = ({ clientId }: { clientId: ClientId }) => {
         <a target="_blank" rel="noreferrer" href={config.CX_WEB_URL}>
           Code Expert website <Icon name="external-link-alt" />
         </a>
-        …
+        {' …'}
       </Typography.Paragraph>
-      <img style={{ width: '100%' }} src="/url.png" alt="Url hint" />
+      <Typography.Paragraph>
+        <img style={{ width: '100%' }} src="/url.png" alt="Url hint" />
+      </Typography.Paragraph>
 
-      <Typography.Paragraph>…and select a code task to sync.</Typography.Paragraph>
-      <img style={{ width: '100%' }} src="/syncTask.png" alt="Sync Task hint" />
+      <Typography.Paragraph>… and select a code task to sync.</Typography.Paragraph>
+      <Typography.Paragraph>
+        <img style={{ width: '100%' }} src="/syncTask.png" alt="Sync Task hint" />
+      </Typography.Paragraph>
 
       <Typography.Paragraph>Then return here to view the task.</Typography.Paragraph>
 
@@ -51,8 +56,8 @@ export const SyncStep = ({ clientId }: { clientId: ClientId }) => {
         type="info"
         message={
           <>
-            If you can’t find the “Sync” button in Code Expert your lecturer might have disabled
-            syncing. Ask them for access. For more assistance,{' '}
+            If you can’t find the “Sync to computer” button in Code Expert, your lecturer may have
+            disabled syncing. Ask them for access. For more assistance,{' '}
             <a target="_blank" rel="noreferrer" href="https://docs.expert.ethz.ch">
               visit the documentation.
             </a>
