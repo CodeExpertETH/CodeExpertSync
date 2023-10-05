@@ -7,7 +7,6 @@ import { ClientId } from '@/domain/ClientId';
 import { getSetupState } from '@/domain/Setup';
 import { useGlobalContextWithActions } from '@/ui/GlobalContext';
 import { Icon } from '@/ui/foundation/Icons';
-import { VStack } from '@/ui/foundation/Layout';
 import ProjectEventStatus from '@/ui/pages/projects/components/ProjectEventStatus';
 import { useProjectEventUpdate } from '@/ui/pages/projects/hooks/useProjectEventUpdate';
 
