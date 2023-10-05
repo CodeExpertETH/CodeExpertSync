@@ -1,4 +1,4 @@
-import { Menu } from 'antd';
+import { Button, Menu } from 'antd';
 import React from 'react';
 import { constFalse, constTrue } from '@code-expert/prelude';
 import logo from '@/assets/logo-inverted.svg';
@@ -6,7 +6,16 @@ import { globalSetupState } from '@/domain/Setup';
 import { useGlobalContext } from '@/ui/GlobalContext';
 import { Icon } from '@/ui/foundation/Icons';
 import { HStack } from '@/ui/foundation/Layout';
+import { styled } from '@/ui/foundation/Theme';
 import { routes, useRoute } from '@/ui/routes';
+
+const LogoButton = styled(Button, () => ({
+  background: 'none',
+  border: 'none',
+  borderRadius: 0,
+  height: 'auto',
+  padding: 0,
+}));
 
 export const TopNav = () => {
   const { setupState, connectionStatus } = useGlobalContext();
@@ -22,13 +31,9 @@ export const TopNav = () => {
 
   return (
     <HStack justify={'space-between'} align="center">
-      <img
-        src={logo}
-        height="64"
-        alt="Code Expert"
-        aria-hidden="true"
-        onClick={() => navigateTo(routes.courses())}
-      />
+      <LogoButton onClick={() => navigateTo(routes.courses())}>
+        <img src={logo} height="64" alt="Code Expert" aria-hidden="true" />
+      </LogoButton>
       <Menu
         theme="dark"
         mode="horizontal"
