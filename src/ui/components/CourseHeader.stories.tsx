@@ -6,7 +6,7 @@ const meta = {
   component: CourseHeader,
   args: {
     title: 'Course',
-    semester: 'AS22',
+    semester: { season: 'S', year: 2022 },
     goOverview: () => {
       console.log('goOverview');
       return;
@@ -22,7 +22,7 @@ export const Default = {} satisfies Story;
 export const LongTitle = {
   args: {
     title: 'Erdwissenschaftliche Datenanalyse und Visualisierung',
-    semester: 'SS22',
+    semester: { season: 'S', year: 2022 },
     codeExpertCourseUrl: 'http://example.com',
   },
 } satisfies Story;

@@ -1,9 +1,8 @@
 /* eslint-disable no-restricted-imports */
 import fc from 'fast-check';
-import { array, monoid } from 'fp-ts';
+import { array, monoid, option } from 'fp-ts';
 import { identity, pipe } from 'fp-ts/function';
 import { assert, describe, it } from 'vitest';
-
 import * as string from './string';
 
 describe('string', () => {
@@ -29,5 +28,14 @@ describe('string', () => {
           pipe(as, array.intersperse(separator), array.foldMap(string.Monoid)(identity)),
         ),
       ));
+  });
+
+  describe('splitAt', () => {
+    it('should work correctly', () => {
+      assert.deepStrictEqual(string.splitAt(3)('foobar'), option.some(['foo', 'bar']));
+      assert.deepStrictEqual(string.splitAt(3)('foob'), option.some(['foo', 'b']));
+      assert.deepStrictEqual(string.splitAt(3)('foo'), option.none);
+      assert.deepStrictEqual(string.splitAt(3)(''), option.none);
+    });
   });
 });

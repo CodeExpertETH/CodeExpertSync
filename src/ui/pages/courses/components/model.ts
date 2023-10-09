@@ -1,25 +1,26 @@
 import { eq, fn, nonEmptyArray, option, ord, pipe, string } from '@code-expert/prelude';
 import { Project } from '@/domain/Project';
-import { ordSemesterIdAsc } from '@/domain/Semester';
+import { Semester, SemesterFromStringC, eqSemester, ordSemesterIdAsc } from '@/domain/Semester';
 
 export interface CourseItem {
-  semester: string;
+  semester: Semester;
   name: string;
 }
 
 interface CourseRow {
-  semester: string;
+  semester: Semester;
   courses: NonEmptyArray<CourseItem>;
 }
 
-export const courseItemEq = eq.struct<CourseItem>({ semester: string.Eq, name: string.Eq });
+export const courseItemEq = eq.struct<CourseItem>({ semester: eqSemester, name: string.Eq });
 
 export const fromProject = ({ value }: Project): CourseItem => ({
   semester: value.semester,
   name: value.courseName,
 });
 
-export const courseItemKey = (course: CourseItem) => `${course.semester}-${course.name}`;
+export const courseItemKey = (course: CourseItem) =>
+  `${SemesterFromStringC.encode(course.semester)}-${course.name}`;
 
 const courseItemSemesterOrd = ord.contramap(({ semester }: CourseItem) => semester)(
   ordSemesterIdAsc,

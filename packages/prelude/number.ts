@@ -1,5 +1,6 @@
 import { Brand } from '@code-expert/type-utils';
 import { eq, option, ord } from 'fp-ts';
+import { Endomorphism } from 'fp-ts/Endomorphism';
 import { constant, flow, pipe } from 'fp-ts/function';
 import * as N from 'fp-ts/number';
 import * as iots from 'io-ts';
@@ -173,3 +174,6 @@ export const unsafePercentFromParts = flow(
     throw new TypeError('Division by zero.');
   }),
 );
+
+// TODO replace with fp-ts-std
+export const add: (b: number) => Endomorphism<number> = (b) => (a) => a + b;

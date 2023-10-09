@@ -1,11 +1,11 @@
 import * as array from 'fp-ts/Array';
 import * as monoid from 'fp-ts/Monoid';
-import * as option from 'fp-ts/Option';
 import type { Ord } from 'fp-ts/Ord';
 import { sign } from 'fp-ts/Ordering';
 import { not } from 'fp-ts/Predicate';
 import { flow, pipe } from 'fp-ts/function';
 import * as string from 'fp-ts/string';
+import * as option from './option';
 
 export * from 'fp-ts/string';
 
@@ -68,3 +68,12 @@ export const startsWithOneOf =
       searchStrings,
       array.some((search) => s.startsWith(search)),
     );
+
+/**
+ * Split a string.
+ * @param index The index of the first character of the second string.
+ */
+export const splitAt =
+  (index: number) =>
+  (s: string): option.Option<[string, string]> =>
+    option.when(s.length > index, () => [s.slice(0, index), s.slice(index)]);

@@ -1,5 +1,6 @@
 import { Breadcrumb, Typography } from 'antd';
 import React from 'react';
+import { Semester, showSemester } from '@/domain/Semester';
 import { Icon } from '@/ui/foundation/Icons';
 import { HStack, VStack } from '@/ui/foundation/Layout';
 import { styled } from '@/ui/foundation/Theme';
@@ -18,7 +19,7 @@ const StyledExternalLink = styled(Typography.Link, ({ tokens }) => ({
 
 export interface CourseHeaderProps {
   title: string;
-  semester: string;
+  semester: Semester;
   codeExpertCourseUrl?: string;
   goOverview: () => void;
 }
@@ -39,7 +40,7 @@ export const CourseHeader = ({
             title: <Icon name="home" />,
           },
           {
-            title: semester,
+            title: showSemester.show(semester),
           },
           {
             title,

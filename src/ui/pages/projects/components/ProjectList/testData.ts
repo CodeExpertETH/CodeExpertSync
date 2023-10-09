@@ -7,7 +7,7 @@ import { changesADT, syncStateADT } from '@/domain/SyncState';
 
 const metadata: ProjectMetadata = {
   projectId: 'p1' as ProjectId,
-  semester: 'SS23',
+  semester: { season: 'S', year: 2023 },
   taskOrder: 1,
   exerciseOrder: 1,
   courseName: 'Erdwissenschaftliche Datenanalyse und Visualisierung',
