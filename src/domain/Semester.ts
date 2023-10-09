@@ -36,31 +36,6 @@ const getSeasonCardinality = ({ season }: Semester) =>
   foldSeason(season, { S: constant(0), A: constant(1) });
 
 //----------------------------------------------------------------------------------------------------------------------
-// Type class instances
-//----------------------------------------------------------------------------------------------------------------------
-
-export const eqSemester: eq.Eq<Semester> = eq.struct({
-  season: string.Eq,
-  year: number.Eq,
-});
-
-/**
- * Sort semesters, e.g. "AS19" or "SS17"
- */
-export const ordSemesterIdAsc: ord.Ord<Semester> = ord.concatAll(
-  ord.contramap((s: Semester) => s.year)(number.Ord),
-  ord.contramap(getSeasonCardinality)(number.Ord),
-);
-
-export const showSemester: show.Show<Semester> = {
-  show: ({ season, year }) => {
-    const s = foldSeason(season, { S: constant('Spring'), A: constant('Autumn') });
-    const y = year.toString();
-    return `${s} semester ${y}`;
-  },
-};
-
-//----------------------------------------------------------------------------------------------------------------------
 // Codecs
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -119,5 +94,30 @@ export const SemesterFromStringC: iots.Type<Semester, string> = new iots.Type(
 );
 
 //----------------------------------------------------------------------------------------------------------------------
-// Domain functions
+// Type class instances
 //----------------------------------------------------------------------------------------------------------------------
+
+export const eqSemester: eq.Eq<Semester> = eq.struct({
+  season: string.Eq,
+  year: number.Eq,
+});
+
+/**
+ * Sort semesters, e.g. "AS19" or "SS17"
+ */
+export const ordSemesterIdAsc: ord.Ord<Semester> = ord.concatAll(
+  ord.contramap((s: Semester) => s.year)(number.Ord),
+  ord.contramap(getSeasonCardinality)(number.Ord),
+);
+
+export const showSemesterShort: show.Show<Semester> = {
+  show: SemesterFromStringC.encode,
+};
+
+export const showSemesterLong: show.Show<Semester> = {
+  show: ({ season, year }) => {
+    const s = foldSeason(season, { S: constant('Spring'), A: constant('Autumn') });
+    const y = year.toString();
+    return `${s} semester ${y}`;
+  },
+};

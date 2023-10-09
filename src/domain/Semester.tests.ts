@@ -1,7 +1,7 @@
 import { Errors } from 'io-ts';
 import { describe, expect, it } from 'vitest';
 import { either } from '@code-expert/prelude';
-import { Semester, SemesterFromStringC, showSemester } from '@/domain/Semester';
+import { Semester, SemesterFromStringC, showSemesterLong } from '@/domain/Semester';
 
 describe('Semester', () => {
   describe('SemesterFromStringC', () => {
@@ -19,7 +19,7 @@ describe('Semester', () => {
   });
   describe('showSemester', () => {
     it('should correctly render semesters', () => {
-      const { show } = showSemester;
+      const { show } = showSemesterLong;
       expect(show({ season: 'S', year: 2023 })).toBe('Spring semester 2023');
       expect(show({ season: 'A', year: 2003 })).toBe('Autumn semester 2003');
     });

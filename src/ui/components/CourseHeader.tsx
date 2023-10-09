@@ -1,6 +1,6 @@
 import { Breadcrumb, Typography } from 'antd';
 import React from 'react';
-import { Semester, showSemester } from '@/domain/Semester';
+import { Semester, showSemesterLong, showSemesterShort } from '@/domain/Semester';
 import { Icon } from '@/ui/foundation/Icons';
 import { HStack, VStack } from '@/ui/foundation/Layout';
 import { styled } from '@/ui/foundation/Theme';
@@ -40,7 +40,7 @@ export const CourseHeader = ({
             title: <Icon name="home" />,
           },
           {
-            title: showSemester.show(semester),
+            title: showSemesterShort.show(semester),
           },
           {
             title,

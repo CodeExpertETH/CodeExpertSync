@@ -1,7 +1,7 @@
 import { List as AntList, Button, Typography } from 'antd';
 import React from 'react';
 import { nonEmptyArray, option, pipe } from '@code-expert/prelude';
-import { SemesterFromStringC, showSemester } from '@/domain/Semester';
+import { SemesterFromStringC, showSemesterLong } from '@/domain/Semester';
 import { VStack } from '@/ui/foundation/Layout';
 import { styled } from '@/ui/foundation/Theme';
 import { CourseItem, courseItemKey, coursesBySemester } from '@/ui/pages/courses/components/model';
@@ -23,7 +23,7 @@ export const CourseList = ({ courses, onOpen }: CourseListProps) =>
       <VStack gap="lg">
         {groupedCourses.map(({ semester, courses: dataSource }) => (
           <VStack key={SemesterFromStringC.encode(semester)} gap="xs">
-            <Typography.Text type="secondary">{showSemester.show(semester)}</Typography.Text>
+            <Typography.Text type="secondary">{showSemesterLong.show(semester)}</Typography.Text>
             <StyledAntList
               size="small"
               dataSource={dataSource}
