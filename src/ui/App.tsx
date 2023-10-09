@@ -78,7 +78,7 @@ export function App() {
   return (
     <GuardRemote
       value={clientIdRD}
-      pending={() => <div>Loading …</div>}
+      pending={() => <div style={{ padding: '1em' }}>Loading …</div>}
       render={(clientId) => (
         <AppLayout setup={globalSetupState.is.setup(setupState)}>
           {globalSetupState.fold(setupState, {
