@@ -33,6 +33,8 @@ Without the following projects, Code Expert Sync would not be possible:
 
 Install or update dependencies
 
+Create a .env file with the required variables (see .env-template).
+
 ```shell
   yarn
 ```
