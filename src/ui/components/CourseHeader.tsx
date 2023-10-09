@@ -1,6 +1,6 @@
 import { Breadcrumb, Typography } from 'antd';
 import React from 'react';
-import { Semester, showSemesterLong, showSemesterShort } from '@/domain/Semester';
+import { Semester, showSemesterShort } from '@/domain/Semester';
 import { Icon } from '@/ui/foundation/Icons';
 import { HStack, VStack } from '@/ui/foundation/Layout';
 import { styled } from '@/ui/foundation/Theme';
