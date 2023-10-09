@@ -9,6 +9,7 @@ import {
   taskOption,
 } from '@code-expert/prelude';
 import { FileSystemStack } from '@/domain/FileSystem/fileSystemStack';
+import { Semester, SemesterFromStringC } from '@/domain/Semester';
 import { TauriException } from '@/lib/tauri/TauriException';
 import { panic } from '@/utils/error';
 
@@ -66,13 +67,13 @@ export const PfsPathC = iots.brandIdentity(
 export const getRelativeProjectPath =
   (stack: FileSystemStack) =>
   (
-    semester: string,
+    semester: Semester,
     courseName: string,
     exerciseName: string,
     taskName: string,
   ): task.Task<RelativeProjectPath> =>
     stack.join(
-      stack.escape(semester),
+      stack.escape(SemesterFromStringC.encode(semester)),
       stack.escape(courseName),
       stack.escape(exerciseName),
       stack.escape(taskName),
