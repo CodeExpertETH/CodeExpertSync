@@ -18,7 +18,6 @@ jobs:
     permissions:
       contents: write
     runs-on: ubuntu-20.04
-    environment: Production
     outputs:
       release_id: ${{ steps.create-release.outputs.result }}
     steps:
@@ -53,7 +52,6 @@ jobs:
         platform: [ macos-12, macos-13, ubuntu-20.04, windows-latest ]
 
     runs-on: ${{ matrix.platform }}
-    environment: Production
     steps:
       - uses: actions/checkout@v3
       - name: Rust setup
@@ -141,7 +139,6 @@ jobs:
     permissions:
       contents: write
     runs-on: ubuntu-20.04
-    environment: Production
     needs: [ create-release, build-tauri ]
 
     steps:
