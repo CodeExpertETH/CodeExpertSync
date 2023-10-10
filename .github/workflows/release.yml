@@ -7,6 +7,7 @@ on:
 env:
   NODE_OPTIONS: "--max_old_space_size=4096"
   TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+  APP_SIGNAL_REVISION: ${{  github.ref_name }}
 #  See for windows build: https://github.com/phcode-dev/phoenix-desktop/tree/main and https://github.com/phcode-dev/signtool discord: https://discord.com/channels/616186924390023171/1047150269156294677/threads/1126473205905887337
 jobs:
   create-release:

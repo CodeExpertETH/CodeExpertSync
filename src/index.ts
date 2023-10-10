@@ -14,7 +14,9 @@ import { config } from '@/config';
 import { fromThrown } from '@/utils/error';
 
 const appSignal =
-  config.APP_SIGNAL_KEY != null ? new AppSignal({ key: config.APP_SIGNAL_KEY }) : undefined;
+  config.APP_SIGNAL_KEY != null
+    ? new AppSignal({ key: config.APP_SIGNAL_KEY, revision: config.APP_SIGNAL_REVISION })
+    : undefined;
 // React throws several times in short succession, we only want to handle the last error.
 const debouncedErrorHandler = debounce(handleError, 100);
 
