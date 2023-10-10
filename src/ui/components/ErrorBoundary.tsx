@@ -12,7 +12,11 @@ import { fromThrown } from '@/utils/error';
 export class ErrorBoundary extends React.Component<React.PropsWithChildren> {
   componentDidCatch(thrown: unknown, { componentStack }: React.ErrorInfo) {
     const error = fromThrown(thrown);
-    error.stack = componentStack;
+    if (componentStack === null) {
+      error.stack = undefined;
+    } else {
+      error.stack = componentStack;
+    }
     throw error;
   }
 

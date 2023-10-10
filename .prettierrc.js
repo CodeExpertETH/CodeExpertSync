@@ -1,5 +1,6 @@
 module.exports = {
   ...require('@code-expert/prettier-config'),
+  plugins: [require.resolve('@trivago/prettier-plugin-sort-imports')],
   importOrder: [
     'reset.css',
     '.css$',

@@ -50,9 +50,12 @@ export const useAuthState = (
 } => {
   const [state, setState] = React.useState<AuthState>(() => startingAuthorization(clientId));
   const sse = React.useRef<EventSource | null>(null);
-  useTimeout(() => {
-    setState(authState.timeoutAuthorization());
-  }, 4 * 60 * 1000);
+  useTimeout(
+    () => {
+      setState(authState.timeoutAuthorization());
+    },
+    4 * 60 * 1000,
+  );
 
   React.useEffect(() => {
     const onAuthToken = async ({ data: authToken }: { data: string }) => {
