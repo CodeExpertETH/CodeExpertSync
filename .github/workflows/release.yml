@@ -12,6 +12,7 @@ env:
   CX_REPO_RELEASE: ${{ vars.CX_REPO_RELEASE }}
   CX_WEB_URL: ${{ vars.CX_WEB_URL }}
   APP_SIGNAL_KEY: ${{  secrets.APP_SIGNAL_KEY }}
+  GITHUB_SHA: ${{ github.sha }}
 #  See for windows build: https://github.com/phcode-dev/phoenix-desktop/tree/main and https://github.com/phcode-dev/signtool discord: https://discord.com/channels/616186924390023171/1047150269156294677/threads/1126473205905887337
 jobs:
   create-release:
