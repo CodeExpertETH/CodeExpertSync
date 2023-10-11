@@ -12,7 +12,13 @@ export default defineConfig(({ mode }) => ({
     // We can provide prefixes of variables that should be included in the ENV.
     // See: https://vitejs.dev/guide/api-javascript.html#loadenv
     // See: https://tauri.studio/v1/api/config#buildconfig.beforedevcommand
-    'process.env': loadEnv(mode, process.cwd(), ['CX_', 'TAURI_', 'VITE_', 'APP_SIGNAL_']),
+    'process.env': loadEnv(mode, process.cwd(), [
+      'CX_',
+      'TAURI_',
+      'VITE_',
+      'APP_SIGNAL_',
+      'GITHUB_',
+    ]),
   },
   plugins: [
     topLevelAwait(),

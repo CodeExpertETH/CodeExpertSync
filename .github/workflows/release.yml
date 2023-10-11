@@ -22,14 +22,6 @@ jobs:
     outputs:
       release_id: ${{ steps.create-release.outputs.result }}
     steps:
-      - name: Show default environment variables
-        run: |
-         echo "the job_id is: $github_job"   # reference the default environment variables
-         echo "the id of this action is: $github_action"   # reference the default environment variables
-         echo "the run id is: $github_run_id"
-         echo "the github actor's username is: $github_actor"
-         echo "github sha: $github_sha"
-         echo "variable from shell environment : $env_var"
       - uses: actions/checkout@v3
       - name: setup node
         uses: actions/setup-node@v3
