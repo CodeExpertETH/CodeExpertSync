@@ -1,31 +1,9 @@
-use jsonwebtoken::{encode, Algorithm, EncodingKey};
-use serde::Serialize;
-use serde_json::Value;
 use std::fs;
 
-trait Traversable<T> {
-    type Output<U>;
+use jsonwebtoken::{encode, Algorithm, EncodingKey};
+use serde_json::Value;
 
-    fn traverse<U, G, F: FnOnce(T) -> Result<U, G>>(self, op: F) -> Result<Self::Output<U>, G>;
-}
-
-impl<T, E> Traversable<T> for Result<T, E> {
-    type Output<U> = Result<U, E>;
-
-    fn traverse<U, G, F: FnOnce(T) -> Result<U, G>>(self, op: F) -> Result<Result<U, E>, G> {
-        match self {
-            Err(e) => Ok(Err(e)),
-            Ok(t) => op(t).map(|u| Ok(u)),
-        }
-    }
-}
-
-#[derive(Serialize, Debug)]
-#[serde(tag = "_tag", content = "value")]
-pub enum Either<E, A> {
-    Left(E),
-    Right(A),
-}
+use crate::utils::prelude::{Either, Traversable};
 
 #[tauri::command]
 pub fn create_jwt_token(
@@ -58,8 +36,5 @@ pub fn create_jwt_token(
                     .map_err(|e| format!("Could not create JWT token: {e}"))
             })
         })
-        .map(|e| match e {
-            Ok(t) => Either::Right(t),
-            Err(e) => Either::Left(e),
-        })
+        .map(Either::from)
 }

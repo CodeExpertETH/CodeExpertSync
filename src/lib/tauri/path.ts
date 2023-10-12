@@ -27,31 +27,30 @@ export const isAbsolute = task.fromPromiseK(tauriPath.isAbsolute);
 
 export const append =
   (relative: Path) =>
-  (base: NativePath): taskEither.TaskEither<TauriException, NativePath> =>
+  (base: NativePath): task.Task<NativePath> =>
     pipe(
       toNativePath(relative),
-      taskEither.chainTaskK(
+      task.chain(
         (path) => () => tauriPath.join(isoNativePath.unwrap(base), isoNativePath.unwrap(path)),
       ),
-      taskEither.map(isoNativePath.wrap),
+      task.map(isoNativePath.wrap),
     );
 
 export const normalize = task.fromPromiseK(tauriPath.normalize);
 export const resolve = task.fromPromiseK(tauriPath.resolve);
 
+// TODO: would be nice to have a pure TS implementation. See Rust's Path::strip_ancestor docs for a rudimentary unit test suite
 export const stripAncestor =
   (ancestor: NativePath) =>
   (path: NativePath): taskEither.TaskEither<TauriException, NativePath> =>
     pipe(
-      taskEither.tryCatch(
-        () =>
-          tauri.invoke<string>('path_remove_ancestor', {
-            ancestor: isoNativePath.unwrap(ancestor),
-            to: isoNativePath.unwrap(path),
-          }),
-        fromTauriError,
-      ),
-      taskEither.map(isoNativePath.wrap),
+      () =>
+        tauri.invoke<either.Either<string, string>>('path_remove_ancestor', {
+          ancestor: isoNativePath.unwrap(ancestor),
+          to: isoNativePath.unwrap(path),
+        }),
+
+      taskEither.bimap(fromTauriError, isoNativePath.wrap),
     );
 
 const fromComponents: (components: Array<string>) => option.Option<Path> = flow(
@@ -63,24 +62,14 @@ const fromComponents: (components: Array<string>) => option.Option<Path> = flow(
 /**
  * Parses a native OS path to an abstract path.
  */
-export const parseNativePath: (
-  path: NativePath,
-) => taskEither.TaskEither<TauriException, option.Option<Path>> = flow(
+export const parsePath: (path: NativePath) => task.Task<option.Option<Path>> = flow(
   isoNativePath.unwrap,
-  taskEither.tryCatchK(
-    (path) => tauri.invoke<Array<string>>('path_parse_relative_path', { path }),
-    fromTauriError,
-  ),
-  taskEither.map(fromComponents),
+  (path) => () => tauri.invoke<Array<string>>('path_parse_relative_path', { path }),
+  task.map(fromComponents),
 );
 
 /**
  * Serialises an abstract path into a native OS path.
  */
-export const toNativePath: (path: Path) => taskEither.TaskEither<TauriException, NativePath> = flow(
-  taskEither.tryCatchK(
-    (path) => tauri.invoke<string>('path_to_native_path', { path }),
-    fromTauriError,
-  ),
-  taskEither.map(isoNativePath.wrap),
-);
+export const toNativePath: (path: Path) => task.Task<NativePath> = (path) =>
+  pipe(() => tauri.invoke<string>('path_to_native_path', { path }), task.map(isoNativePath.wrap));

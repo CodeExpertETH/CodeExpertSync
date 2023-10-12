@@ -85,7 +85,7 @@ export const mkProjectRepositoryTauri = (): task.Task<ProjectRepository> => {
           taskOption.map((p) => p.value.basePath),
         ),
       }),
-      taskOption.chainTaskEitherK(projectDirToNativePath(stack)),
+      taskOption.chainTaskK(projectDirToNativePath(stack)),
     );
 
   return pipe(

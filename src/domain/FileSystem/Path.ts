@@ -56,9 +56,3 @@ export const PathFromStringC: iots.Type<Path, string> = new iots.Type(
 //----------------------------------------------------------------------------------------------------------------------
 // Domain functions
 //----------------------------------------------------------------------------------------------------------------------
-
-/**
- * Creates a valid path segment from a string.
- */
-export const toPathSegment = (s: string): PathSegment =>
-  iots.brandFromLiteral(s.replace(/[^a-z0-9_-]/gi, '_'));

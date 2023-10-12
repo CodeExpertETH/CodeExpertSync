@@ -26,11 +26,7 @@ export interface Api {
   getVersion: task.Task<string>;
   create_keys: task.Task<string>;
   create_jwt_tokens: (claims: Record<string, unknown>) => taskEither.TaskEither<string, string>;
-  buildTar: (
-    tarFile: NativePath,
-    rootDir: NativePath,
-    files: Array<PfsPath>,
-  ) => taskEither.TaskEither<TauriException, string>;
+  buildTar: (tarFile: NativePath, rootDir: NativePath, files: Array<PfsPath>) => task.Task<string>;
   settingRead: <T>(key: string, decoder: iots.Decoder<unknown, T>) => taskOption.TaskOption<T>;
   settingWrite: (key: string, value: unknown) => task.Task<void>;
   removeDir: (filePath: NativePath) => taskEither.TaskEither<TauriException, void>;
@@ -42,16 +38,13 @@ export interface Api {
 export const api: Api = {
   getVersion,
   create_keys: () => invoke('create_keys', {}),
-  create_jwt_tokens: (claims) =>
-    pipe(
-      () => invoke<AlmostEither>('create_jwt_token', { claims }),
-      task.map((ae) => (ae._tag === 'Left' ? either.left(ae.value) : either.right(ae.value))),
-    ),
+  create_jwt_tokens: (claims) => () =>
+    invoke<either.Either<string, string>>('create_jwt_token', { claims }),
 
   buildTar: (tarFile, rootDir, files) =>
     pipe(
-      pipe(files, array.map(pfsPathToRelativePath), taskEither.traverseArray(path.toNativePath)),
-      taskEither.chain((files) => buildTar({ tarFile, rootDir, files })),
+      pipe(files, array.map(pfsPathToRelativePath), task.traverseArray(path.toNativePath)),
+      task.chain((files) => buildTar({ tarFile, rootDir, files })),
     ),
 
   settingRead: (key, decoder) =>
@@ -70,7 +63,7 @@ export const api: Api = {
   logout: () =>
     pipe(
       os.appLocalDataDir,
-      taskEither.chain(path.append([iots.brandFromLiteral('privateKey.pem')])),
+      taskEither.chainTaskK(path.append([iots.brandFromLiteral('privateKey.pem')])),
       taskEither.chain(removeFile),
       taskEither.match((e) => {
         console.debug(`[logout] The private key could not be removed cleanly: ${e.message}`);
@@ -79,8 +72,3 @@ export const api: Api = {
   getSystemInfo: async () => option.fromNullable<string>(await invoke('system_info')),
   restart: () => relaunch(),
 };
-
-interface AlmostEither {
-  _tag: 'Left' | 'Right';
-  value: string;
-}

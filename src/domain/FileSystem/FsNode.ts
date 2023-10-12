@@ -1,4 +1,4 @@
-import { constVoid, eq, iots, pipe, string, task, taskEither } from '@code-expert/prelude';
+import { constVoid, eq, iots, pipe, string, task } from '@code-expert/prelude';
 import { PfsPath, PfsPathFromStringC, eqPfsPath } from './PfsPath';
 import { ProjectDir, projectEntryToNativePath } from './ProjectDir';
 import { FileSystemStack } from './fileSystemStack';
@@ -44,6 +44,6 @@ export const deleteSingleFile =
   (file: FsFile): task.Task<void> =>
     pipe(
       projectEntryToNativePath(stack)(projectDir, file.path),
-      taskEither.chain(stack.removeFile),
+      task.chain(stack.removeFile),
       task.map(constVoid),
     );

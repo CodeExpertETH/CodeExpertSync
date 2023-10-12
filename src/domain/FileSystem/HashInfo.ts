@@ -1,4 +1,4 @@
-import { iots, pipe, task, taskEither } from '@code-expert/prelude';
+import { iots, pipe, task } from '@code-expert/prelude';
 import { FsFile } from './FsNode';
 import { ProjectDir, projectEntryToNativePath } from './ProjectDir';
 import { FileSystemStack } from './fileSystemStack';
@@ -15,9 +15,6 @@ export const hashInfoFromFsFile =
   <A extends FsFile>(file: A): task.Task<A & HashInfo> =>
     pipe(
       projectEntryToNativePath(stack)(projectDir, file.path),
-      taskEither.chain(stack.getFileHash),
-      taskEither.getOrElse((e) => {
-        throw e;
-      }),
+      task.chain(stack.getFileHash),
       task.map((hash) => ({ ...file, hash })),
     );

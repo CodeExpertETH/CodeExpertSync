@@ -3,6 +3,7 @@ import { task } from 'fp-ts';
 import { flow } from 'fp-ts/function';
 import * as apply from './apply';
 
+// eslint-disable-next-line import/export
 export * from 'fp-ts/Task';
 
 export const sequenceS = apply.sequenceS(task.ApplyPar);
@@ -34,3 +35,11 @@ export const fromPromiseK: <F extends CallableFunction>(
   (...args: []) =>
   () =>
     f(...args)) as $Unexpressable;
+
+/**
+ * This re-export is necessary to remove the `readonly` modifier from the resulting Either<E, Array<A>>
+ */
+// eslint-disable-next-line import/export
+export const traverseArray: <A, B>(
+  f: (a: A) => task.Task<B>,
+) => (as: readonly A[]) => task.Task<B[]> = task.traverseArray as $Unexpressable;

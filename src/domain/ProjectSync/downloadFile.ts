@@ -1,4 +1,4 @@
-import { pipe, taskEither } from '@code-expert/prelude';
+import { pipe, task, taskEither } from '@code-expert/prelude';
 import {
   PfsPath,
   ProjectDir,
@@ -48,5 +48,5 @@ const writeProjectFile =
   ): taskEither.TaskEither<TauriException, void> =>
     pipe(
       projectEntryToNativePath(stack)(projectDir, file),
-      taskEither.chain((path) => stack.writeFileWithAncestors(path, content)),
+      task.chain((path) => stack.writeFileWithAncestors(path, content)),
     );

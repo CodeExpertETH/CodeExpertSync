@@ -52,7 +52,6 @@ import {
   showNativePath,
   showPath,
   showPfsPath,
-  showProjectDir,
 } from '@/domain/FileSystem';
 import { FileSystemStack, fileSystemStack } from '@/domain/FileSystem/fileSystemStack';
 import {
@@ -94,14 +93,7 @@ const getProjectInfoLocal =
   ): taskEither.TaskEither<SyncException, Array<LocalFileInfo>> =>
     pipe(
       projectDirToNativePath(stack)(projectDir),
-      taskEither.mapLeft(
-        (e): SyncException =>
-          syncExceptionADT.fileSystemCorrupted({
-            path: showProjectDir.show(projectDir),
-            reason: e.message,
-          }),
-      ),
-      taskEither.chain((nativePath) =>
+      task.chain((nativePath) =>
         pipe(
           stack.readFsTree(nativePath),
           taskEither.mapLeft((e) =>
@@ -118,7 +110,7 @@ const getProjectInfoLocal =
               ({ path, type }): taskEither.TaskEither<SyncException, FsFile> =>
                 pipe(
                   stack.stripAncestor(nativePath)(path),
-                  taskEither.chain(stack.parseNativePath),
+                  taskEither.chainTaskK(stack.parsePath),
                   taskEither.mapLeft((e) =>
                     syncExceptionADT.wide.fileSystemCorrupted({
                       path: showNativePath.show(path),
@@ -207,8 +199,7 @@ const checkValidFileName: (
       pipe(
         pfsPathToRelativePath(path),
         stack.toNativePath,
-        taskOption.fromTaskEither,
-        taskOption.chain(stack.basename),
+        task.chain(stack.basename),
         taskEither.fromTaskOption(() =>
           syncExceptionADT.wide.fileSystemCorrupted({
             path: showPfsPath.show(path),
@@ -241,8 +232,7 @@ const checkEveryNewAncestorIsValidDirName =
     const basename = (path: Path) =>
       pipe(
         stack.toNativePath(path),
-        taskOption.fromTaskEither,
-        taskOption.chain(stack.basename),
+        task.chain(stack.basename),
         taskOption.filter(isValidDirName),
         taskEither.fromTaskOption(() =>
           syncExceptionADT.wide.fileSystemCorrupted({
@@ -424,12 +414,8 @@ export const uploadChangedFiles =
           task.bind('t', () => task.fromIO(stack.now)),
           task.chain(({ tempDir, t }) =>
             pipe(
-              stack.append([iots.brandFromLiteral(`project_${projectId}_${t.getTime()}.tar.br`)])(
-                tempDir,
-              ),
-              taskEither.getOrElse((e) => {
-                throw e;
-              }),
+              tempDir,
+              stack.append([iots.brandFromLiteral(`project_${projectId}_${t.getTime()}.tar.br`)]),
             ),
           ),
         ),
@@ -437,10 +423,7 @@ export const uploadChangedFiles =
       taskEither.bindTaskK('tarHash', ({ uploadFiles, archivePath }) =>
         pipe(
           projectDirToNativePath(stack)(projectDir),
-          taskEither.chain((nativeDir) => api.buildTar(archivePath, nativeDir, uploadFiles)),
-          taskEither.getOrElse((e) => {
-            throw e;
-          }),
+          task.chain((nativeDir) => api.buildTar(archivePath, nativeDir, uploadFiles)),
         ),
       ),
       taskEither.let('removeFiles', () =>

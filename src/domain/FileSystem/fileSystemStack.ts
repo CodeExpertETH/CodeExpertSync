@@ -1,4 +1,4 @@
-import { option, taskEither, taskOption, tree } from '@code-expert/prelude';
+import { option, task, taskEither, taskOption, tree } from '@code-expert/prelude';
 import { fs as libFs, os as libOs, path as libPath } from '@/lib/tauri';
 import { TauriException } from '@/lib/tauri/TauriException';
 import { FsNode } from '@/lib/tauri/fs';
@@ -6,12 +6,10 @@ import { NativePath } from './NativePath';
 import { Path } from './Path';
 
 export interface FileSystemStack {
-  append: (
-    relative: Path,
-  ) => (base: NativePath) => taskEither.TaskEither<TauriException, NativePath>;
-  parseNativePath: (path: NativePath) => taskEither.TaskEither<TauriException, option.Option<Path>>;
-  toNativePath: (path: Path) => taskEither.TaskEither<TauriException, NativePath>;
-  getFileHash: (filePath: NativePath) => taskEither.TaskEither<TauriException, string>;
+  append: (relative: Path) => (base: NativePath) => task.Task<NativePath>;
+  parsePath: (path: NativePath) => task.Task<option.Option<Path>>;
+  toNativePath: (path: Path) => task.Task<NativePath>;
+  getFileHash: (filePath: NativePath) => task.Task<string>;
   removeFile: (path: NativePath) => taskEither.TaskEither<TauriException, void>;
   stripAncestor: (
     ancestor: NativePath,
@@ -33,7 +31,7 @@ export interface FileSystemStack {
  */
 export const fileSystemStack: FileSystemStack = {
   append: libPath.append,
-  parseNativePath: libPath.parseNativePath,
+  parsePath: libPath.parsePath,
   toNativePath: libPath.toNativePath,
   getFileHash: libFs.getFileHash,
   removeFile: libFs.removeFile,

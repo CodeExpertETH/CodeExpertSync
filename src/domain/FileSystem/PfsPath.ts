@@ -6,7 +6,6 @@ import {
   flow,
   iots,
   monoid,
-  nonEmptyArray,
   option,
   pipe,
   show,
@@ -21,6 +20,12 @@ import { Path, PathC, eqPath } from './Path';
 /**
  * PFS path.
  * An empty path represents the PFS root directory (".").
+ *
+ * @example
+ * const files: Record<NativePath, PfsPath> = {
+ *   '.': [],
+ *   './foo.py': ['foo.py'],
+ * }
  */
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface PfsPath extends Newtype<{ readonly PfsPath: unique symbol }, Path> {}
@@ -54,16 +59,14 @@ export const PfsPathFromStringC: iots.Type<PfsPath, string> = new iots.Type<
       iots.validate(iots.string, context),
       either.map(string.split('/')),
       either.chain(iots.validate(iots.nonEmptyArray(iots.string), context)),
-      either.chain(
-        nonEmptyArray.matchLeft((head, tail) =>
-          pipe(
-            option.when(head === '.', () => tail),
-            either.fromOption(
-              (): iots.Errors => [{ value: u, context, message: 'Invalid PFS path' }],
-            ),
-            either.chain(iots.validate(PathC, context)),
-            either.map(isoPfsPath.wrap),
+      either.chain(([head, ...tail]) =>
+        pipe(
+          option.when(head === '.', () => tail),
+          either.fromOption(
+            (): iots.Errors => [{ value: u, context, message: 'Invalid PFS path' }],
           ),
+          either.chain(iots.validate(PathC, context)),
+          either.map(isoPfsPath.wrap),
         ),
       ),
     ),

@@ -1,12 +1,7 @@
-import { pipe, show, taskEither } from '@code-expert/prelude';
-import { TauriException } from '@/lib/tauri/TauriException';
+import { pipe, show, task } from '@code-expert/prelude';
 import { NativePath, showNativePath } from './NativePath';
 import { PfsPath, pfsPathToRelativePath } from './PfsPath';
-import {
-  ProjectBasePath,
-  projectBasePathToRelativePath,
-  showProjectBasePath,
-} from './ProjectBasePath';
+import { ProjectBasePath, showProjectBasePath } from './ProjectBasePath';
 import { FileSystemStack } from './fileSystemStack';
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -32,13 +27,13 @@ export const showProjectDir: show.Show<ProjectDir> = {
 
 export const projectDirToNativePath =
   (stack: FileSystemStack) =>
-  ({ rootDir, base }: ProjectDir): taskEither.TaskEither<TauriException, NativePath> =>
-    stack.append(projectBasePathToRelativePath(base))(rootDir);
+  ({ rootDir, base }: ProjectDir): task.Task<NativePath> =>
+    stack.append(base)(rootDir);
 
 export const projectEntryToNativePath =
   (stack: FileSystemStack) =>
-  (dir: ProjectDir, entry: PfsPath): taskEither.TaskEither<TauriException, NativePath> =>
+  (dir: ProjectDir, entry: PfsPath): task.Task<NativePath> =>
     pipe(
       projectDirToNativePath(stack)(dir),
-      taskEither.chain(stack.append(pfsPathToRelativePath(entry))),
+      task.chain(stack.append(pfsPathToRelativePath(entry))),
     );

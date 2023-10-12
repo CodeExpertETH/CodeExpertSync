@@ -1,7 +1,7 @@
 import { Preview } from '@storybook/react';
 import React from 'react';
 import { iots } from '@code-expert/prelude';
-import { unsafeProjectBasePathFromPath } from '../src/domain/FileSystem';
+import { UNSAFE_ProjectBasePathFromPath } from '../src/domain/FileSystem';
 import { ProjectId, projectADT } from '../src/domain/Project';
 import { changesADT, syncStateADT } from '../src/domain/SyncState';
 import { mkApiConnectionAtom } from '../src/infrastructure/tauri/ApiConnectionRepository';
@@ -20,7 +20,7 @@ const projectRepository = mkProjectRepositoryTesting([
     taskOrder: 1,
     exerciseOrder: 1,
     semester: { season: 'A', year: 2022 },
-    basePath: unsafeProjectBasePathFromPath([
+    basePath: UNSAFE_ProjectBasePathFromPath([
       iots.brandFromLiteral('tmp'),
       iots.brandFromLiteral('cxsync-test'),
     ]),

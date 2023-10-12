@@ -1,6 +1,6 @@
 import { fs, invoke } from '@tauri-apps/api';
 import { BinaryFileContents, FileEntry, FsDirOptions, FsOptions } from '@tauri-apps/api/fs';
-import { flow, pipe, task, taskEither, tree } from '@code-expert/prelude';
+import { either, flow, pipe, task, taskEither, tree } from '@code-expert/prelude';
 import { NativePath, isoNativePath } from '@/domain/FileSystem/NativePath';
 import { TauriException, fromTauriError } from '@/lib/tauri/TauriException';
 
@@ -71,23 +71,20 @@ export const readFsTree = (
     ),
   );
 
-export const getFileHash: (path: NativePath) => taskEither.TaskEither<TauriException, string> =
-  flow(
-    isoNativePath.unwrap,
-    taskEither.tryCatchK((path) => invoke('get_file_hash', { path }), fromTauriError),
-  );
+export const getFileHash: (path: NativePath) => task.Task<string> = (path) => () =>
+  invoke('get_file_hash', { path: isoNativePath.unwrap(path) });
 
 export const writeFileWithAncestors = (
   file: NativePath,
   content: Uint8Array,
 ): taskEither.TaskEither<TauriException, void> =>
-  taskEither.tryCatch(
+  pipe(
     () =>
-      invoke('write_file_ancestors', {
+      invoke<either.Either<string, void>>('write_file_ancestors', {
         file: isoNativePath.unwrap(file),
         content: Array.from(content),
       }),
-    fromTauriError,
+    taskEither.mapLeft(fromTauriError),
   );
 
 // -------------------------------------------------------------------------------------------------
