@@ -47,6 +47,8 @@ fn main() {
             commands::get_file_hash::get_file_hash,
             commands::fs_extra::write_file_ancestors,
             commands::path::path_remove_ancestor,
+            commands::path::path_parse_relative_path,
+            commands::path::path_to_native_path,
             commands::build_tar::build_tar
         ])
         .build(tauri::generate_context!())

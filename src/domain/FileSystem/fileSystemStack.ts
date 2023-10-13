@@ -1,23 +1,25 @@
-import { task, taskEither, taskOption, tree } from '@code-expert/prelude';
+import { option, task, taskEither, taskOption, tree } from '@code-expert/prelude';
 import { fs as libFs, os as libOs, path as libPath } from '@/lib/tauri';
 import { TauriException } from '@/lib/tauri/TauriException';
 import { FsNode } from '@/lib/tauri/fs';
+import { NativePath } from './NativePath';
+import { Path } from './Path';
 
 export interface FileSystemStack {
-  escape: (path: string) => string;
-  join: (...paths: Array<string>) => task.Task<string>;
-  getFileHash: (filePath: string) => taskEither.TaskEither<TauriException, string>;
-  removeFile: (path: string) => taskEither.TaskEither<TauriException, void>;
+  append: (relative: Path) => (base: NativePath) => task.Task<NativePath>;
+  parsePath: (path: NativePath) => task.Task<option.Option<Path>>;
+  toNativePath: (path: Path) => task.Task<NativePath>;
+  getFileHash: (filePath: NativePath) => task.Task<string>;
+  removeFile: (path: NativePath) => taskEither.TaskEither<TauriException, void>;
   stripAncestor: (
-    ancestor: string,
-  ) => (to: string) => taskEither.TaskEither<TauriException, string>;
-  dirname: (path: string) => taskEither.TaskEither<TauriException, string>;
-  basename: (path: string) => taskOption.TaskOption<string>;
-  tempDir: taskEither.TaskEither<TauriException, string>;
-  readBinaryFile: (filePath: string) => taskEither.TaskEither<TauriException, Uint8Array>;
-  readFsTree: (dir: string) => taskEither.TaskEither<TauriException, tree.Tree<FsNode>>;
+    ancestor: NativePath,
+  ) => (path: NativePath) => taskEither.TaskEither<TauriException, NativePath>;
+  basename: (path: NativePath) => taskOption.TaskOption<string>;
+  tempDir: taskEither.TaskEither<TauriException, NativePath>;
+  readBinaryFile: (filePath: NativePath) => taskEither.TaskEither<TauriException, Uint8Array>;
+  readFsTree: (dir: NativePath) => taskEither.TaskEither<TauriException, tree.Tree<FsNode>>;
   writeFileWithAncestors: (
-    filePath: string,
+    filePath: NativePath,
     content: Uint8Array,
   ) => taskEither.TaskEither<TauriException, void>;
 }
@@ -28,12 +30,12 @@ export interface FileSystemStack {
  * - Such low-level file system operations should likely not be part of the domain
  */
 export const fileSystemStack: FileSystemStack = {
-  escape: libPath.escape,
-  join: libPath.join,
-  dirname: libPath.dirname,
-  stripAncestor: libPath.stripAncestor,
+  append: libPath.append,
+  parsePath: libPath.parsePath,
+  toNativePath: libPath.toNativePath,
   getFileHash: libFs.getFileHash,
   removeFile: libFs.removeFile,
+  stripAncestor: libPath.stripAncestor,
   basename: libPath.basename,
   tempDir: libOs.tempDir,
   readBinaryFile: libFs.readBinaryFile,

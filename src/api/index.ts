@@ -4,6 +4,7 @@ import { removeDir } from '@tauri-apps/api/fs';
 import { relaunch } from '@tauri-apps/api/process';
 import { Store as TauriStore } from 'tauri-plugin-store-api';
 import {
+  array,
   constVoid,
   either,
   iots,
@@ -13,9 +14,10 @@ import {
   taskEither,
   taskOption,
 } from '@code-expert/prelude';
-import { PfsPath, ProjectPath } from '@/domain/FileSystem';
+import { NativePath, PfsPath, isoNativePath, pfsPathToRelativePath } from '@/domain/FileSystem';
 import { os, path } from '@/lib/tauri';
 import { TauriException, fromTauriError } from '@/lib/tauri/TauriException';
+import { buildTar } from '@/lib/tauri/buildTar';
 import { removeFile } from '@/lib/tauri/fs';
 
 const store = new TauriStore('settings.json');
@@ -24,10 +26,10 @@ export interface Api {
   getVersion: task.Task<string>;
   create_keys: task.Task<string>;
   create_jwt_tokens: (claims: Record<string, unknown>) => taskEither.TaskEither<string, string>;
-  buildTar: (fileName: string, rootDir: ProjectPath, files: Array<PfsPath>) => task.Task<string>;
+  buildTar: (tarFile: NativePath, rootDir: NativePath, files: Array<PfsPath>) => task.Task<string>;
   settingRead: <T>(key: string, decoder: iots.Decoder<unknown, T>) => taskOption.TaskOption<T>;
   settingWrite: (key: string, value: unknown) => task.Task<void>;
-  removeDir: (filePath: string) => taskEither.TaskEither<TauriException, void>;
+  removeDir: (filePath: NativePath) => taskEither.TaskEither<TauriException, void>;
   logout: () => task.Task<void>;
   getSystemInfo: taskOption.TaskOption<string>;
   restart: task.Task<void>;
@@ -36,24 +38,32 @@ export interface Api {
 export const api: Api = {
   getVersion,
   create_keys: () => invoke('create_keys', {}),
-  create_jwt_tokens: (claims) =>
+  create_jwt_tokens: (claims) => () =>
+    invoke<either.Either<string, string>>('create_jwt_token', { claims }),
+
+  buildTar: (tarFile, rootDir, files) =>
     pipe(
-      () => invoke<AlmostEither>('create_jwt_token', { claims }),
-      task.map((ae) => (ae._tag === 'Left' ? either.left(ae.value) : either.right(ae.value))),
+      pipe(files, array.map(pfsPathToRelativePath), task.traverseArray(path.toNativePath)),
+      task.chain((files) => buildTar({ tarFile, rootDir, files })),
     ),
-  buildTar: (fileName, rootDir, files) => () => invoke('build_tar', { fileName, rootDir, files }),
+
   settingRead: (key, decoder) =>
     pipe(() => store.get(key), task.map(decoder.decode), taskOption.fromTaskEither),
   settingWrite: (key, value) => () =>
     value != null
       ? store.set(key, value).then(() => store.save())
       : store.delete(key).then(() => store.save()),
+
   removeDir: (filePath) =>
-    taskEither.tryCatch(() => removeDir(filePath, { recursive: true }), fromTauriError),
+    taskEither.tryCatch(
+      () => removeDir(isoNativePath.unwrap(filePath), { recursive: true }),
+      fromTauriError,
+    ),
+
   logout: () =>
     pipe(
       os.appLocalDataDir,
-      taskEither.chainTaskK((dir) => path.join(dir, 'privateKey.pem')),
+      taskEither.chainTaskK(path.append([iots.brandFromLiteral('privateKey.pem')])),
       taskEither.chain(removeFile),
       taskEither.match((e) => {
         console.debug(`[logout] The private key could not be removed cleanly: ${e.message}`);
@@ -62,8 +72,3 @@ export const api: Api = {
   getSystemInfo: async () => option.fromNullable<string>(await invoke('system_info')),
   restart: () => relaunch(),
 };
-
-interface AlmostEither {
-  _tag: 'Left' | 'Right';
-  value: string;
-}

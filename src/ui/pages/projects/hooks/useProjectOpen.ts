@@ -1,9 +1,8 @@
 import { open } from '@tauri-apps/api/shell';
-import { api } from 'api';
 import React from 'react';
-import { iots, pipe, taskOption } from '@code-expert/prelude';
-import { ProjectId, projectPrism } from '@/domain/Project';
-import { path } from '@/lib/tauri';
+import { pipe, taskOption } from '@code-expert/prelude';
+import { isoNativePath } from '@/domain/FileSystem';
+import { ProjectId } from '@/domain/Project';
 import { useGlobalContext } from '@/ui/GlobalContext';
 
 export const useProjectOpen = () => {
@@ -11,14 +10,8 @@ export const useProjectOpen = () => {
   return React.useCallback(
     (projectId: ProjectId) =>
       pipe(
-        taskOption.sequenceS({
-          rootDir: api.settingRead('projectDir', iots.string),
-          project: pipe(
-            projectRepository.getProject(projectId),
-            taskOption.chainOptionK(projectPrism.local.getOption),
-          ),
-        }),
-        taskOption.chainTaskK(({ rootDir, project }) => path.join(rootDir, project.value.basePath)),
+        projectRepository.getProjectDir(projectId),
+        taskOption.map(isoNativePath.unwrap),
         taskOption.chainTaskK((dir) => () => open(dir)),
       ),
     [projectRepository],

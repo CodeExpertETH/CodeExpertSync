@@ -2,6 +2,7 @@ import { BaseDirectory } from '@tauri-apps/api/fs';
 import { Alert, Button } from 'antd';
 import React from 'react';
 import { constVoid, flow, iots, pipe, task, taskEither } from '@code-expert/prelude';
+import { isoNativePath } from '@/domain/FileSystem';
 import { globalSetupState, setupState } from '@/domain/Setup';
 import { fs } from '@/lib/tauri';
 import { useGlobalContextWithActions } from '@/ui/GlobalContext';
@@ -32,8 +33,10 @@ export function Developer() {
       task.chainFirst(() =>
         pipe(
           taskEither.sequenceT(
-            fs.removeFile('settings.json', { dir: BaseDirectory.AppLocalData }),
-            fs.removeFile('privateKey.pem', { dir: BaseDirectory.AppLocalData }),
+            fs.removeFile(isoNativePath.wrap('settings.json'), { dir: BaseDirectory.AppLocalData }),
+            fs.removeFile(isoNativePath.wrap('privateKey.pem'), {
+              dir: BaseDirectory.AppLocalData,
+            }),
           ),
           taskEither.fold(
             (e) => notificationT.error(e.message),

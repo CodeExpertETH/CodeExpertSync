@@ -1,108 +1,58 @@
-import {
-  either,
-  iots,
-  option,
-  pipe,
-  string,
-  task,
-  taskEither,
-  taskOption,
-} from '@code-expert/prelude';
-import { FileSystemStack } from '@/domain/FileSystem/fileSystemStack';
-import { Semester, SemesterFromStringC } from '@/domain/Semester';
-import { TauriException } from '@/lib/tauri/TauriException';
-import { panic } from '@/utils/error';
+import { array, either, eq, flow, iots, monoid, pipe, show, string } from '@code-expert/prelude';
 
 //----------------------------------------------------------------------------------------------------------------------
+// Types
+//----------------------------------------------------------------------------------------------------------------------
 
-export type RootPath = iots.Branded<string, RootPathBrand>;
-export interface RootPathBrand {
-  readonly RootPath: unique symbol;
+export type PathSegment = iots.Branded<string, PathSegmentBrand>;
+export interface PathSegmentBrand {
+  readonly PathSegment: unique symbol;
 }
-export const RootPathC = iots.brandIdentity(
+
+export type Path = Array<PathSegment>;
+
+//----------------------------------------------------------------------------------------------------------------------
+// Type class instances
+//----------------------------------------------------------------------------------------------------------------------
+
+export const eqPathSegment: eq.Eq<PathSegment> = string.Eq;
+export const eqPath: eq.Eq<Path> = array.getEq(eqPathSegment);
+
+export const showPath: show.Show<Path> = {
+  show: monoid.concatAll(string.join('/')),
+};
+
+//----------------------------------------------------------------------------------------------------------------------
+// Codecs
+//----------------------------------------------------------------------------------------------------------------------
+
+export const PathSegmentC = iots.brandIdentity(
   iots.string,
-  (s): s is RootPath => s.startsWith('/'),
-  'RootPath',
+  (s): s is PathSegment =>
+    string.isNotBlank(s) && s !== '.' && s !== '..' && !s.includes('/') && !s.includes('\\'),
+  'PathSegment',
+);
+
+export const PathC: iots.Type<Path> = iots.array(PathSegmentC);
+
+export const PathFromStringC: iots.Type<Path, string> = new iots.Type(
+  'PathFromString',
+  (u): u is Path => PathC.is(u),
+  (u, c) =>
+    pipe(
+      u,
+      iots.validate(iots.string, c),
+      either.chain(
+        flow(
+          string.split('/'),
+          array.unsafeFromReadonly,
+          either.traverseArray(iots.validate(PathSegmentC, c)),
+        ),
+      ),
+    ),
+  showPath.show,
 );
 
 //----------------------------------------------------------------------------------------------------------------------
-
-export type RelativeProjectPath = iots.Branded<string, RelativeProjectPathBrand>;
-export interface RelativeProjectPathBrand {
-  readonly RelativeProjectPath: unique symbol;
-}
-export const RelativeProjectPathC = iots.brandIdentity(
-  iots.string,
-  (s): s is RelativeProjectPath =>
-    pipe(s.split('/'), (dirs) => dirs.length === 4 && dirs.every(string.isNotBlank)),
-  'RelativeProjectPath',
-);
-
+// Domain functions
 //----------------------------------------------------------------------------------------------------------------------
-
-export type ProjectPath = iots.Branded<string, ProjectPathBrand> & RootPath;
-export interface ProjectPathBrand {
-  readonly ProjectPath: unique symbol;
-}
-export const ProjectPathC = iots.brandIdentity(
-  RootPathC,
-  (s): s is ProjectPath => s.split('/').length > 4,
-  'ProjectPath',
-);
-
-//----------------------------------------------------------------------------------------------------------------------
-
-export type PfsPath = iots.Branded<string, PfsPathBrand>;
-export interface PfsPathBrand {
-  readonly PfsPath: unique symbol;
-}
-export const PfsPathC = iots.brandIdentity(
-  iots.string,
-  (s): s is PfsPath => s === '.' || s.startsWith('./'),
-  'PfsPath',
-);
-
-//----------------------------------------------------------------------------------------------------------------------
-
-export const getRelativeProjectPath =
-  (stack: FileSystemStack) =>
-  (
-    semester: Semester,
-    courseName: string,
-    exerciseName: string,
-    taskName: string,
-  ): task.Task<RelativeProjectPath> =>
-    stack.join(
-      stack.escape(SemesterFromStringC.encode(semester)),
-      stack.escape(courseName),
-      stack.escape(exerciseName),
-      stack.escape(taskName),
-    ) as task.Task<RelativeProjectPath>;
-
-export const getProjectPath =
-  (stack: FileSystemStack) =>
-  (rootPath: RootPath, relativeProjectPath: RelativeProjectPath): task.Task<ProjectPath> =>
-    stack.join(rootPath, relativeProjectPath) as task.Task<ProjectPath>;
-
-export const getPfsPath =
-  (stack: FileSystemStack) =>
-  ({
-    projectPath,
-    path,
-  }: {
-    projectPath: ProjectPath;
-    path: string;
-  }): taskEither.TaskEither<TauriException, PfsPath> =>
-    stack.stripAncestor(projectPath)(path) as taskEither.TaskEither<TauriException, PfsPath>;
-
-export const getPfsParent =
-  (stack: FileSystemStack) =>
-  (path: PfsPath): taskOption.TaskOption<PfsPath> =>
-    path === '.'
-      ? taskOption.none
-      : (pipe(
-          stack.dirname(path),
-          task.map(
-            either.fold(() => panic(`Unable to get parent of PfsPath: "${path}"`), option.some),
-          ),
-        ) as taskOption.TaskOption<PfsPath>);

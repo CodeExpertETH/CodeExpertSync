@@ -22,7 +22,7 @@
       },
       "shell": {
         "all": false,
-        "open": "/.*"
+        "open": "/.*|(^[a-zA-Z]:\\\\.*)"
       },
       "http": {
         "request": true,

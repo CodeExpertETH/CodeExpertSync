@@ -12,7 +12,7 @@ import {
   taskEither,
 } from '@code-expert/prelude';
 import { fileSystemStack } from '@/domain/FileSystem/fileSystemStack';
-import { getProjectPath, ordProjectExercise } from '@/domain/Project';
+import { getProjectDir, ordProjectExercise } from '@/domain/Project';
 import { apiStack } from '@/domain/ProjectSync/apiStack';
 import { downloadFile } from '@/domain/ProjectSync/downloadFile';
 import { globalSetupState, setupState } from '@/domain/Setup';
@@ -103,9 +103,9 @@ export function Projects({ course }: { course: CourseItem }) {
                   taskEither.fromTaskOption(() =>
                     panic('Could not revert file in non-existent project'),
                   ),
-                  taskEither.chain(getProjectPath(stack)),
-                  taskEither.chain((path) =>
-                    downloadFile(stack)({ projectId, file, projectDir: path.absolute }),
+                  taskEither.chain(getProjectDir),
+                  taskEither.chain((projectDir) =>
+                    downloadFile(stack)({ projectId, file, projectDir }),
                   ),
                 )
               }

@@ -8,6 +8,7 @@ import {
   constVoid,
   either,
   flow,
+  identity,
   iots,
   not,
   option,
@@ -19,37 +20,47 @@ import {
   tree,
 } from '@code-expert/prelude';
 import {
+  FsFile,
   LocalFileChange,
   LocalFileInfo,
+  Path,
   PersistedFileInfo,
   PfsPath,
-  ProjectPath,
+  PfsPathFromStringC,
+  ProjectDir,
   RemoteFileChange,
   RemoteFileInfo,
   RemoteNodeChange,
   RemoteNodeInfo,
   RemoteNodeInfoC,
   deleteSingleFile,
+  eqPfsPath,
   fromRemoteFileInfo,
   getConflicts,
   getLocalChanges,
   getPfsParent,
-  getPfsPath,
   getRemoteChanges,
   hashInfoFromFsFile,
   isValidDirName,
   isValidFileName,
   isWritable,
+  isoNativePath,
   localChangeType,
+  pfsPathFromRelativePath,
+  pfsPathToRelativePath,
   remoteChangeType,
+  showNativePath,
+  showPath,
+  showPfsPath,
 } from '@/domain/FileSystem';
 import { FileSystemStack, fileSystemStack } from '@/domain/FileSystem/fileSystemStack';
 import {
   LocalProject,
   Project,
   ProjectId,
-  getProjectPath,
+  getProjectDir,
   projectADT,
+  projectDirToNativePath,
   projectPrism,
 } from '@/domain/Project';
 import { apiStack } from '@/domain/ProjectSync/apiStack';
@@ -77,37 +88,49 @@ const isVisibleFsNode =
 const getProjectInfoLocal =
   (stack: FileSystemStack) =>
   (
-    projectPath: ProjectPath,
+    projectDir: ProjectDir,
     _: LocalProject,
   ): taskEither.TaskEither<SyncException, Array<LocalFileInfo>> =>
     pipe(
-      stack.readFsTree(projectPath),
-      taskEither.mapLeft((e) =>
-        syncExceptionADT.fileSystemCorrupted({
-          path: projectPath,
-          reason: `Could not read FS tree (${e.message})`,
-        }),
-      ),
-      taskEither.map((x) => tree.toArray(x)),
-      taskEither.chainTaskK(array.filterE(task.ApplicativePar)(isVisibleFsNode(stack))),
-      taskEither.map(array.filter(isFile)),
-      taskEither.chain(
-        taskEither.traverseArray(({ path, type }) =>
-          pipe(
-            getPfsPath(stack)({ projectPath, path }),
-            taskEither.bimap(
-              (e) =>
-                syncExceptionADT.fileSystemCorrupted({
-                  path: projectPath,
-                  reason: `Could not get PFS path (${e.message})`,
-                }),
-              (relative) => ({ path: relative, type }),
+      projectDirToNativePath(stack)(projectDir),
+      task.chain((nativePath) =>
+        pipe(
+          stack.readFsTree(nativePath),
+          taskEither.mapLeft((e) =>
+            syncExceptionADT.wide.fileSystemCorrupted({
+              path: isoNativePath.unwrap(nativePath),
+              reason: `Could not read FS tree (${e.message})`,
+            }),
+          ),
+          taskEither.map(tree.toArray),
+          taskEither.chainTaskK(array.filterE(task.ApplicativePar)(isVisibleFsNode(stack))),
+          taskEither.map(array.filter(isFile)),
+          taskEither.chain(
+            taskEither.traverseArray(
+              ({ path, type }): taskEither.TaskEither<SyncException, FsFile> =>
+                pipe(
+                  stack.stripAncestor(nativePath)(path),
+                  taskEither.chainTaskK(stack.parsePath),
+                  taskEither.mapLeft((e) =>
+                    syncExceptionADT.wide.fileSystemCorrupted({
+                      path: showNativePath.show(path),
+                      reason: e.message,
+                    }),
+                  ),
+                  taskEither.chainOptionK(() =>
+                    syncExceptionADT.wide.fileSystemCorrupted({
+                      path: showNativePath.show(path),
+                      reason: 'Failed to process project file',
+                    }),
+                  )(identity),
+                  taskEither.map(flow(pfsPathFromRelativePath, (path): FsFile => ({ path, type }))),
+                ),
             ),
           ),
+          taskEither.chainTaskK(task.traverseArray(hashInfoFromFsFile(stack)(projectDir))),
+          taskEither.map(array.unsafeFromReadonly),
         ),
       ),
-      taskEither.chainTaskK(task.traverseArray(hashInfoFromFsFile(stack, projectPath))),
-      taskEither.map(array.unsafeFromReadonly),
     );
 
 const getProjectInfoRemote = (
@@ -125,51 +148,47 @@ const getProjectInfoRemote = (
   );
 
 const findClosest =
-  (stack: FileSystemStack) =>
   <A>(lookup: (path: PfsPath) => option.Option<A>) =>
-  (relPath: PfsPath): taskEither.TaskEither<SyncException, A> =>
+  (relPath: PfsPath): either.Either<SyncException, A> =>
     pipe(
       lookup(relPath),
       option.fold(
         () =>
           pipe(
-            getPfsParent(stack)(relPath),
-            taskEither.fromTaskOption(() =>
+            getPfsParent(relPath),
+            either.fromOption(() =>
               syncExceptionADT.fileSystemCorrupted({
-                path: relPath,
+                path: showPfsPath.show(relPath),
                 reason: 'PFS root directory does not exist',
               }),
             ),
-            taskEither.chain(findClosest(stack)(lookup)),
+            either.chain(findClosest(lookup)),
           ),
-        taskEither.of,
+        either.of,
       ),
     );
 
 const checkClosestExistingAncestorIsWritable: (
-  stack: FileSystemStack,
-) => (
   remote: Array<RemoteNodeInfo>,
-) => (c: LocalFileChange) => taskEither.TaskEither<SyncException, LocalFileChange> =
-  (stack) => (remote) =>
-    flow(
-      taskEither.of,
-      taskEither.chainFirst((file) =>
-        pipe(
-          file.path,
-          findClosest(stack)((closestPath) =>
-            pipe(
-              remote,
-              array.findFirst((i) => i.path === closestPath),
-              option.map(isWritable),
-            ),
-          ),
-          taskEither.filterOrElse(boolean.isTrue, () =>
-            syncExceptionADT.wide.fileAddedToReadOnlyDir(file),
+) => (c: LocalFileChange) => either.Either<SyncException, LocalFileChange> = (remote) =>
+  flow(
+    either.of,
+    either.chainFirst((file) =>
+      pipe(
+        file.path,
+        findClosest((closestPath) =>
+          pipe(
+            remote,
+            array.findFirst((i) => eqPfsPath.equals(i.path, closestPath)),
+            option.map(isWritable),
           ),
         ),
+        either.filterOrElse(boolean.isTrue, () =>
+          syncExceptionADT.wide.fileAddedToReadOnlyDir(file),
+        ),
       ),
-    );
+    ),
+  );
 
 const checkValidFileName: (
   stack: FileSystemStack,
@@ -178,10 +197,12 @@ const checkValidFileName: (
     taskEither.of,
     taskEither.chainFirst(({ path }) =>
       pipe(
-        stack.basename(path),
+        pfsPathToRelativePath(path),
+        stack.toNativePath,
+        task.chain(stack.basename),
         taskEither.fromTaskOption(() =>
           syncExceptionADT.wide.fileSystemCorrupted({
-            path,
+            path: showPfsPath.show(path),
             reason: 'Could not determine basename of path',
           }),
         ),
@@ -196,41 +217,39 @@ const checkEveryNewAncestorIsValidDirName =
   (stack: FileSystemStack) =>
   (remote: Array<RemoteNodeInfo>) =>
   (change: LocalFileChange): taskEither.TaskEither<SyncException, LocalFileChange> => {
-    const ancestors = (path: PfsPath): task.Task<Array<PfsPath>> =>
-      array.unfoldTaskK(
+    const ancestors = (path: PfsPath): Array<PfsPath> =>
+      array.unfold(
         path,
         flow(
-          getPfsParent(stack),
-          taskOption.map((x) => [x, x]),
+          getPfsParent,
+          option.map((x) => [x, x]),
         ),
       );
 
-    const isExisting = (path: PfsPath) => remote.some((i) => i.path === path);
+    const isExisting = (path: PfsPath) => remote.some((i) => eqPfsPath.equals(i.path, path));
     const isNew = (path: PfsPath) => !isExisting(path);
+
+    const basename = (path: Path) =>
+      pipe(
+        stack.toNativePath(path),
+        task.chain(stack.basename),
+        taskOption.filter(isValidDirName),
+        taskEither.fromTaskOption(() =>
+          syncExceptionADT.wide.fileSystemCorrupted({
+            path: showPath.show(path),
+            reason: 'Invalid project file path',
+          }),
+        ),
+      );
+
     return pipe(
       taskEither.of(change),
       taskEither.chainFirst(({ path }) =>
         pipe(
           ancestors(path),
-          task.chain((paths) =>
-            pipe(
-              paths,
-              array.filter(isNew),
-              array.traverse(taskOption.ApplicativePar)(stack.basename),
-              taskEither.fromTaskOption(() =>
-                syncExceptionADT.wide.fileSystemCorrupted({
-                  path: paths.join('/'),
-                  reason: 'Could not find basename',
-                }),
-              ),
-              taskEither.filterOrElse(array.every(isValidDirName), () =>
-                syncExceptionADT.wide.fileSystemCorrupted({
-                  path: paths.join('/'),
-                  reason: 'Parent directory has invalid name',
-                }),
-              ),
-            ),
-          ),
+          array.filter(isNew),
+          array.map(pfsPathToRelativePath),
+          taskEither.traverseArray(basename),
         ),
       ),
     );
@@ -242,7 +261,7 @@ const findRemoteForLocalFileChange =
     pipe(
       remote,
       array.filter(isFile),
-      array.findFirst((i) => i.path === local.path),
+      array.findFirst((i) => eqPfsPath.equals(i.path, local.path)),
       option.getOrElseW(() => panic('Expected to find local file in list of remote files.')),
     );
 
@@ -253,27 +272,25 @@ const validateAddedFileChange: (
 ) => (c: LocalFileChange) => taskEither.TaskEither<SyncException, LocalFileChange> =
   (stack: FileSystemStack) => (remote: Array<RemoteNodeInfo>) =>
     flow(
-      checkClosestExistingAncestorIsWritable(stack)(remote),
+      checkClosestExistingAncestorIsWritable(remote),
+      taskEither.fromEither,
       taskEither.chain(checkEveryNewAncestorIsValidDirName(stack)(remote)),
       taskEither.chainFirst(checkValidFileName(stack)),
     );
 
 const validateRemovedFileChange: (
-  stack: FileSystemStack,
-) => (
   remote: Array<RemoteNodeInfo>,
-) => (c: LocalFileChange) => taskEither.TaskEither<SyncException, LocalFileChange> =
-  (stack) => (remote) =>
-    flow(
-      taskEither.of,
-      taskEither.chainFirstEitherKW(
-        flow(
-          findRemoteForLocalFileChange(remote),
-          either.fromPredicate(isWritable, syncExceptionADT.readOnlyFileChanged),
-        ),
+) => (c: LocalFileChange) => either.Either<SyncException, LocalFileChange> = (remote) =>
+  flow(
+    either.of,
+    either.chainFirstW(
+      flow(
+        findRemoteForLocalFileChange(remote),
+        either.fromPredicate(isWritable, syncExceptionADT.readOnlyFileChanged),
       ),
-      taskEither.chain(checkClosestExistingAncestorIsWritable(stack)(remote)),
-    );
+    ),
+    either.chain(checkClosestExistingAncestorIsWritable(remote)),
+  );
 
 const validateUpdatedFileChange: (
   remote: Array<RemoteNodeInfo>,
@@ -317,8 +334,8 @@ const getFilesToUpload =
         localChangeType.fold<taskEither.TaskEither<SyncException, LocalFileChange>>(x.change, {
           noChange: () => panic('File has no changes'),
           added: () => validateAddedFileChange(stack)(remote)(x),
-          removed: () => validateRemovedFileChange(stack)(remote)(x),
-          updated: () => pipe(x, validateUpdatedFileChange(remote), taskEither.fromEither),
+          removed: () => pipe(x, validateRemovedFileChange(remote), task.of),
+          updated: () => pipe(x, validateUpdatedFileChange(remote), task.of),
         }),
       ),
       taskEither.map(array.unsafeFromReadonly),
@@ -340,7 +357,7 @@ const getFilesToDownload =
               updated: constTrue,
             }),
           ),
-          array.exists((file) => file.path === path),
+          array.exists((file) => eqPfsPath.equals(file.path, path)),
         ),
       ),
       // fixme: remove this. possibly just filter remoteChanges for "added" and "updated"
@@ -368,7 +385,7 @@ export const uploadChangedFiles =
   (stack: FileSystemStack & TimeContext) =>
   (
     projectId: ProjectId,
-    projectDir: ProjectPath,
+    projectDir: ProjectDir,
     localChanges: Array<LocalFileChange>,
   ): taskEither.TaskEither<SyncException, void> =>
     pipe(
@@ -396,12 +413,18 @@ export const uploadChangedFiles =
           task.bindTo('tempDir'),
           task.bind('t', () => task.fromIO(stack.now)),
           task.chain(({ tempDir, t }) =>
-            stack.join(tempDir, `project_${projectId}_${t.getTime()}.tar.br`),
+            pipe(
+              tempDir,
+              stack.append([iots.brandFromLiteral(`project_${projectId}_${t.getTime()}.tar.br`)]),
+            ),
           ),
         ),
       ),
       taskEither.bindTaskK('tarHash', ({ uploadFiles, archivePath }) =>
-        api.buildTar(archivePath, projectDir, uploadFiles),
+        pipe(
+          projectDirToNativePath(stack)(projectDir),
+          task.chain((nativeDir) => api.buildTar(archivePath, nativeDir, uploadFiles)),
+        ),
       ),
       taskEither.let('removeFiles', () =>
         pipe(
@@ -427,6 +450,10 @@ export const uploadChangedFiles =
           }),
         ),
       ),
+      taskEither.map(({ removeFiles, ...rest }) => ({
+        removeFiles: pipe(removeFiles, array.map(PfsPathFromStringC.encode)),
+        ...rest,
+      })),
       taskEither.chain(({ body, tarHash, removeFiles, uploadFiles }) =>
         pipe(
           apiPostSigned({
@@ -529,11 +556,12 @@ export const useProjectSync = () => {
 
   return React.useCallback<RunProjectSync>(
     (project, { force } = {}) => {
+      const projectId = project.value.projectId;
       const stack = { ...fileSystemStack, ...time, ...apiStack };
       return pipe(
         taskEither.Do,
         // setup
-        taskEither.bind('projectPath', () => getProjectPath(stack)(project)),
+        taskEither.bind('projectDir', () => getProjectDir(project)),
         // change detection
         taskEither.let('projectInfoPrevious', () =>
           pipe(
@@ -541,12 +569,12 @@ export const useProjectSync = () => {
             option.map(({ value: { files } }) => files),
           ),
         ),
-        taskEither.bindW('projectInfoRemote', () => getProjectInfoRemote(project.value.projectId)),
-        taskEither.bind('projectInfoLocal', ({ projectPath }) =>
+        taskEither.bindW('projectInfoRemote', () => getProjectInfoRemote(projectId)),
+        taskEither.bind('projectInfoLocal', ({ projectDir }) =>
           pipe(
             projectPrism.local.getOption(project),
             option.traverse(taskEither.ApplicativePar)((project) =>
-              getProjectInfoLocal(stack)(projectPath.absolute, project),
+              getProjectInfoLocal(stack)(projectDir, project),
             ),
           ),
         ),
@@ -559,22 +587,17 @@ export const useProjectSync = () => {
           ),
         ),
         // upload local changed files
-        taskEither.chainFirst(({ projectPath, actions }) =>
+        taskEither.chainFirst(({ projectDir, actions }) =>
           pipe(
             actions.upload,
             option.fold(
               () => taskEither.of(undefined),
-              (filesToUpload) =>
-                uploadChangedFiles(stack)(
-                  project.value.projectId,
-                  projectPath.absolute,
-                  filesToUpload,
-                ),
+              (filesToUpload) => uploadChangedFiles(stack)(projectId, projectDir, filesToUpload),
             ),
           ),
         ),
         // download and write added and updated files
-        taskEither.chainFirst(({ actions, projectPath }) =>
+        taskEither.chainFirst(({ actions, projectDir }) =>
           pipe(
             actions.download,
             option.foldW(
@@ -582,12 +605,8 @@ export const useProjectSync = () => {
               (files) =>
                 pipe(
                   files,
-                  array.traverse(taskEither.ApplicativeSeq)((fileInfo) =>
-                    downloadFile(stack)({
-                      file: fileInfo,
-                      projectId: project.value.projectId,
-                      projectDir: projectPath.absolute,
-                    }),
+                  array.traverse(taskEither.ApplicativeSeq)((file) =>
+                    downloadFile(stack)({ file, projectId, projectDir }),
                   ),
                   taskEither.map(constVoid),
                 ),
@@ -595,7 +614,7 @@ export const useProjectSync = () => {
           ),
         ),
         //delete remote removed files
-        taskEither.chainFirstTaskK(({ actions, projectPath }) =>
+        taskEither.chainFirstTaskK(({ actions, projectDir }) =>
           pipe(
             actions.delete,
             option.foldW(
@@ -603,15 +622,13 @@ export const useProjectSync = () => {
               (filesToDelete) =>
                 pipe(
                   filesToDelete,
-                  array.traverse(task.ApplicativeSeq)(
-                    deleteSingleFile(stack, projectPath.absolute),
-                  ),
+                  array.traverse(task.ApplicativeSeq)(deleteSingleFile(stack, projectDir)),
                 ),
             ),
           ),
         ),
         // update all project metadata
-        taskEither.bindW('updatedProjectInfo', ({ projectPath }) =>
+        taskEither.bindW('updatedProjectInfo', ({ projectDir }) =>
           pipe(
             // fixme: why are we not using the result of uploadChangedFiles?
             getProjectInfoRemote(project.value.projectId),
@@ -619,25 +636,20 @@ export const useProjectSync = () => {
               pipe(
                 projectInfoRemote.files,
                 array.filter(isFile),
-                array.traverse(task.ApplicativeSeq)(
-                  fromRemoteFileInfo(stack, projectPath.absolute),
-                ),
-                task.map((files) => ({
-                  ...projectInfoRemote,
-                  files,
-                })),
+                array.traverse(task.ApplicativeSeq)(fromRemoteFileInfo(stack)(projectDir)),
+                task.map((files) => ({ ...projectInfoRemote, files })),
                 taskEither.fromTask,
               ),
             ),
           ),
         ),
         // store new state
-        taskEither.chainFirstTaskK(({ updatedProjectInfo, projectPath }) =>
+        taskEither.chainFirstTaskK(({ updatedProjectInfo, projectDir }) =>
           projectRepository.upsertOne(
             projectADT.local({
               ...project.value,
               files: updatedProjectInfo.files,
-              basePath: projectPath.relative,
+              basePath: projectDir.base,
               syncedAt: time.now(),
               syncState: projectADT.fold(project, {
                 remote: () => syncStateADT.synced(changesADT.unknown()),

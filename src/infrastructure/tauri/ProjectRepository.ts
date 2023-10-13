@@ -14,12 +14,13 @@ import {
   taskEither,
   taskOption,
 } from '@code-expert/prelude';
+import { NativePath, NativePathFromStringC, projectDirToNativePath } from '@/domain/FileSystem';
+import { FileSystemStack, fileSystemStack } from '@/domain/FileSystem/fileSystemStack';
 import { Project, ProjectId, projectADT, projectPrism } from '@/domain/Project';
 import { ProjectFiles } from '@/domain/ProjectFiles';
 import { ProjectMetadata } from '@/domain/ProjectMetadata';
 import { ProjectRepository } from '@/domain/ProjectRepository';
 import { changesADT, syncStateADT } from '@/domain/SyncState';
-import { path } from '@/lib/tauri';
 import { apiErrorToMessage, apiGetSigned, apiPostSigned } from '@/utils/api';
 import { panic } from '@/utils/error';
 import { projectConfigStore } from './internal/ProjectConfigStore';
@@ -50,6 +51,8 @@ const projectsFromMetadata = (projects: Array<ProjectMetadata>): task.Task<Array
   pipe(projects, task.traverseArray(projectFromMetadata), task.map(array.unsafeFromReadonly));
 
 export const mkProjectRepositoryTauri = (): task.Task<ProjectRepository> => {
+  const stack: FileSystemStack = fileSystemStack;
+
   const persistMetadata = (metadata: Array<ProjectMetadata>): taskOption.TaskOption<void> =>
     projectMetadataStore.writeAll(metadata);
 
@@ -70,6 +73,19 @@ export const mkProjectRepositoryTauri = (): task.Task<ProjectRepository> => {
         projectsDb.get(),
         array.findFirst((x) => x.value.projectId === projectId),
       ),
+    );
+
+  const getProjectDir = (projectId: ProjectId): taskOption.TaskOption<NativePath> =>
+    pipe(
+      taskOption.sequenceS({
+        rootDir: api.settingRead('projectDir', NativePathFromStringC),
+        base: pipe(
+          getProject(projectId),
+          taskOption.chainOptionK(projectPrism.local.getOption),
+          taskOption.map((p) => p.value.basePath),
+        ),
+      }),
+      taskOption.chainTaskK(projectDirToNativePath(stack)),
     );
 
   return pipe(
@@ -93,22 +109,11 @@ export const mkProjectRepositoryTauri = (): task.Task<ProjectRepository> => {
 
       getProject,
 
-      removeProject: (projectId) => {
-        const getProjectDir: taskOption.TaskOption<string> = pipe(
-          taskOption.sequenceS({
-            rootDir: api.settingRead('projectDir', iots.string),
-            project: pipe(
-              getProject(projectId),
-              taskOption.chainOptionK(projectPrism.local.getOption),
-            ),
-          }),
-          taskOption.chainTaskK(({ rootDir, project }) =>
-            path.join(rootDir, project.value.basePath),
-          ),
-        );
+      getProjectDir,
 
+      removeProject: (projectId) => {
         const removeProjectDir: taskEither.TaskEither<Array<string>, void> = pipe(
-          getProjectDir,
+          getProjectDir(projectId),
           taskEither.fromTaskOption(() => ['Could not get project dir']),
           taskEither.chain(
             flow(

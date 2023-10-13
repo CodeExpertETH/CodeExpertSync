@@ -1,5 +1,11 @@
 import { pipe, task, taskEither } from '@code-expert/prelude';
-import { PfsPath, ProjectPath, RemoteFileInfo } from '@/domain/FileSystem';
+import {
+  PfsPath,
+  ProjectDir,
+  RemoteFileInfo,
+  projectEntryToNativePath,
+  showPfsPath,
+} from '@/domain/FileSystem';
 import { FileSystemStack } from '@/domain/FileSystem/fileSystemStack';
 import { ProjectId } from '@/domain/Project';
 import { ApiStack } from '@/domain/ProjectSync/apiStack';
@@ -15,7 +21,7 @@ export const downloadFile =
   }: {
     file: RemoteFileInfo;
     projectId: ProjectId;
-    projectDir: ProjectPath;
+    projectDir: ProjectDir;
   }): taskEither.TaskEither<SyncException, void> =>
     pipe(
       stack.readRemoteProjectFile(projectId, file.path),
@@ -25,7 +31,7 @@ export const downloadFile =
           writeProjectFile(stack)(projectDir, file.path, fileContent),
           taskEither.mapLeft(({ message: reason }) =>
             syncExceptionADT.wide.fileSystemCorrupted({
-              path: file.path,
+              path: showPfsPath.show(file.path),
               reason: `Could not write project file (${reason})`,
             }),
           ),
@@ -36,11 +42,11 @@ export const downloadFile =
 const writeProjectFile =
   (stack: FileSystemStack) =>
   (
-    projectDir: ProjectPath,
+    projectDir: ProjectDir,
     file: PfsPath,
     content: Uint8Array,
   ): taskEither.TaskEither<TauriException, void> =>
     pipe(
-      stack.join(projectDir, file),
+      projectEntryToNativePath(stack)(projectDir, file),
       task.chain((path) => stack.writeFileWithAncestors(path, content)),
     );

@@ -1,9 +1,9 @@
 import { array, nonEmptyArray, option, pipe } from '@code-expert/prelude';
-import { eqFsNode } from '@/lib/tauri/fs';
+import { PfsPath, eqFsNode } from '@/domain/FileSystem';
 import { LocalNodeChange, RemoteNodeChange, remoteChangeType } from './Change';
 
 export interface Conflict {
-  path: string;
+  path: PfsPath;
   changeRemote: RemoteNodeChange['change'];
   changeLocal: LocalNodeChange['change'];
 }
