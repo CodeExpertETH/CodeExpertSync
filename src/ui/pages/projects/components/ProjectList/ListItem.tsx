@@ -4,6 +4,7 @@ import { constNull, flow, remoteEither, task, taskEither } from '@code-expert/pr
 import { RemoteFileInfo, invalidFileNameMessage, showPfsPath } from '@/domain/FileSystem';
 import { LocalProject, Project, ProjectId, projectADT, projectPrism } from '@/domain/Project';
 import { SyncException, syncExceptionADT } from '@/domain/SyncException';
+import { TauriException } from '@/lib/tauri/TauriException';
 import { ActionMenu } from '@/ui/components/ActionMenu';
 import { GuardRemoteEither } from '@/ui/components/GuardRemoteData';
 import { useTimeContext } from '@/ui/contexts/TimeContext';
@@ -45,7 +46,7 @@ const StyledButton = styled(Button, ({ tokens }) => ({
 
 export interface ListItemProps {
   project: Project;
-  onOpen: (project: LocalProject) => taskEither.TaskEither<string, void>;
+  onOpen: (project: LocalProject) => taskEither.TaskEither<TauriException, void>;
   onSync: (
     project: Project,
     force?: ForceSyncDirection,
@@ -86,7 +87,7 @@ export const ListItem = ({ project, onOpen, onSync, onRemove, onRevertFile }: Li
 
   // All states combined. Order matters: the first failure gets precedence.
   const actionStates = remoteEither.sequenceT(
-    viewFromStringException(openStateRD),
+    viewFromTauriException(openStateRD),
     viewFromSyncException(syncEnv)(revertFileStateRD),
     viewFromSyncException(syncEnv)(syncStateRD),
   );
@@ -151,9 +152,11 @@ export const ListItem = ({ project, onOpen, onSync, onRemove, onRevertFile }: Li
 
 // -------------------------------------------------------------------------------------------------
 
-const viewFromStringException: <A>(
-  e: remoteEither.RemoteEither<string, A>,
-) => remoteEither.RemoteEither<React.ReactElement, A> = remoteEither.mapLeft((x) => <>{x}</>);
+const viewFromTauriException: <A>(
+  e: remoteEither.RemoteEither<TauriException, A>,
+) => remoteEither.RemoteEither<React.ReactElement, A> = remoteEither.mapLeft((x) => (
+  <>{x.message}</>
+));
 
 interface ViewFromSyncExceptionEnv {
   forcePush: () => void;

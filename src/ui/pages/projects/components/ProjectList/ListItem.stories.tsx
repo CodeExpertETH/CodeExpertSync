@@ -3,6 +3,7 @@ import { List } from 'antd';
 import React from 'react';
 import { either, flow, taskEither } from '@code-expert/prelude';
 import { syncExceptionADT } from '@/domain/SyncException';
+import { fromTauriError } from '@/lib/tauri/TauriException';
 import {
   localProject,
   openProject,
@@ -39,7 +40,7 @@ export const FailOpen = {
     onOpen: flow(
       openProject,
       taskEither.chainEitherK(() =>
-        either.left('The project does not exist where it was expected.'),
+        either.left(fromTauriError('The project does not exist where it was expected.')),
       ),
     ),
   },
@@ -59,7 +60,7 @@ export const FailBoth = {
     onOpen: flow(
       openProject,
       taskEither.chainEitherK(() =>
-        either.left('The project does not exist where it was expected.'),
+        either.left(fromTauriError('The project does not exist where it was expected.')),
       ),
     ),
     onSync: flow(

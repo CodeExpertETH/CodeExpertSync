@@ -4,7 +4,6 @@ import {
   array,
   boolean,
   constVoid,
-  flow,
   nonEmptyArray,
   option,
   pipe,
@@ -60,10 +59,7 @@ export function Projects({ course, clientId }: { course: CourseItem; clientId: C
               key={name}
               exerciseName={name}
               projects={projects}
-              onOpen={flow(
-                openProject,
-                taskEither.mapLeft((e) => `Could not open project: ${e.message}`),
-              )}
+              onOpen={openProject}
               onSync={(project, force) =>
                 pipe(
                   // todo disable buttons instead?

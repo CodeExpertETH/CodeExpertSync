@@ -4,6 +4,7 @@ import { LocalProject, Project, ProjectId, projectADT } from '@/domain/Project';
 import { ProjectMetadata } from '@/domain/ProjectMetadata';
 import { SyncException } from '@/domain/SyncException';
 import { changesADT, syncStateADT } from '@/domain/SyncState';
+import { TauriException } from '@/lib/tauri/TauriException';
 
 const metadata: ProjectMetadata = {
   projectId: 'p1' as ProjectId,
@@ -32,7 +33,9 @@ export const localProject = projectADT.local({
 // A value that is not a multiple of the rotation duration (to see how the animation is interrupted)
 const DELAY = 1250;
 
-export const openProject: (project: LocalProject) => taskEither.TaskEither<string, void> = () =>
+export const openProject: (
+  project: LocalProject,
+) => taskEither.TaskEither<TauriException, void> = () =>
   task.delay(DELAY)(taskEither.fromIO(constVoid));
 
 export const syncProject: (project: Project) => taskEither.TaskEither<SyncException, void> = () =>

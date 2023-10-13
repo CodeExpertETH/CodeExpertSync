@@ -43,9 +43,9 @@ export const removeFile = (path: NativePath, options?: FsOptions) =>
   taskEither.tryCatch(() => fs.removeFile(isoNativePath.unwrap(path), options), fromTauriError);
 
 export const exists =
-  (path: string): task.Task<boolean> =>
+  (path: NativePath): task.Task<boolean> =>
   () =>
-    fs.exists(path);
+    fs.exists(isoNativePath.unwrap(path));
 export const writeTextFile = taskEither.tryCatchK<
   TauriException,
   [path: string, contents: string],

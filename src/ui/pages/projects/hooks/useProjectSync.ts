@@ -537,7 +537,7 @@ const getSyncActions: (
           projectInfoPrevious,
           option.fold(
             // the project has never been synced before
-            () => getRemoteChanges([], projectInfoRemote),
+            () => getRemoteChanges([], projectInfoRemote), // FIXME calling getRemoteChanges with an empty array smells a bit of abusing convenient behaviour
             (previous) => getRemoteChanges(previous, projectInfoRemote),
           ),
           option.filter(() => force == null || force === 'pull'),
@@ -580,17 +580,30 @@ export const useProjectSync = () => {
         taskEither.Do,
         // setup
         taskEither.bindTaskK('projectDir', () => getProjectDir(project)),
-        // change detection
-        taskEither.let('projectInfoPrevious', () =>
+        // localProject is only Some if it indeed still exists where we expect it to
+        taskEither.bindTaskK('localProject', ({ projectDir }) =>
           pipe(
             projectPrism.local.getOption(project),
+            taskOption.fromOption,
+            taskOption.chainFirst(() =>
+              pipe(
+                projectDirToNativePath(stack)(projectDir),
+                task.chain((supposedProjectDir) => stack.exists(supposedProjectDir)),
+                task.map(option.fromBoolean(constVoid)),
+              ),
+            ),
+          ),
+        ),
+        taskEither.let('projectInfoPrevious', ({ localProject }) =>
+          pipe(
+            localProject, // only lookup previous sync info, if the project still exists where we expect it to
             option.map(({ value: { files } }) => files),
           ),
         ),
         taskEither.bindW('projectInfoRemote', () => getProjectInfoRemote(projectId)),
-        taskEither.bind('projectInfoLocal', ({ projectDir }) =>
+        taskEither.bind('projectInfoLocal', ({ projectDir, localProject }) =>
           pipe(
-            projectPrism.local.getOption(project),
+            localProject, // only check FS-state if the project still exists where we expect it to
             option.traverse(taskEither.ApplicativePar)((project) =>
               getProjectInfoLocal(stack)(projectDir, project),
             ),
