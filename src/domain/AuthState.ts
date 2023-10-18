@@ -11,20 +11,15 @@ import { panic } from '@/utils/error';
 import { ClientId } from './ClientId';
 
 export type AuthState =
-  | tagged.Tagged<'startingAuthorization', { code_verifier: string; redirectLink: string }>
-  | tagged.Tagged<'waitingForAuthorization', { code_verifier: string }>
+  | tagged.Tagged<'startingAuthorization', { codeVerifier: string; codeChallenge: string }>
+  | tagged.Tagged<'waitingForAuthorization', { codeVerifier: string; clientId: ClientId }>
   | tagged.Tagged<'deniedAuthorization'>
   | tagged.Tagged<'timeoutAuthorization'>;
 export const authState = tagged.build<AuthState>();
 
-const startingAuthorization = (
-  clientId: ClientId,
-): Extract<AuthState, { _tag: 'startingAuthorization' }> => {
-  const { code_verifier, code_challenge } = pkceChallenge();
-
-  const redirectLink = `${config.CX_WEB_URL}/app/authorize?clientId=${clientId}&code_challenge=${code_challenge}`;
-
-  return authState.startingAuthorization({ code_verifier, redirectLink });
+const startingAuthorization = (): Extract<AuthState, { _tag: 'startingAuthorization' }> => {
+  const { codeVerifier, codeChallenge } = pkceChallenge();
+  return authState.startingAuthorization({ codeVerifier, codeChallenge });
 };
 
 const cleanUpEventListener = (
@@ -40,15 +35,17 @@ const cleanUpEventListener = (
   sse.current = null;
 };
 
+export const getRedirectLink = (clientId: ClientId, codeChallenge: string) =>
+  `${config.CX_WEB_URL}/app/authorize?clientId=${clientId}&code_challenge=${codeChallenge}`;
+
 export const useAuthState = (
-  clientId: ClientId,
-  onAuthorize: () => void,
+  onAuthorize: (clientId: ClientId) => void,
 ): {
   state: AuthState;
-  startAuthorization: (code_verifier: string) => void;
+  startAuthorization: (clientId: ClientId, code_verifier: string) => void;
   cancelAuthorization: () => void;
 } => {
-  const [state, setState] = React.useState<AuthState>(() => startingAuthorization(clientId));
+  const [state, setState] = React.useState<AuthState>(() => startingAuthorization());
   const sse = React.useRef<EventSource | null>(null);
   useTimeout(
     () => {
@@ -60,17 +57,16 @@ export const useAuthState = (
   React.useEffect(() => {
     const onAuthToken = async ({ data: authToken }: { data: string }) => {
       if (authState.is.waitingForAuthorization(state)) {
+        const { codeVerifier, clientId } = state.value;
         await pipe(
           api.create_keys,
-          task.chain((publicKey) =>
-            getAccess(clientId, state.value.code_verifier, authToken, publicKey),
-          ),
+          task.chain((publicKey) => getAccess(clientId, codeVerifier, authToken, publicKey)),
           taskEither.match(flow(apiErrorToMessage, panic), constVoid),
           task.toPromise,
         );
         sse.current?.close();
         sse.current = null;
-        onAuthorize();
+        onAuthorize(clientId);
       } else {
         panic('Invalid state. Please try again.');
       }
@@ -89,12 +85,14 @@ export const useAuthState = (
         10,
       );
       cleanUpEventListener(sse, onAuthToken, onDenied, onError);
-      setState(startingAuthorization(clientId));
+      setState(startingAuthorization());
     };
 
     if (authState.is.waitingForAuthorization(state)) {
       if (sse.current == null) {
-        sse.current = new EventSource(`${config.CX_API_URL}/access/authorize?clientId=${clientId}`);
+        sse.current = new EventSource(
+          `${config.CX_API_URL}/access/authorize?clientId=${state.value.clientId}`,
+        );
       }
 
       sse.current?.addEventListener('granted', onAuthToken, { once: true });
@@ -106,21 +104,21 @@ export const useAuthState = (
     return () => {
       cleanUpEventListener(sse, onAuthToken, onDenied, onError);
     };
-  }, [state, clientId, onAuthorize]);
+  }, [state, onAuthorize]);
 
   const { startAuthorization, cancelAuthorization } = React.useMemo(() => {
-    const startAuthorization = (code_verifier: string) => {
-      setState(authState.waitingForAuthorization({ code_verifier }));
+    const startAuthorization = (clientId: ClientId, codeVerifier: string) => {
+      setState(authState.waitingForAuthorization({ codeVerifier, clientId }));
     };
 
     const cancelAuthorization = () => {
-      setState(startingAuthorization(clientId));
+      setState(startingAuthorization());
     };
     return {
       startAuthorization,
       cancelAuthorization,
     };
-  }, [clientId]);
+  }, []);
 
   return { state, startAuthorization, cancelAuthorization };
 };

@@ -1,17 +1,14 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { pipe, task } from '@code-expert/prelude';
-import { registerApp } from '@/application/registerApp';
 import { ClientId } from '@/domain/ClientId';
 import { globalSetupState } from '@/domain/Setup';
 import { mkApiConnectionAtom } from '@/infrastructure/tauri/ApiConnectionRepository';
 import { mkProjectRepositoryTauri } from '@/infrastructure/tauri/ProjectRepository';
 import { GlobalContextProvider, useGlobalContext } from '@/ui/GlobalContext';
 import { ErrorBoundary } from '@/ui/components/ErrorBoundary';
-import { GuardRemote } from '@/ui/components/GuardRemoteData';
 import { TimeContextProvider, timeContext } from '@/ui/contexts/TimeContext';
-import { useTask } from '@/ui/hooks/useTask';
 import { AppLayout } from '@/ui/layout';
 import { Courses } from '@/ui/pages/courses';
 import { Developer } from '@/ui/pages/developer';
@@ -57,7 +54,7 @@ function Main({ clientId }: { clientId: ClientId }) {
     settings: () => <Settings />,
     logout: () => <Logout />,
     courses: () => <Courses />,
-    projects: ({ course }) => <Projects course={course} />,
+    projects: ({ course }) => <Projects course={course} clientId={clientId} />,
     developer: () => <Developer />,
   });
 }
@@ -65,29 +62,18 @@ function Main({ clientId }: { clientId: ClientId }) {
 export function App() {
   const { setupState } = useGlobalContext();
   const { navigateTo } = useRoute();
-  const [clientIdRD, refreshClientId] = useTask(registerApp);
 
   useHotkeys('ctrl+c+x', () => {
     navigateTo(routes.developer());
   });
 
-  useEffect(() => {
-    refreshClientId();
-  }, [refreshClientId]);
-
   return (
-    <GuardRemote
-      value={clientIdRD}
-      pending={() => <div style={{ padding: '1em' }}>Loading …</div>}
-      render={(clientId) => (
-        <AppLayout setup={globalSetupState.is.setup(setupState)}>
-          {globalSetupState.fold(setupState, {
-            setup: ({ state }) => <Setup state={state} clientId={clientId} />,
-            update: ({ manifest }) => <Updater manifest={manifest} />,
-            setupDone: () => <Main clientId={clientId} />,
-          })}
-        </AppLayout>
-      )}
-    />
+    <AppLayout setup={globalSetupState.is.setup(setupState)}>
+      {globalSetupState.fold(setupState, {
+        setup: ({ state }) => <Setup state={state} />,
+        update: ({ manifest }) => <Updater manifest={manifest} />,
+        setupDone: ({ clientId }) => <Main clientId={clientId} />,
+      })}
+    </AppLayout>
   );
 }

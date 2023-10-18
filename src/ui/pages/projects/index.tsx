@@ -11,6 +11,7 @@ import {
   task,
   taskEither,
 } from '@code-expert/prelude';
+import { ClientId } from '@/domain/ClientId';
 import { fileSystemStack } from '@/domain/FileSystem/fileSystemStack';
 import { getProjectDir, ordProjectExercise } from '@/domain/Project';
 import { apiStack } from '@/domain/ProjectSync/apiStack';
@@ -31,7 +32,7 @@ import { panic } from '@/utils/error';
 
 const stack = { ...fileSystemStack, ...apiStack };
 
-export function Projects({ course }: { course: CourseItem }) {
+export function Projects({ course, clientId }: { course: CourseItem; clientId: ClientId }) {
   const [{ projectRepository, connectionStatus }, dispatch] = useGlobalContextWithActions();
   const projects = pipe(
     useProperty(projectRepository.projects),
@@ -61,7 +62,7 @@ export function Projects({ course }: { course: CourseItem }) {
               projects={projects}
               onOpen={flow(
                 openProject,
-                taskEither.fromTaskOption(() => 'Could not open project'),
+                taskEither.mapLeft((e) => `Could not open project: ${e.message}`),
               )}
               onSync={(projectId, force) =>
                 pipe(
@@ -114,7 +115,9 @@ export function Projects({ course }: { course: CourseItem }) {
         ),
         option.fold(
           () => {
-            dispatch({ setupState: globalSetupState.setup({ state: setupState.noProjectSync() }) });
+            dispatch({
+              setupState: globalSetupState.setup({ state: setupState.noProjectSync({ clientId }) }),
+            });
             return null;
           },
           (xs) => <VStack gap="lg">{xs}</VStack>,

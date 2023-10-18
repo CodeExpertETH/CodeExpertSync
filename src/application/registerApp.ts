@@ -14,27 +14,18 @@ const getSystemInfo: task.Task<{ os: string; name: string; version: string }> = 
   version: getVersion,
 });
 
-export const registerApp = (): task.Task<ClientId> =>
-  pipe(
-    api.settingRead('clientId', ClientId),
-    taskOption.getOrElse(() =>
-      pipe(
-        getSystemInfo,
-        task.chain((systemInfo) =>
-          pipe(
-            apiPost({
-              path: 'access/register',
-              body: requestBody.json({
-                ...systemInfo,
-                permissions: ['user:read', 'project:read', 'project:write'],
-              }),
-              codec: iots.strict({ clientId: ClientId }),
-            }),
-            taskEither.getOrElse(flow(apiErrorToMessage, panic)),
-            task.map(({ clientId }) => clientId),
-            task.chainFirst((clientId) => api.settingWrite('clientId', clientId)),
-          ),
-        ),
-      ),
-    ),
-  );
+export const getNewClientIdFromApi = pipe(
+  getSystemInfo,
+  task.chain((systemInfo) =>
+    apiPost({
+      path: 'access/register',
+      body: requestBody.json({
+        ...systemInfo,
+        permissions: ['user:read', 'project:read', 'project:write'],
+      }),
+      codec: iots.strict({ clientId: ClientId }),
+    }),
+  ),
+  taskEither.getOrElse(flow(apiErrorToMessage, panic)),
+  task.map(({ clientId }) => clientId),
+);

@@ -5,11 +5,11 @@ import { pkceChallenge } from './crypto';
 
 describe('crypto.ts', () => {
   describe('pkceChallenge', () => {
-    it('code_challenge should be a hash of the code_verifier', () => {
-      const { code_challenge, code_verifier } = pkceChallenge();
-      expect(code_verifier).toHaveLength(86);
-      expect(code_challenge).not.toBe(code_verifier);
-      expect(Uint8ArrayToBase64Url.encode(sha256(code_verifier))).toBe(code_challenge);
+    it('code challenge should be a hash of the code verifier', () => {
+      const { codeChallenge, codeVerifier } = pkceChallenge();
+      expect(codeVerifier).toHaveLength(86);
+      expect(codeChallenge).not.toBe(codeVerifier);
+      expect(Uint8ArrayToBase64Url.encode(sha256(codeVerifier))).toBe(codeChallenge);
     });
   });
 });

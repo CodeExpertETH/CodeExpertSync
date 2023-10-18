@@ -26,8 +26,10 @@ export const sequenceArrayValidation: <A, E>(
 ) => TE.TaskEither<ReadonlyArray<E>, ReadonlyArray<A>> = traverseArrayValidation(identity);
 
 /**
- * This is intentionally typed to accept only {@link taskEither.TaskEither TaskEither<E, void>}, to make it harder to just discard the case where the inner {@link either.Either Either} is {@link either.Left Left}.
- * If you need to move into imperative territory and want to process the inner Option further, use {@link task.toPromise}.
+ * This intentionally accepts only {@link taskEither.TaskEither TaskEither<E, void>}, to make it harder to just discard
+ * the case where the {@link either.Either Either} is {@link either.Left Left}.
+ *
+ * If you need to move into imperative territory and want to process the Either further, use {@link task.toPromise}.
  */
 export const run: <E>(onLeft: (e: E) => void) => (fa: TE.TaskEither<E, void>) => void = (onLeft) =>
   flow(TE.matchW(onLeft, identity), (t) => void t());

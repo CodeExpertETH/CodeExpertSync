@@ -1,4 +1,3 @@
-import { $Unexpressable } from '@code-expert/type-utils';
 import equal from 'fast-deep-equal';
 import React, { useEffect } from 'react';
 import { pipe, task } from '@code-expert/prelude';
@@ -42,9 +41,7 @@ const reducer = (state: GlobalContext | undefined, action: Action & { _init?: Gl
 
 // -------------------------------------------------------------------------------------------------
 
-const context = React.createContext<[GlobalContext, React.Dispatch<Action>]>(
-  undefined as $Unexpressable /* Throw if no context is set */,
-);
+const context = React.createContext<[GlobalContext, React.Dispatch<Action>] | undefined>(undefined);
 
 export const GlobalContextProvider = React.memo(function GlobalContextProvider({
   children,

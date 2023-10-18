@@ -1,13 +1,12 @@
 import { Steps, Typography } from 'antd';
 import React from 'react';
-import { ClientId } from '@/domain/ClientId';
 import { SetupState, setupState } from '@/domain/Setup';
 import { VStack } from '@/ui/foundation/Layout';
 import { LoginStep } from '@/ui/pages/setup/LoginStep';
 import { ProjectDirStep } from '@/ui/pages/setup/ProjectDirStep';
 import { SyncStep } from '@/ui/pages/setup/SyncStep';
 
-export function Setup({ state, clientId }: { state: SetupState; clientId: ClientId }) {
+export function Setup({ state }: { state: SetupState }) {
   const step = setupState.fold(state, {
     notAuthorized: () => 0,
     noProjectDir: () => 1,
@@ -36,7 +35,7 @@ export function Setup({ state, clientId }: { state: SetupState; clientId: Client
         items={[
           {
             title: 'Log in',
-            description: step === 0 ? <LoginStep clientId={clientId} /> : null,
+            description: step === 0 ? <LoginStep /> : null,
           },
           {
             title: 'Project directory',
@@ -44,7 +43,7 @@ export function Setup({ state, clientId }: { state: SetupState; clientId: Client
           },
           {
             title: 'Synchronise tasks',
-            description: step === 2 ? <SyncStep clientId={clientId} /> : null,
+            description: step === 2 ? <SyncStep /> : null,
           },
         ]}
       />

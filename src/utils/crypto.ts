@@ -12,11 +12,11 @@ export function generateRandomId(len: number): Base64Url {
 }
 
 export function pkceChallenge() {
-  const code_verifier = generateRandomId(128);
-  const code_challenge = Uint8ArrayToBase64Url.encode(sha256(code_verifier));
+  const codeVerifier = generateRandomId(128);
+  const codeChallenge = Uint8ArrayToBase64Url.encode(sha256(codeVerifier));
 
   return {
-    code_challenge,
-    code_verifier,
+    codeChallenge,
+    codeVerifier,
   };
 }

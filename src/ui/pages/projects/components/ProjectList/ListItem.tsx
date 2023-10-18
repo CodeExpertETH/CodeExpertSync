@@ -1,6 +1,6 @@
 import { Alert, Button, Collapse, List, Typography } from 'antd';
-import React, { useEffect } from 'react';
-import { constNull, flow, io, remoteEither, task, taskEither } from '@code-expert/prelude';
+import React from 'react';
+import { constNull, flow, remoteEither, task, taskEither } from '@code-expert/prelude';
 import { RemoteFileInfo, invalidFileNameMessage, showPfsPath } from '@/domain/FileSystem';
 import { Project, ProjectId, projectADT } from '@/domain/Project';
 import { SyncException, syncExceptionADT } from '@/domain/SyncException';
@@ -10,6 +10,7 @@ import { useTimeContext } from '@/ui/contexts/TimeContext';
 import { Icon } from '@/ui/foundation/Icons';
 import { HStack, VStack } from '@/ui/foundation/Layout';
 import { styled } from '@/ui/foundation/Theme';
+import { useCallWhen } from '@/ui/hooks/useCallWhen';
 import { useTask } from '@/ui/hooks/useTask';
 import { fromProject } from '@/ui/pages/projects/components/ProjectList/model/SyncButtonState';
 import { ForceSyncDirection } from '@/ui/pages/projects/hooks/useProjectSync';
@@ -278,17 +279,3 @@ const viewFromSyncException: (
       ),
     }),
   );
-
-const useCallWhen = (condition: boolean) => {
-  const { current } = React.useRef({
-    f: undefined as io.IO<void> | undefined,
-    setF: (f?: io.IO<void>) => (current.f = f),
-  });
-  useEffect(() => {
-    if (condition) {
-      current.f?.();
-      current.setF();
-    }
-  }, [condition, current]);
-  return current.setF;
-};

@@ -3,16 +3,23 @@ import { Alert, Typography } from 'antd';
 import React from 'react';
 import { pipe, task } from '@code-expert/prelude';
 import { config } from '@/config';
-import { ClientId } from '@/domain/ClientId';
-import { getSetupState } from '@/domain/Setup';
+import { getSetupState, globalSetupState, setupState } from '@/domain/Setup';
 import { useGlobalContextWithActions } from '@/ui/GlobalContext';
 import { Icon } from '@/ui/foundation/Icons';
 import ProjectEventStatus from '@/ui/pages/projects/components/ProjectEventStatus';
 import { useProjectEventUpdate } from '@/ui/pages/projects/hooks/useProjectEventUpdate';
+import { invariant } from '@/utils/error';
 
-export const SyncStep = ({ clientId }: { clientId: ClientId }) => {
-  const [{ projectRepository, apiConnectionAtom }, dispatch] = useGlobalContextWithActions();
+export const SyncStep = () => {
+  const [{ projectRepository, apiConnectionAtom, setupState: state }, dispatch] =
+    useGlobalContextWithActions();
   const projects = useProperty(projectRepository.projects);
+
+  invariant(
+    globalSetupState.is.setup(state) && setupState.is.noProjectSync(state.value.state),
+    'GlobalSetupState must be Setup(NoProjectSync) when rendering SyncStep',
+  );
+  const clientId = state.value.state.value.clientId;
 
   const sseStatus = useProjectEventUpdate(
     projectRepository.fetchChanges,

@@ -1,11 +1,13 @@
 import { Alert, Button, Typography } from 'antd';
 import { api } from 'api';
 import React from 'react';
-import { pipe, task } from '@code-expert/prelude';
-import { authState, useAuthState } from '@/domain/AuthState';
-import { ClientId } from '@/domain/ClientId';
+import { flow, pipe, task, taskEither } from '@code-expert/prelude';
+import { getNewClientIdFromApi } from '@/application/registerApp';
+import { authState, getRedirectLink, useAuthState } from '@/domain/AuthState';
 import { getSetupState } from '@/domain/Setup';
+import { open } from '@/lib/tauri/shell';
 import { useGlobalContextWithActions } from '@/ui/GlobalContext';
+import { panic } from '@/utils/error';
 
 const AuthWarning = ({
   warning,
@@ -28,15 +30,22 @@ const AuthWarning = ({
     showIcon
   />
 );
-export const LoginStep = ({ clientId }: { clientId: ClientId }) => {
+
+const openInBrowser = flow(
+  open,
+  taskEither.getOrElse((e) => panic(`Failed to open Code Expert Login in browser: ${e.message}`)),
+);
+
+export const LoginStep = () => {
   const [{ projectRepository }, dispatch] = useGlobalContextWithActions();
 
-  const { state, startAuthorization, cancelAuthorization } = useAuthState(
-    clientId,
+  const { state, startAuthorization, cancelAuthorization } = useAuthState((clientId) =>
     pipe(
       api.settingWrite('login', 'done'),
+      task.chain(() => api.settingWrite('clientId', clientId)),
       task.chain(() => getSetupState(projectRepository)),
       task.map((state) => dispatch({ setupState: state })),
+      task.run,
     ),
   );
 
@@ -47,11 +56,14 @@ export const LoginStep = ({ clientId }: { clientId: ClientId }) => {
         access your projects.
       </Typography.Paragraph>
       {authState.fold(state, {
-        startingAuthorization: ({ redirectLink, code_verifier }) => (
+        startingAuthorization: ({ codeChallenge, codeVerifier }) => (
           <Button
             type="primary"
-            href={redirectLink}
-            onClick={() => startAuthorization(code_verifier)}
+            onClick={pipe(
+              getNewClientIdFromApi,
+              task.chainFirstIOK((clientId) => () => startAuthorization(clientId, codeVerifier)),
+              task.chainIOK((clientId) => openInBrowser(getRedirectLink(clientId, codeChallenge))),
+            )}
             target="_blank"
           >
             Authorize Code Expert Sync

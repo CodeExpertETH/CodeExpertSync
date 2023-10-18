@@ -94,18 +94,16 @@ export const mkProjectRepositoryTauri = (): task.Task<ProjectRepository> => {
     task.map(() => ({
       projects: property.newProperty<Array<Project>>(projectsDb.get, projectsDb.subscribe),
 
-      fetchChanges: () =>
-        pipe(
-          apiGetSigned({
-            path: 'project/metadata',
-            codec: iots.array(ProjectMetadata),
-          }),
-          taskEither.getOrElse((e) => panic(`Failed to fetch changes: ${apiErrorToMessage(e)}`)),
-          task.chainFirst(persistMetadata),
-          task.chain(projectsFromMetadata),
-          task.chainIOK(setProjects), // FIXME This overwrites existing sync state
-          task.run,
-        ),
+      fetchChanges: pipe(
+        apiGetSigned({
+          path: 'project/metadata',
+          codec: iots.array(ProjectMetadata),
+        }),
+        taskEither.getOrElse((e) => panic(`Failed to fetch changes: ${apiErrorToMessage(e)}`)),
+        task.chainFirst(persistMetadata),
+        task.chain(projectsFromMetadata),
+        task.chainIOK(setProjects), // FIXME This overwrites existing sync state
+      ),
 
       getProject,
 
