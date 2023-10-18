@@ -3,23 +3,23 @@ import { PfsPath, PfsPathFromStringC, eqPfsPath } from './PfsPath';
 import { ProjectDir, projectEntryToNativePath } from './ProjectDir';
 import { FileSystemStack } from './fileSystemStack';
 
-export interface FsDir {
+export interface PfsDir {
   type: 'dir';
   path: PfsPath;
 }
 
-export interface FsFile {
+export interface PfsFile {
   type: 'file';
   path: PfsPath;
 }
 
-type FsNode = FsDir | FsFile;
+export type PfsNode = PfsDir | PfsFile;
 
 // -------------------------------------------------------------------------------------------------
 // Type class instances
 // -------------------------------------------------------------------------------------------------
 
-export const eqFsNode: eq.Eq<FsNode> = eq.struct({
+export const eqPfsNode: eq.Eq<PfsNode> = eq.struct({
   type: string.Eq,
   path: eqPfsPath,
 });
@@ -28,8 +28,8 @@ export const eqFsNode: eq.Eq<FsNode> = eq.struct({
 // Codecs to convert between the API representation and the internal cxsync representation
 // -------------------------------------------------------------------------------------------------
 
-export const FsDirC = iots.strict({ type: iots.literal('dir'), path: PfsPathFromStringC });
-export const FsFileC = iots.strict({ type: iots.literal('file'), path: PfsPathFromStringC });
+export const PfsDirC = iots.strict({ type: iots.literal('dir'), path: PfsPathFromStringC });
+export const PfsFileC = iots.strict({ type: iots.literal('file'), path: PfsPathFromStringC });
 
 // -------------------------------------------------------------------------------------------------
 // Domain functions
@@ -41,7 +41,7 @@ export const FsFileC = iots.strict({ type: iots.literal('file'), path: PfsPathFr
  */
 export const deleteSingleFile =
   (stack: FileSystemStack, projectDir: ProjectDir) =>
-  (file: FsFile): task.Task<void> =>
+  (file: PfsFile): task.Task<void> =>
     pipe(
       projectEntryToNativePath(stack)(projectDir, file.path),
       task.chain(stack.removeFile),

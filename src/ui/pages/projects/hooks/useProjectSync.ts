@@ -20,11 +20,11 @@ import {
   tree,
 } from '@code-expert/prelude';
 import {
-  FsFile,
   LocalFileChange,
   LocalFileInfo,
   Path,
   PersistedFileInfo,
+  PfsFile,
   PfsPath,
   PfsPathFromStringC,
   ProjectDir,
@@ -107,7 +107,7 @@ const getProjectInfoLocal =
           taskEither.map(array.filter(isFile)),
           taskEither.chain(
             taskEither.traverseArray(
-              ({ path, type }): taskEither.TaskEither<SyncException, FsFile> =>
+              ({ path, type }): taskEither.TaskEither<SyncException, PfsFile> =>
                 pipe(
                   stack.stripAncestor(nativePath)(path),
                   taskEither.chainTaskK(stack.parsePath),

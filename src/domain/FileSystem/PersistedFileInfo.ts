@@ -1,14 +1,14 @@
 import { iots } from '@code-expert/prelude';
-import { FsFile, FsFileC } from './FsNode';
 import { HashInfo, HashInfoC, hashInfoFromFsFile } from './HashInfo';
 import { PfsInfo, PfsInfoC } from './PfsInfo';
+import { PfsFile, PfsFileC } from './PfsNode';
 
-export interface PersistedFileInfo extends FsFile, HashInfo, PfsInfo {}
+export interface PersistedFileInfo extends PfsFile, HashInfo, PfsInfo {}
 
 type StoredPersistedFileInfo = Omit<PersistedFileInfo, 'path'> & { path: string };
 
 export const PersistedFileInfoC: iots.Type<PersistedFileInfo, StoredPersistedFileInfo> =
-  iots.intersection([FsFileC, HashInfoC, PfsInfoC]);
+  iots.intersection([PfsFileC, HashInfoC, PfsInfoC]);
 
 // -------------------------------------------------------------------------------------------------
 

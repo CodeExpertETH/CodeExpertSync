@@ -1,5 +1,5 @@
 import { array, nonEmptyArray, option, pipe } from '@code-expert/prelude';
-import { PfsPath, eqFsNode } from '@/domain/FileSystem';
+import { PfsPath, eqPfsNode } from '@/domain/FileSystem';
 import { LocalNodeChange, RemoteNodeChange, remoteChangeType } from './Change';
 
 export interface Conflict {
@@ -14,13 +14,13 @@ export const getConflicts = (
 ): option.Option<NonEmptyArray<Conflict>> =>
   pipe(
     local,
-    array.intersection<LocalNodeChange>(eqFsNode)(remote),
+    array.intersection<LocalNodeChange>(eqPfsNode)(remote),
     array.map((changeLocal) => ({
       path: changeLocal.path,
       changeLocal: changeLocal.change,
       changeRemote: pipe(
         remote,
-        array.findFirst((changeRemote) => eqFsNode.equals(changeLocal, changeRemote)),
+        array.findFirst((changeRemote) => eqPfsNode.equals(changeLocal, changeRemote)),
         option.map(({ change }) => change),
         option.getOrElseW(() => remoteChangeType.noChange()),
       ),
