@@ -86,3 +86,12 @@ export const getPfsParent: (path: PfsPath) => option.Option<PfsPath> = flow(
 export const pfsPathFromRelativePath = isoPfsPath.wrap;
 
 export const pfsPathToRelativePath = isoPfsPath.unwrap;
+
+/**
+ * Return a PfsPath's basename part, similar to Node's path.basename.
+ */
+export const pfsBasename: (path: PfsPath) => string = flow(
+  isoPfsPath.unwrap,
+  array.last,
+  option.getOrElse(() => ''),
+);

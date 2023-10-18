@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { either, iots, option, pipe } from '@code-expert/prelude';
-import { PfsPath, PfsPathFromStringC, getPfsParent, showPfsPath } from './PfsPath';
+import { PfsPath, PfsPathFromStringC, getPfsParent, pfsBasename, showPfsPath } from './PfsPath';
 
 const mkPfsPath = (s: string): PfsPath => {
   const path = PfsPathFromStringC.decode(s);
@@ -30,5 +30,25 @@ describe('PfsPath', () => {
       const parentPathO = pipe(getPfsParent(path), option.map(showPfsPath.show));
       expect(parentPathO).toStrictEqual(option.some('./foo/bar'));
     });
+  });
+
+  describe('basename', () => {
+    it('should return an empty basename for an empty path', () => {
+      expect(pfsBasename(parse('.'))).toBe('');
+    });
+
+    it('should return the filename portion of the path', () => {
+      expect(pfsBasename(parse('./test.txt'))).toBe('test.txt');
+      expect(pfsBasename(parse('./folder/test.txt'))).toBe('test.txt');
+      expect(pfsBasename(parse('./a/b/c'))).toBe('c');
+    });
+
+    const parse = (path: string): PfsPath =>
+      pipe(
+        PfsPathFromStringC.decode(path),
+        either.getOrElseW((errs) => {
+          throw new Error(`Invalid path: ${iots.formatValidationErrors(errs).join('; ')}`);
+        }),
+      );
   });
 });
