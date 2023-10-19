@@ -1,5 +1,5 @@
 import { iots, pipe, task } from '@code-expert/prelude';
-import { FsFile } from './FsNode';
+import { PfsFile } from './PfsNode';
 import { ProjectDir, projectEntryToNativePath } from './ProjectDir';
 import { FileSystemStack } from './fileSystemStack';
 
@@ -12,7 +12,7 @@ export interface HashInfo {
 export const hashInfoFromFsFile =
   (stack: FileSystemStack) =>
   (projectDir: ProjectDir) =>
-  <A extends FsFile>(file: A): task.Task<A & HashInfo> =>
+  <A extends PfsFile>(file: A): task.Task<A & HashInfo> =>
     pipe(
       projectEntryToNativePath(stack)(projectDir, file.path),
       task.chain(stack.getFileHash),

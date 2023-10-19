@@ -1,6 +1,6 @@
 export * from './Change';
 export * from './Conflict';
-export * from './FsNode';
+export * from './PfsNode';
 export * from './LocalFileInfo';
 export * from './NativePath';
 export * from './Path';

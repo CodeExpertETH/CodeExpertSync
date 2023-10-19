@@ -1,4 +1,4 @@
-import { FsFile } from './FsNode';
 import { HashInfo } from './HashInfo';
+import { PfsFile } from './PfsNode';
 
-export interface LocalFileInfo extends FsFile, HashInfo {}
+export interface LocalFileInfo extends PfsFile, HashInfo {}

@@ -13,18 +13,18 @@ import {
   not,
   option,
   pipe,
-  string,
   task,
   taskEither,
   taskOption,
   tree,
 } from '@code-expert/prelude';
 import {
-  FsFile,
   LocalFileChange,
   LocalFileInfo,
+  NativePath,
   Path,
   PersistedFileInfo,
+  PfsNode,
   PfsPath,
   PfsPathFromStringC,
   ProjectDir,
@@ -41,10 +41,10 @@ import {
   getPfsParent,
   getRemoteChanges,
   hashInfoFromFsFile,
+  isExcludedFromPfs,
   isValidDirName,
   isValidFileName,
   isWritable,
-  isoNativePath,
   localChangeType,
   pfsPathFromRelativePath,
   pfsPathToRelativePath,
@@ -73,10 +73,55 @@ import { TimeContext, useTimeContext } from '@/ui/contexts/TimeContext';
 import { apiGetSigned, apiPostSigned, requestBody } from '@/utils/api';
 import { invariant, panic } from '@/utils/error';
 
-const isVisibleFsNode =
+const readFsTree =
   (stack: FileSystemStack) =>
-  (node: FsNode): task.Task<boolean> =>
-    pipe(stack.basename(node.path), task.map(option.exists(not(string.startsWith('.')))));
+  (nativePath: NativePath): taskEither.TaskEither<SyncException, tree.Tree<FsNode>> =>
+    pipe(
+      stack.readFsTree(nativePath),
+      taskEither.mapLeft((e) =>
+        syncExceptionADT.wide.fileSystemCorrupted({
+          path: showNativePath.show(nativePath),
+          reason: `Could not read FS tree (${e.message})`,
+        }),
+      ),
+    );
+
+const parsePath =
+  (stack: FileSystemStack) =>
+  (nativePath: NativePath) =>
+  ({ type, path }: FsNode): taskEither.TaskEither<SyncException, PfsNode> =>
+    pipe(
+      stack.stripAncestor(nativePath)(path),
+      taskEither.chainTaskK(stack.parsePath),
+      taskEither.mapLeft((e) =>
+        syncExceptionADT.wide.fileSystemCorrupted({
+          path: showNativePath.show(path),
+          reason: e.message,
+        }),
+      ),
+      taskEither.chainOptionK(() =>
+        syncExceptionADT.wide.fileSystemCorrupted({
+          path: showNativePath.show(path),
+          reason: 'Failed to process project file',
+        }),
+      )(identity),
+      taskEither.map((relativePath) => ({ type, path: pfsPathFromRelativePath(relativePath) })),
+    );
+
+const excludeSystemNodes: (
+  nativePath: NativePath,
+) => (tree: tree.Tree<PfsNode>) => taskEither.TaskEither<SyncException, tree.Tree<PfsNode>> = (
+  nativePath,
+) =>
+  flow(
+    tree.filter(not(isExcludedFromPfs)),
+    taskEither.fromOption(() =>
+      syncExceptionADT.wide.fileSystemCorrupted({
+        path: showNativePath.show(nativePath),
+        reason: 'Failed to determine whether the given paths are excluded from PFS',
+      }),
+    ),
+  );
 
 /**
  * Possible Exceptions:
@@ -95,38 +140,11 @@ const getProjectInfoLocal =
       projectDirToNativePath(stack)(projectDir),
       task.chain((nativePath) =>
         pipe(
-          stack.readFsTree(nativePath),
-          taskEither.mapLeft((e) =>
-            syncExceptionADT.wide.fileSystemCorrupted({
-              path: isoNativePath.unwrap(nativePath),
-              reason: `Could not read FS tree (${e.message})`,
-            }),
-          ),
+          readFsTree(stack)(nativePath),
+          taskEither.chain(tree.traverse(taskEither.ApplicativePar)(parsePath(stack)(nativePath))),
+          taskEither.chain(excludeSystemNodes(nativePath)),
           taskEither.map(tree.toArray),
-          taskEither.chainTaskK(array.filterE(task.ApplicativePar)(isVisibleFsNode(stack))),
           taskEither.map(array.filter(isFile)),
-          taskEither.chain(
-            taskEither.traverseArray(
-              ({ path, type }): taskEither.TaskEither<SyncException, FsFile> =>
-                pipe(
-                  stack.stripAncestor(nativePath)(path),
-                  taskEither.chainTaskK(stack.parsePath),
-                  taskEither.mapLeft((e) =>
-                    syncExceptionADT.wide.fileSystemCorrupted({
-                      path: showNativePath.show(path),
-                      reason: e.message,
-                    }),
-                  ),
-                  taskEither.chainOptionK(() =>
-                    syncExceptionADT.wide.fileSystemCorrupted({
-                      path: showNativePath.show(path),
-                      reason: 'Failed to process project file',
-                    }),
-                  )(identity),
-                  taskEither.map(flow(pfsPathFromRelativePath, (path): FsFile => ({ path, type }))),
-                ),
-            ),
-          ),
           taskEither.chainTaskK(task.traverseArray(hashInfoFromFsFile(stack)(projectDir))),
           taskEither.map(array.unsafeFromReadonly),
         ),

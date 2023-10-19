@@ -1,7 +1,7 @@
 import { array, monoid, nonEmptyArray, option, pipe, tagged } from '@code-expert/prelude';
 import { isFile } from '@/lib/tauri/fs';
-import { FsDir, FsFile, eqFsNode } from './FsNode';
 import { LocalFileInfo } from './LocalFileInfo';
+import { PfsDir, PfsFile, eqPfsNode } from './PfsNode';
 import { eqPfsPath } from './PfsPath';
 import { RemoteFileInfo, RemoteNodeInfo } from './RemoteNodeInfo';
 
@@ -21,21 +21,21 @@ export type LocalChangeType =
 
 export const localChangeType = tagged.build<LocalChangeType>();
 
-export interface RemoteDirChange extends FsDir {
+export interface RemoteDirChange extends PfsDir {
   change: RemoteChangeType;
 }
 
-export interface RemoteFileChange extends FsFile {
+export interface RemoteFileChange extends PfsFile {
   change: RemoteChangeType;
 }
 
 export type RemoteNodeChange = RemoteDirChange | RemoteFileChange;
 
-export interface LocalDirChange extends FsDir {
+export interface LocalDirChange extends PfsDir {
   change: LocalChangeType;
 }
 
-export interface LocalFileChange extends FsFile {
+export interface LocalFileChange extends PfsFile {
   change: LocalChangeType;
 }
 
@@ -50,12 +50,12 @@ export const getRemoteChanges = (
   const latestFiles = pipe(latest, array.filter(isFile));
   const removed: Array<RemoteFileChange> = pipe(
     previous,
-    array.difference<RemoteFileInfo>(eqFsNode)(latestFiles),
+    array.difference<RemoteFileInfo>(eqPfsNode)(latestFiles),
     array.map(({ type, path }) => ({ type, path, change: remoteChangeType.removed() })),
   );
   const added: Array<RemoteFileChange> = pipe(
     latestFiles,
-    array.difference<RemoteFileInfo>(eqFsNode)(previous),
+    array.difference<RemoteFileInfo>(eqPfsNode)(previous),
     array.map(({ type, path, version }) => ({
       type,
       path,
@@ -92,12 +92,12 @@ export const getLocalChanges = (
   const latestFiles = pipe(latest, array.filter(isFile));
   const removed: Array<LocalFileChange> = pipe(
     previousFiles,
-    array.difference<LocalFileInfo>(eqFsNode)(latestFiles),
+    array.difference<LocalFileInfo>(eqPfsNode)(latestFiles),
     array.map(({ type, path }) => ({ type, path, change: localChangeType.removed() })),
   );
   const added: Array<LocalFileChange> = pipe(
     latestFiles,
-    array.difference<LocalFileInfo>(eqFsNode)(previousFiles),
+    array.difference<LocalFileInfo>(eqPfsNode)(previousFiles),
     array.map(({ type, path }) => ({ type, path, change: localChangeType.added() })),
   );
   const updated: Array<LocalFileChange> = pipe(
@@ -106,7 +106,7 @@ export const getLocalChanges = (
     array.bind('latest', ({ previous }) =>
       pipe(
         latestFiles,
-        array.findFirst((latest) => eqFsNode.equals(previous, latest)),
+        array.findFirst((latest) => eqPfsNode.equals(previous, latest)),
         option.fold(() => [], array.of),
       ),
     ),

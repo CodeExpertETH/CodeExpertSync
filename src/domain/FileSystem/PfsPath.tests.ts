@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { assert, describe, expect, it } from 'vitest';
 import { either, iots, option, pipe } from '@code-expert/prelude';
-import { PfsPath, PfsPathFromStringC, getPfsParent, showPfsPath } from './PfsPath';
+import { PfsPath, PfsPathFromStringC, getPfsParent, pfsBasename, showPfsPath } from './PfsPath';
 
 const mkPfsPath = (s: string): PfsPath => {
   const path = PfsPathFromStringC.decode(s);
@@ -30,5 +30,25 @@ describe('PfsPath', () => {
       const parentPathO = pipe(getPfsParent(path), option.map(showPfsPath.show));
       expect(parentPathO).toStrictEqual(option.some('./foo/bar'));
     });
+  });
+
+  describe('basename', () => {
+    it('should return an empty basename for an empty path', () => {
+      assert.deepStrictEqual(pfsBasename(parse('.')), option.none);
+    });
+
+    it('should return the filename portion of the path', () => {
+      assert.deepStrictEqual(pfsBasename(parse('./test.txt')), option.some('test.txt'));
+      assert.deepStrictEqual(pfsBasename(parse('./folder/test.txt')), option.some('test.txt'));
+      assert.deepStrictEqual(pfsBasename(parse('./a/b/c')), option.some('c'));
+    });
+
+    const parse = (path: string): PfsPath =>
+      pipe(
+        PfsPathFromStringC.decode(path),
+        either.getOrElseW((errs) => {
+          throw new Error(`Invalid path: ${iots.formatValidationErrors(errs).join('; ')}`);
+        }),
+      );
   });
 });
