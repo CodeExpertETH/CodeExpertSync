@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { assert, describe, expect, it } from 'vitest';
 import { either, iots, option, pipe } from '@code-expert/prelude';
 import { PfsPath, PfsPathFromStringC, getPfsParent, pfsBasename, showPfsPath } from './PfsPath';
 
@@ -34,13 +34,13 @@ describe('PfsPath', () => {
 
   describe('basename', () => {
     it('should return an empty basename for an empty path', () => {
-      expect(pfsBasename(parse('.'))).toBe('');
+      assert.deepStrictEqual(pfsBasename(parse('.')), option.none);
     });
 
     it('should return the filename portion of the path', () => {
-      expect(pfsBasename(parse('./test.txt'))).toBe('test.txt');
-      expect(pfsBasename(parse('./folder/test.txt'))).toBe('test.txt');
-      expect(pfsBasename(parse('./a/b/c'))).toBe('c');
+      assert.deepStrictEqual(pfsBasename(parse('./test.txt')), option.some('test.txt'));
+      assert.deepStrictEqual(pfsBasename(parse('./folder/test.txt')), option.some('test.txt'));
+      assert.deepStrictEqual(pfsBasename(parse('./a/b/c')), option.some('c'));
     });
 
     const parse = (path: string): PfsPath =>

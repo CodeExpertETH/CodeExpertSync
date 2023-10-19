@@ -1,4 +1,4 @@
-import { constVoid, eq, iots, or, pipe, string, task } from '@code-expert/prelude';
+import {constVoid, eq, iots, option, or, pipe, string, task} from '@code-expert/prelude';
 import { PfsPath, PfsPathFromStringC, eqPfsPath, pfsBasename } from './PfsPath';
 import { ProjectDir, projectEntryToNativePath } from './ProjectDir';
 import { FileSystemStack } from './fileSystemStack';
@@ -52,4 +52,4 @@ export const deleteSingleFile =
  * We exclude known system directories and files that should never be uploaded into PFS.
  */
 export const isExcludedFromPfs = ({ path }: PfsNode): boolean =>
-  pipe(path, pfsBasename, or(string.endsWith('~'))(string.startsWith('.')));
+  pipe(path, pfsBasename, option.exists(or(string.endsWith('~'))(string.startsWith('.'))));

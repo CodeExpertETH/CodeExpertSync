@@ -89,9 +89,9 @@ export const pfsPathToRelativePath = isoPfsPath.unwrap;
 
 /**
  * Return a PfsPath's basename part, similar to Node's path.basename.
+ * Returns None if the path is empty.
  */
-export const pfsBasename: (path: PfsPath) => string = flow(
+export const pfsBasename: (path: PfsPath) => option.Option<string> = flow(
   isoPfsPath.unwrap,
   array.last,
-  option.getOrElse(() => ''),
 );
