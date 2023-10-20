@@ -609,6 +609,7 @@ export const useProjectSync = () => {
             ),
           ),
         ),
+        // fixme: it's an error for projectInfoLocal to be None, but projectInfoPrevious to be Some; except force is 'pull'
         taskEither.bind('actions', ({ projectInfoPrevious, projectInfoLocal, projectInfoRemote }) =>
           getSyncActions(stack)(
             force,

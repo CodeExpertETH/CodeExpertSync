@@ -2,8 +2,9 @@ import { Meta, StoryObj } from '@storybook/react';
 import { List } from 'antd';
 import React from 'react';
 import { either, flow, taskEither } from '@code-expert/prelude';
+import { isoNativePath } from '@/domain/FileSystem';
+import { mkOpenProjectException } from '@/domain/FileSystem/OpenProjectException';
 import { syncExceptionADT } from '@/domain/SyncException';
-import { fromTauriError } from '@/lib/tauri/TauriException';
 import {
   localProject,
   openProject,
@@ -40,7 +41,12 @@ export const FailOpen = {
     onOpen: flow(
       openProject,
       taskEither.chainEitherK(() =>
-        either.left(fromTauriError('The project does not exist where it was expected.')),
+        either.left(
+          mkOpenProjectException(
+            'The project does not exist where it was expected.',
+            isoNativePath.wrap('file:///foo/bar'),
+          ),
+        ),
       ),
     ),
   },
@@ -60,7 +66,12 @@ export const FailBoth = {
     onOpen: flow(
       openProject,
       taskEither.chainEitherK(() =>
-        either.left(fromTauriError('The project does not exist where it was expected.')),
+        either.left(
+          mkOpenProjectException(
+            'The project does not exist where it was expected.',
+            isoNativePath.wrap('file:///foo/bar'),
+          ),
+        ),
       ),
     ),
     onSync: flow(

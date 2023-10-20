@@ -1,10 +1,15 @@
 import { Alert, Button, Collapse, List, Typography } from 'antd';
 import React from 'react';
 import { constNull, flow, remoteEither, task, taskEither } from '@code-expert/prelude';
-import { RemoteFileInfo, invalidFileNameMessage, showPfsPath } from '@/domain/FileSystem';
+import {
+  RemoteFileInfo,
+  invalidFileNameMessage,
+  isoNativePath,
+  showPfsPath,
+} from '@/domain/FileSystem';
+import { OpenProjectException } from '@/domain/FileSystem/OpenProjectException';
 import { LocalProject, Project, ProjectId, projectADT, projectPrism } from '@/domain/Project';
 import { SyncException, syncExceptionADT } from '@/domain/SyncException';
-import { TauriException } from '@/lib/tauri/TauriException';
 import { ActionMenu } from '@/ui/components/ActionMenu';
 import { GuardRemoteEither } from '@/ui/components/GuardRemoteData';
 import { useTimeContext } from '@/ui/contexts/TimeContext';
@@ -46,7 +51,7 @@ const StyledButton = styled(Button, ({ tokens }) => ({
 
 export interface ListItemProps {
   project: Project;
-  onOpen: (project: LocalProject) => taskEither.TaskEither<TauriException, void>;
+  onOpen: (project: LocalProject) => taskEither.TaskEither<OpenProjectException, void>;
   onSync: (
     project: Project,
     force?: ForceSyncDirection,
@@ -85,9 +90,13 @@ export const ListItem = ({ project, onOpen, onSync, onRemove, onRevertFile }: Li
     revertFile: (file) => runRevert(project.value.projectId, file),
   };
 
+  const openEnv: ViewFromOpenProjectExceptionEnv = {
+    resetProject: () => runSync(project, 'pull'),
+  };
+
   // All states combined. Order matters: the first failure gets precedence.
   const actionStates = remoteEither.sequenceT(
-    viewFromTauriException(openStateRD),
+    viewFromOpenProjectException(openEnv)(openStateRD),
     viewFromSyncException(syncEnv)(revertFileStateRD),
     viewFromSyncException(syncEnv)(syncStateRD),
   );
@@ -152,11 +161,32 @@ export const ListItem = ({ project, onOpen, onSync, onRemove, onRevertFile }: Li
 
 // -------------------------------------------------------------------------------------------------
 
-const viewFromTauriException: <A>(
-  e: remoteEither.RemoteEither<TauriException, A>,
-) => remoteEither.RemoteEither<React.ReactElement, A> = remoteEither.mapLeft((x) => (
-  <>{x.message}</>
-));
+interface ViewFromOpenProjectExceptionEnv {
+  resetProject: () => void;
+}
+
+const viewFromOpenProjectException: (
+  env: ViewFromOpenProjectExceptionEnv,
+) => <A>(
+  e: remoteEither.RemoteEither<OpenProjectException, A>,
+) => remoteEither.RemoteEither<React.ReactElement, A> = (env) =>
+  remoteEither.mapLeft((x) => (
+    <>
+      <Typography.Paragraph>
+        Could not open the project for the following reason:
+        <pre>{x.reason}</pre>
+        Please make sure the project files are available at the following path and try again:
+        <HStack align="baseline" gap="xs">
+          <Icon name="folder-regular" />
+          <strong>{isoNativePath.unwrap(x.projectBasePathAbsolute)}</strong>
+        </HStack>
+        Or reset the project from remote.
+      </Typography.Paragraph>
+      <HStack gap="xs" justify="center">
+        <Button onClick={() => env.resetProject()}>Reset from remote</Button>
+      </HStack>
+    </>
+  ));
 
 interface ViewFromSyncExceptionEnv {
   forcePush: () => void;

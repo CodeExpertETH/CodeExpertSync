@@ -1,10 +1,10 @@
 import { constVoid, iots, task, taskEither } from '@code-expert/prelude';
 import { PfsFile, UNSAFE_ProjectBasePathFromPath } from '@/domain/FileSystem';
+import { OpenProjectException } from '@/domain/FileSystem/OpenProjectException';
 import { LocalProject, Project, ProjectId, projectADT } from '@/domain/Project';
 import { ProjectMetadata } from '@/domain/ProjectMetadata';
 import { SyncException } from '@/domain/SyncException';
 import { changesADT, syncStateADT } from '@/domain/SyncState';
-import { TauriException } from '@/lib/tauri/TauriException';
 
 const metadata: ProjectMetadata = {
   projectId: 'p1' as ProjectId,
@@ -35,7 +35,7 @@ const DELAY = 1250;
 
 export const openProject: (
   project: LocalProject,
-) => taskEither.TaskEither<TauriException, void> = () =>
+) => taskEither.TaskEither<OpenProjectException, void> = () =>
   task.delay(DELAY)(taskEither.fromIO(constVoid));
 
 export const syncProject: (project: Project) => taskEither.TaskEither<SyncException, void> = () =>

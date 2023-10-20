@@ -2,9 +2,9 @@ import { List as AntList, Card, Typography } from 'antd';
 import React from 'react';
 import { array, pipe, task, taskEither } from '@code-expert/prelude';
 import { RemoteFileInfo } from '@/domain/FileSystem';
+import { OpenProjectException } from '@/domain/FileSystem/OpenProjectException';
 import { LocalProject, Project, ProjectId, ordProjectTask } from '@/domain/Project';
 import { SyncException } from '@/domain/SyncException';
-import { TauriException } from '@/lib/tauri/TauriException';
 import { VStack } from '@/ui/foundation/Layout';
 import { styled } from '@/ui/foundation/Theme';
 import { ForceSyncDirection } from '@/ui/pages/projects/hooks/useProjectSync';
@@ -20,7 +20,7 @@ const StyledCard = styled(Card, ({ tokens }) => ({
 export interface ListProps {
   exerciseName: string;
   projects: Array<Project>;
-  onOpen: (project: LocalProject) => taskEither.TaskEither<TauriException, void>;
+  onOpen: (project: LocalProject) => taskEither.TaskEither<OpenProjectException, void>;
   onSync: (
     project: Project,
     force?: ForceSyncDirection,
