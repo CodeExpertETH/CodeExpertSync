@@ -14,7 +14,6 @@ import { useCallWhen } from '@/ui/hooks/useCallWhen';
 import { useTask } from '@/ui/hooks/useTask';
 import { fromProject } from '@/ui/pages/projects/components/ProjectList/model/SyncButtonState';
 import { ForceSyncDirection } from '@/ui/pages/projects/hooks/useProjectSync';
-import { routes, useRoute } from '@/ui/routes';
 import { SyncButton } from './SyncButton';
 
 const StyledListItem = styled(List.Item, () => ({
@@ -54,7 +53,6 @@ export interface ListItemProps {
 
 export const ListItem = ({ project, onOpen, onSync, onRemove, onRevertFile }: ListItemProps) => {
   const { now } = useTimeContext();
-  const { navigateTo } = useRoute();
 
   const [openStateRD, runOpen] = useTask(onOpen);
   const [removalStateRD, runRemove] = useTask(onRemove);
@@ -78,7 +76,6 @@ export const ListItem = ({ project, onOpen, onSync, onRemove, onRevertFile }: Li
   }, [callWhenSynced, project, runOpen, runSync]);
 
   const syncEnv: ViewFromSyncExceptionEnv = {
-    choseProjectDir: () => navigateTo(routes.settings()),
     forcePush: () => runSync(project.value.projectId, 'push'),
     forcePull: () => runSync(project.value.projectId, 'pull'),
     revertFile: (file) => runRevert(project.value.projectId, file),
@@ -160,7 +157,6 @@ const viewFromStringException: <A>(
 ) => remoteEither.RemoteEither<React.ReactElement, A> = remoteEither.mapLeft((x) => <>{x}</>);
 
 interface ViewFromSyncExceptionEnv {
-  choseProjectDir: () => void;
   forcePush: () => void;
   forcePull: () => void;
   revertFile: (file: RemoteFileInfo) => void;
@@ -170,12 +166,7 @@ const viewFromSyncException: (
   env: ViewFromSyncExceptionEnv,
 ) => <A>(
   e: remoteEither.RemoteEither<SyncException, A>,
-) => remoteEither.RemoteEither<React.ReactElement, A> = ({
-  choseProjectDir,
-  forcePush,
-  forcePull,
-  revertFile,
-}) =>
+) => remoteEither.RemoteEither<React.ReactElement, A> = ({ forcePush, forcePull, revertFile }) =>
   remoteEither.mapLeft(
     syncExceptionADT.fold({
       conflictingChanges: () => (
@@ -248,16 +239,6 @@ const viewFromSyncException: (
           <Typography.Paragraph>
             Try removing the project directory from your computer or contact support.
           </Typography.Paragraph>
-        </>
-      ),
-      projectDirMissing: () => (
-        <>
-          <Typography.Paragraph>
-            Could not store the project data, please choose a storage location first.
-          </Typography.Paragraph>
-          <Button type="primary" onClick={choseProjectDir}>
-            Choose project directory …
-          </Button>
         </>
       ),
       networkError: ({ reason }) => (

@@ -104,8 +104,8 @@ export function Projects({ course, clientId }: { course: CourseItem; clientId: C
                   taskEither.fromTaskOption(() =>
                     panic('Could not revert file in non-existent project'),
                   ),
-                  taskEither.chain(getProjectDir),
-                  taskEither.chain((projectDir) =>
+                  taskEither.chainTaskK(getProjectDir),
+                  taskEither.chainW((projectDir) =>
                     downloadFile(stack)({ projectId, file, projectDir }),
                   ),
                 )

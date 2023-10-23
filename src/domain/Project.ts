@@ -1,5 +1,5 @@
 import { api } from 'api';
-import { iots, number, ord, pipe, tagged, taskEither } from '@code-expert/prelude';
+import { iots, number, ord, pipe, tagged, task, taskOption } from '@code-expert/prelude';
 import {
   NativePathFromStringC,
   ProjectBasePath,
@@ -8,7 +8,7 @@ import {
 } from '@/domain/FileSystem';
 import { ProjectFiles } from '@/domain/ProjectFiles';
 import { ProjectMetadata } from '@/domain/ProjectMetadata';
-import { SyncException, syncExceptionADT } from '@/domain/SyncException';
+import { panic } from '@/utils/error';
 import { mkEntityIdCodec } from '@/utils/identity';
 
 export { projectDirToNativePath } from '@/domain/FileSystem';
@@ -39,14 +39,14 @@ export const getProjectBasePath: (project: Project) => ProjectBasePath = project
   local: ({ basePath }) => basePath,
 });
 
-export const getProjectDir = (project: Project): taskEither.TaskEither<SyncException, ProjectDir> =>
+export const getProjectDir = (project: Project): task.Task<ProjectDir> =>
   pipe(
-    taskEither.Do,
-    taskEither.bind('rootDir', () =>
+    task.Do,
+    task.let('base', () => getProjectBasePath(project)),
+    task.bind('rootDir', () =>
       pipe(
-        api.settingRead('projectDir', NativePathFromStringC),
-        taskEither.fromTaskOption(() => syncExceptionADT.wide.projectDirMissing()),
+        api.settingRead('projectDir', NativePathFromStringC), // FIXME: this is called 'rootDir' now
+        taskOption.getOrElse(() => panic('Root Directory is not set')),
       ),
     ),
-    taskEither.let('base', () => getProjectBasePath(project)),
   );
