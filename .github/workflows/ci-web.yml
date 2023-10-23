@@ -10,7 +10,7 @@ on:
       - main
 
 concurrency:
-  group: ci-${{ github.event.pull_request.number || github.ref }}
+  group: ci-web-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 env:
