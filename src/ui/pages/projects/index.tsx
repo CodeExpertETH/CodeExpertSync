@@ -76,7 +76,7 @@ export function Projects({ course, clientId }: { course: CourseItem; clientId: C
                     () =>
                       pipe(
                         projectRepository.getProject(projectId),
-                        taskEither.fromTaskOption(() => {
+                        taskEither.fromOption(() => {
                           panic('Project to sync not found');
                         }),
                         taskEither.chainFirst((project) => syncProject(project, { force })),
@@ -101,7 +101,7 @@ export function Projects({ course, clientId }: { course: CourseItem; clientId: C
               onRevertFile={(projectId, file) =>
                 pipe(
                   projectRepository.getProject(projectId),
-                  taskEither.fromTaskOption(() =>
+                  taskEither.fromOption(() =>
                     panic('Could not revert file in non-existent project'),
                   ),
                   taskEither.chainTaskK(getProjectDir),

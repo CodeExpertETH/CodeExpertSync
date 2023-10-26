@@ -67,12 +67,10 @@ export const mkProjectRepositoryTauri = (): task.Task<ProjectRepository> => {
     task.chain(projectsFromMetadata),
   );
 
-  const getProject = (projectId: ProjectId): taskOption.TaskOption<Project> =>
-    task.fromIO(() =>
-      pipe(
-        projectsDb.get(),
-        array.findFirst((x) => x.value.projectId === projectId),
-      ),
+  const getProject = (projectId: ProjectId): option.Option<Project> =>
+    pipe(
+      projectsDb.get(),
+      array.findFirst((x) => x.value.projectId === projectId),
     );
 
   const getProjectDir = (projectId: ProjectId): taskOption.TaskOption<NativePath> =>
@@ -81,8 +79,8 @@ export const mkProjectRepositoryTauri = (): task.Task<ProjectRepository> => {
         rootDir: api.settingRead('projectDir', NativePathFromStringC),
         base: pipe(
           getProject(projectId),
-          taskOption.chainOptionK(projectPrism.local.getOption),
-          taskOption.map((p) => p.value.basePath),
+          option.chain(projectPrism.local.getOption),
+          option.traverse(task.ApplicativePar)((p) => task.of(p.value.basePath)),
         ),
       }),
       taskOption.chainTaskK(projectDirToNativePath(stack)),

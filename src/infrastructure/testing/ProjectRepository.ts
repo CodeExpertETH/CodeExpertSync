@@ -9,11 +9,9 @@ export const mkProjectRepositoryTesting = (initial: Array<Project>): ProjectRepo
     projects: property.newProperty<Array<Project>>(projectsDb.get, projectsDb.subscribe),
     fetchChanges: constVoid,
     getProject: (projectId) =>
-      task.fromIO(() =>
-        pipe(
-          projectsDb.get(),
-          array.findFirst((x) => x.value.projectId === projectId),
-        ),
+      pipe(
+        projectsDb.get(),
+        array.findFirst((x) => x.value.projectId === projectId),
       ),
     getProjectDir: () => {
       throw new Error('Not implemented');
