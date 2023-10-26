@@ -14,9 +14,16 @@ import {
   taskEither,
   taskOption,
 } from '@code-expert/prelude';
-import { NativePath, NativePathFromStringC, projectDirToNativePath } from '@/domain/FileSystem';
+import { NativePath, projectDirToNativePath } from '@/domain/FileSystem';
 import { FileSystemStack, fileSystemStack } from '@/domain/FileSystem/fileSystemStack';
-import { Project, ProjectId, projectADT, projectPrism } from '@/domain/Project';
+import {
+  LocalProject,
+  Project,
+  ProjectId,
+  getProjectDir,
+  projectADT,
+  projectPrism,
+} from '@/domain/Project';
 import { ProjectFiles } from '@/domain/ProjectFiles';
 import { ProjectMetadata } from '@/domain/ProjectMetadata';
 import { ProjectRepository } from '@/domain/ProjectRepository';
@@ -67,24 +74,10 @@ export const mkProjectRepositoryTauri = (): task.Task<ProjectRepository> => {
     task.chain(projectsFromMetadata),
   );
 
-  const getProject = (projectId: ProjectId): option.Option<Project> =>
-    pipe(
-      projectsDb.get(),
-      array.findFirst((x) => x.value.projectId === projectId),
-    );
-
-  const getProjectDir = (projectId: ProjectId): taskOption.TaskOption<NativePath> =>
-    pipe(
-      taskOption.sequenceS({
-        rootDir: api.settingRead('projectDir', NativePathFromStringC),
-        base: pipe(
-          getProject(projectId),
-          option.chain(projectPrism.local.getOption),
-          option.traverse(task.ApplicativePar)((p) => task.of(p.value.basePath)),
-        ),
-      }),
-      taskOption.chainTaskK(projectDirToNativePath(stack)),
-    );
+  const getProjectDirPath: (project: LocalProject) => task.Task<NativePath> = flow(
+    getProjectDir,
+    task.chain(projectDirToNativePath(stack)),
+  );
 
   return pipe(
     readProjects,
@@ -103,18 +96,29 @@ export const mkProjectRepositoryTauri = (): task.Task<ProjectRepository> => {
         task.chainIOK(setProjects), // FIXME This overwrites existing sync state
       ),
 
-      getProject,
+      getProject: (projectId) =>
+        pipe(
+          projectsDb.get(),
+          array.findFirst((x) => x.value.projectId === projectId),
+        ),
 
-      getProjectDir,
+      getProjectDirPath,
 
-      removeProject: (projectId) => {
+      removeProject: (project) => {
+        const { projectId } = project.value;
+
         const removeProjectDir: taskEither.TaskEither<Array<string>, void> = pipe(
-          getProjectDir(projectId),
-          taskEither.fromTaskOption(() => ['Could not get project dir']),
-          taskEither.chain(
+          projectPrism.local.getOption(project),
+          option.fold(
+            constant(taskEither.of(undefined)),
             flow(
-              api.removeDir,
-              taskEither.mapLeft((e) => [e.message]),
+              getProjectDirPath,
+              task.chain(
+                flow(
+                  api.removeDir,
+                  taskEither.mapLeft((e) => [e.message]),
+                ),
+              ),
             ),
           ),
         );

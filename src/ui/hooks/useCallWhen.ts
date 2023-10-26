@@ -1,18 +1,21 @@
 import React, { useEffect } from 'react';
-import { io } from '@code-expert/prelude';
+import { option } from '@code-expert/prelude';
 
-export const useCallWhen = (condition: boolean) => {
-  const { current } = React.useRef({
-    f: undefined as io.IO<void> | undefined,
-    setF: (f?: io.IO<void>) => {
+export const useCallWhen = <A>(o: option.Option<A>) => {
+  const { current } = React.useRef<{
+    f: ((a: A) => void) | undefined;
+    setF: (f: ((a: A) => void) | undefined) => void;
+  }>({
+    f: undefined,
+    setF: (f) => {
       current.f = f;
     },
   });
   useEffect(() => {
-    if (condition) {
-      current.f?.();
-      current.setF();
+    if (option.isSome(o)) {
+      current.f?.(o.value);
+      current.setF(undefined);
     }
-  }, [condition, current]);
+  }, [o, current]);
   return current.setF;
 };
