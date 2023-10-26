@@ -5,7 +5,6 @@ import {
   identity,
   iots,
   nonEmptyArray,
-  option,
   pipe,
   tagged,
   task,
@@ -30,6 +29,7 @@ const notAuthorized = globalSetupState.wide.setup({ state: setupState.notAuthori
 const noProjectDir = globalSetupState.wide.setup({ state: setupState.noProjectDir() });
 const noProjectSync = (clientId: ClientId) =>
   globalSetupState.wide.setup({ state: setupState.noProjectSync({ clientId }) });
+
 const done = globalSetupState.wide.setupDone;
 
 export const getSetupState = (projectRepository: ProjectRepository): task.Task<GlobalSetupState> =>
@@ -48,13 +48,13 @@ export const getSetupState = (projectRepository: ProjectRepository): task.Task<G
         taskEither.fromTaskOption(() => noProjectDir),
       ),
     ),
-    taskEither.chainEitherK((clientId) =>
+    taskEither.chainFirstEitherK((clientId) =>
       pipe(
         projectRepository.projects.get(),
         nonEmptyArray.fromArray,
-        option.map(() => done({ clientId })),
         either.fromOption(() => noProjectSync(clientId)),
       ),
     ),
-    task.map(either.getOrElse(identity)),
+    // otherwise: setup complete
+    task.map(either.fold(identity, (clientId) => done({ clientId }))),
   );
