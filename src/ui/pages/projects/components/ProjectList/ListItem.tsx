@@ -1,13 +1,13 @@
 import { Alert, Button, Collapse, List, Typography } from 'antd';
 import React from 'react';
-import { constNull, flow, remoteEither, task, taskEither } from '@code-expert/prelude';
+import { constNull, flow, io, remoteEither, task, taskEither } from '@code-expert/prelude';
 import {
   RemoteFileInfo,
   invalidFileNameMessage,
   isoNativePath,
   showPfsPath,
 } from '@/domain/FileSystem';
-import { OpenProjectException } from '@/domain/FileSystem/OpenProjectException';
+import { OpenException } from '@/domain/OpenException';
 import { LocalProject, Project, ProjectId, projectADT, projectPrism } from '@/domain/Project';
 import { SyncException, syncExceptionADT } from '@/domain/SyncException';
 import { ActionMenu } from '@/ui/components/ActionMenu';
@@ -51,7 +51,7 @@ const StyledButton = styled(Button, ({ tokens }) => ({
 
 export interface ListItemProps {
   project: Project;
-  onOpen: (project: LocalProject) => taskEither.TaskEither<OpenProjectException, void>;
+  onOpen: (project: LocalProject) => taskEither.TaskEither<OpenException, void>;
   onSync: (
     project: Project,
     force?: ForceSyncDirection,
@@ -92,11 +92,12 @@ export const ListItem = ({ project, onOpen, onSync, onRemove, onRevertFile }: Li
 
   const openEnv: ViewFromOpenProjectExceptionEnv = {
     resetProject: () => runSync(project, 'pull'),
+    tryAgain: onOpenClick,
   };
 
   // All states combined. Order matters: the first failure gets precedence.
   const actionStates = remoteEither.sequenceT(
-    viewFromOpenProjectException(openEnv)(openStateRD),
+    viewFromOpenException(openEnv)(openStateRD),
     viewFromSyncException(syncEnv)(revertFileStateRD),
     viewFromSyncException(syncEnv)(syncStateRD),
   );
@@ -162,13 +163,14 @@ export const ListItem = ({ project, onOpen, onSync, onRemove, onRevertFile }: Li
 // -------------------------------------------------------------------------------------------------
 
 interface ViewFromOpenProjectExceptionEnv {
-  resetProject: () => void;
+  resetProject: io.IO<void>;
+  tryAgain: io.IO<void>;
 }
 
-const viewFromOpenProjectException: (
+const viewFromOpenException: (
   env: ViewFromOpenProjectExceptionEnv,
 ) => <A>(
-  e: remoteEither.RemoteEither<OpenProjectException, A>,
+  e: remoteEither.RemoteEither<OpenException, A>,
 ) => remoteEither.RemoteEither<React.ReactElement, A> = (env) =>
   remoteEither.mapLeft((x) => (
     <>
@@ -183,7 +185,8 @@ const viewFromOpenProjectException: (
         Or reset the project from remote.
       </Typography.Paragraph>
       <HStack gap="xs" justify="center">
-        <Button onClick={() => env.resetProject()}>Reset from remote</Button>
+        <Button onClick={env.resetProject}>Reset from remote</Button>
+        <Button onClick={env.tryAgain}>Try again</Button>
       </HStack>
     </>
   ));

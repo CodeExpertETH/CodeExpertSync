@@ -1,14 +1,11 @@
 import { NativePath } from '@/domain/FileSystem/NativePath';
 
-export interface OpenProjectException {
+export interface OpenException {
   reason: string;
   projectBasePathAbsolute: NativePath;
 }
 
-export const mkOpenProjectException = (
-  message: string,
-  projectDir: NativePath,
-): OpenProjectException => ({
+export const mkOpenException = (message: string, projectDir: NativePath): OpenException => ({
   reason: message,
   projectBasePathAbsolute: projectDir,
 });
