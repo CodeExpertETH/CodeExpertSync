@@ -1,4 +1,4 @@
-import {constVoid, eq, iots, option, or, pipe, string, task} from '@code-expert/prelude';
+import { constVoid, eq, iots, option, or, pipe, string, task } from '@code-expert/prelude';
 import { PfsPath, PfsPathFromStringC, eqPfsPath, pfsBasename } from './PfsPath';
 import { ProjectDir, projectEntryToNativePath } from './ProjectDir';
 import { FileSystemStack } from './fileSystemStack';
