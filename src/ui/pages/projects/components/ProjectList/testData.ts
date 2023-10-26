@@ -1,6 +1,6 @@
 import { constVoid, iots, task, taskEither } from '@code-expert/prelude';
 import { PfsFile, UNSAFE_ProjectBasePathFromPath } from '@/domain/FileSystem';
-import { ProjectId, projectADT } from '@/domain/Project';
+import { LocalProject, Project, ProjectId, projectADT } from '@/domain/Project';
 import { ProjectMetadata } from '@/domain/ProjectMetadata';
 import { SyncException } from '@/domain/SyncException';
 import { changesADT, syncStateADT } from '@/domain/SyncState';
@@ -32,13 +32,13 @@ export const localProject = projectADT.local({
 // A value that is not a multiple of the rotation duration (to see how the animation is interrupted)
 const DELAY = 1250;
 
-export const openProject: (id: ProjectId) => taskEither.TaskEither<string, void> = () =>
+export const openProject: (project: LocalProject) => taskEither.TaskEither<string, void> = () =>
   task.delay(DELAY)(taskEither.fromIO(constVoid));
 
-export const syncProject: (id: ProjectId) => taskEither.TaskEither<SyncException, void> = () =>
+export const syncProject: (project: Project) => taskEither.TaskEither<SyncException, void> = () =>
   task.delay(DELAY)(taskEither.fromIO(constVoid));
 
-export const removeProject: (id: ProjectId) => task.Task<void> = () =>
+export const removeProject: (project: Project) => task.Task<void> = () =>
   task.delay(DELAY)(task.of(undefined));
 
 export const revertFile: (

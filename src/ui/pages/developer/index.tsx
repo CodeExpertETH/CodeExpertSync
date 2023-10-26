@@ -29,7 +29,7 @@ export function Developer() {
   const cleanConfig = () =>
     pipe(
       projectRepository.projects.get(),
-      task.traverseSeqArray((project) => projectRepository.removeProject(project.value.projectId)),
+      task.traverseSeqArray((project) => projectRepository.removeProject(project)),
       task.chainFirst(() =>
         pipe(
           taskEither.sequenceT(

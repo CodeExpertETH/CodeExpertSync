@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { option } from '@code-expert/prelude';
 
-export const useCallWhen = <A>(o: option.Option<A>) => {
+export const useCallWhenSome = <A>(o: option.Option<A>) => {
   const { current } = React.useRef<{
     f: ((a: A) => void) | undefined;
     setF: (f: ((a: A) => void) | undefined) => void;
