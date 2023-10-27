@@ -49,7 +49,7 @@ export const FailSync = {
   args: {
     onSync: flow(
       syncProject,
-      taskEither.mapLeft(() => syncExceptionADT.projectDirMissing()),
+      taskEither.mapLeft(() => syncExceptionADT.invalidFilename('SB_INVALID_FILENAME')),
     ),
   },
 } satisfies Story;
@@ -64,7 +64,7 @@ export const FailBoth = {
     ),
     onSync: flow(
       syncProject,
-      taskEither.mapLeft(() => syncExceptionADT.projectDirMissing()),
+      taskEither.mapLeft(() => syncExceptionADT.invalidFilename('SB_INVALID_FILENAME')),
     ),
   },
 } satisfies Story;

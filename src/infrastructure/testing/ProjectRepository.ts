@@ -9,22 +9,20 @@ export const mkProjectRepositoryTesting = (initial: Array<Project>): ProjectRepo
     projects: property.newProperty<Array<Project>>(projectsDb.get, projectsDb.subscribe),
     fetchChanges: constVoid,
     getProject: (projectId) =>
-      task.fromIO(() =>
-        pipe(
-          projectsDb.get(),
-          array.findFirst((x) => x.value.projectId === projectId),
-        ),
+      pipe(
+        projectsDb.get(),
+        array.findFirst((x) => x.value.projectId === projectId),
       ),
-    getProjectDir: () => {
+    getProjectDirPath: () => {
       throw new Error('Not implemented');
     },
-    removeProject: (projectId) =>
+    removeProject: (project) =>
       pipe(
         projectsDb.get,
         io.map((projects) =>
           pipe(
             projects,
-            array.filter((x) => x.value.projectId === projectId),
+            array.filter((x) => x.value.projectId === project.value.projectId),
             projectsDb.set,
           ),
         ),

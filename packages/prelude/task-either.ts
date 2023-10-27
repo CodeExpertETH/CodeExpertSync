@@ -4,7 +4,7 @@ import * as Ap from 'fp-ts/Apply';
 import * as RA from 'fp-ts/ReadonlyArray';
 import * as TE from 'fp-ts/TaskEither';
 import { TaskEither } from 'fp-ts/TaskEither';
-import { FunctionN, constFalse, flow, identity, pipe } from 'fp-ts/function';
+import { FunctionN, constFalse, flow, identity } from 'fp-ts/function';
 import * as eitherT from './eithert';
 import * as functor from './functor';
 import * as task from './task';
@@ -19,7 +19,7 @@ export const sequenceT = Ap.sequenceT(TE.ApplyPar);
 export const traverseArrayValidation =
   <A, B, E>(f: (a: A) => TE.TaskEither<ReadonlyArray<E>, B>) =>
   (arr: Array<A>): TE.TaskEither<ReadonlyArray<E>, ReadonlyArray<B>> =>
-    pipe(arr, RA.traverse(TE.getApplicativeTaskValidation(task.ApplyPar, RA.getSemigroup<E>()))(f));
+    RA.traverse(TE.getApplicativeTaskValidation(task.ApplyPar, RA.getSemigroup<E>()))(f)(arr);
 
 export const sequenceArrayValidation: <A, E>(
   arr: Array<TE.TaskEither<ReadonlyArray<E>, A>>,

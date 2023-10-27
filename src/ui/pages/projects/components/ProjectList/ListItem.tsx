@@ -2,7 +2,7 @@ import { Alert, Button, Collapse, List, Typography } from 'antd';
 import React from 'react';
 import { constNull, flow, remoteEither, task, taskEither } from '@code-expert/prelude';
 import { RemoteFileInfo, invalidFileNameMessage, showPfsPath } from '@/domain/FileSystem';
-import { Project, ProjectId, projectADT } from '@/domain/Project';
+import { LocalProject, Project, ProjectId, projectADT, projectPrism } from '@/domain/Project';
 import { SyncException, syncExceptionADT } from '@/domain/SyncException';
 import { ActionMenu } from '@/ui/components/ActionMenu';
 import { GuardRemoteEither } from '@/ui/components/GuardRemoteData';
@@ -10,11 +10,10 @@ import { useTimeContext } from '@/ui/contexts/TimeContext';
 import { Icon } from '@/ui/foundation/Icons';
 import { HStack, VStack } from '@/ui/foundation/Layout';
 import { styled } from '@/ui/foundation/Theme';
-import { useCallWhen } from '@/ui/hooks/useCallWhen';
+import { useCallWhenSome } from '@/ui/hooks/useCallWhenSome';
 import { useTask } from '@/ui/hooks/useTask';
 import { fromProject } from '@/ui/pages/projects/components/ProjectList/model/SyncButtonState';
 import { ForceSyncDirection } from '@/ui/pages/projects/hooks/useProjectSync';
-import { routes, useRoute } from '@/ui/routes';
 import { SyncButton } from './SyncButton';
 
 const StyledListItem = styled(List.Item, () => ({
@@ -46,15 +45,17 @@ const StyledButton = styled(Button, ({ tokens }) => ({
 
 export interface ListItemProps {
   project: Project;
-  onOpen: (id: ProjectId) => taskEither.TaskEither<string, void>;
-  onSync: (id: ProjectId, force?: ForceSyncDirection) => taskEither.TaskEither<SyncException, void>;
-  onRemove: (id: ProjectId) => task.Task<void>;
+  onOpen: (project: LocalProject) => taskEither.TaskEither<string, void>;
+  onSync: (
+    project: Project,
+    force?: ForceSyncDirection,
+  ) => taskEither.TaskEither<SyncException, void>;
+  onRemove: (project: Project) => task.Task<void>;
   onRevertFile: (id: ProjectId, file: RemoteFileInfo) => taskEither.TaskEither<SyncException, void>;
 }
 
 export const ListItem = ({ project, onOpen, onSync, onRemove, onRevertFile }: ListItemProps) => {
   const { now } = useTimeContext();
-  const { navigateTo } = useRoute();
 
   const [openStateRD, runOpen] = useTask(onOpen);
   const [removalStateRD, runRemove] = useTask(onRemove);
@@ -62,25 +63,24 @@ export const ListItem = ({ project, onOpen, onSync, onRemove, onRevertFile }: Li
   const [revertFileStateRD, runRevert] = useTask(
     flow(
       onRevertFile,
-      taskEither.chainFirstIOK(() => () => runSync(project.value.projectId)),
+      taskEither.chainFirstIOK(() => () => runSync(project)),
     ),
   );
 
-  const callWhenSynced = useCallWhen(projectADT.is.local(project));
+  const callWhenSynced = useCallWhenSome(projectPrism.local.getOption(project));
 
   const onOpenClick = React.useCallback(() => {
     if (projectADT.is.local(project)) {
-      runOpen(project.value.projectId);
+      runOpen(project);
     } else {
-      callWhenSynced(() => runOpen(project.value.projectId));
-      runSync(project.value.projectId);
+      callWhenSynced((localProject) => runOpen(localProject));
+      runSync(project);
     }
   }, [callWhenSynced, project, runOpen, runSync]);
 
   const syncEnv: ViewFromSyncExceptionEnv = {
-    choseProjectDir: () => navigateTo(routes.settings()),
-    forcePush: () => runSync(project.value.projectId, 'push'),
-    forcePull: () => runSync(project.value.projectId, 'pull'),
+    forcePush: () => runSync(project, 'push'),
+    forcePull: () => runSync(project, 'pull'),
     revertFile: (file) => runRevert(project.value.projectId, file),
   };
 
@@ -106,11 +106,7 @@ export const ListItem = ({ project, onOpen, onSync, onRemove, onRevertFile }: Li
             {project.value.taskName}
           </StyledButton>
           <HStack gap={'xxs'} align={'start'}>
-            <SyncButton
-              now={now}
-              state={syncButtonState}
-              onClick={() => runSync(project.value.projectId)}
-            />
+            <SyncButton now={now} state={syncButtonState} onClick={() => runSync(project)} />
             <ActionMenu
               label={'Actions'}
               menu={{
@@ -126,7 +122,7 @@ export const ListItem = ({ project, onOpen, onSync, onRemove, onRevertFile }: Li
                     label: 'Synchronise project',
                     key: 'sync',
                     icon: <Icon name="sync" />,
-                    onClick: () => runSync(project.value.projectId),
+                    onClick: () => runSync(project),
                   },
                   { type: 'divider' },
                   {
@@ -135,7 +131,7 @@ export const ListItem = ({ project, onOpen, onSync, onRemove, onRevertFile }: Li
                     icon: <Icon name="trash" />,
                     danger: true,
                     disabled: remoteEither.isPending(removalStateRD),
-                    onClick: () => runRemove(project.value.projectId),
+                    onClick: () => runRemove(project),
                   },
                 ],
               }}
@@ -160,7 +156,6 @@ const viewFromStringException: <A>(
 ) => remoteEither.RemoteEither<React.ReactElement, A> = remoteEither.mapLeft((x) => <>{x}</>);
 
 interface ViewFromSyncExceptionEnv {
-  choseProjectDir: () => void;
   forcePush: () => void;
   forcePull: () => void;
   revertFile: (file: RemoteFileInfo) => void;
@@ -170,12 +165,7 @@ const viewFromSyncException: (
   env: ViewFromSyncExceptionEnv,
 ) => <A>(
   e: remoteEither.RemoteEither<SyncException, A>,
-) => remoteEither.RemoteEither<React.ReactElement, A> = ({
-  choseProjectDir,
-  forcePush,
-  forcePull,
-  revertFile,
-}) =>
+) => remoteEither.RemoteEither<React.ReactElement, A> = ({ forcePush, forcePull, revertFile }) =>
   remoteEither.mapLeft(
     syncExceptionADT.fold({
       conflictingChanges: () => (
@@ -248,16 +238,6 @@ const viewFromSyncException: (
           <Typography.Paragraph>
             Try removing the project directory from your computer or contact support.
           </Typography.Paragraph>
-        </>
-      ),
-      projectDirMissing: () => (
-        <>
-          <Typography.Paragraph>
-            Could not store the project data, please choose a storage location first.
-          </Typography.Paragraph>
-          <Button type="primary" onClick={choseProjectDir}>
-            Choose project directory …
-          </Button>
         </>
       ),
       networkError: ({ reason }) => (

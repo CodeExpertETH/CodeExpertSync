@@ -64,7 +64,7 @@ export function Projects({ course, clientId }: { course: CourseItem; clientId: C
                 openProject,
                 taskEither.mapLeft((e) => `Could not open project: ${e.message}`),
               )}
-              onSync={(projectId, force) =>
+              onSync={(project, force) =>
                 pipe(
                   // todo disable buttons instead?
                   connectionStatus === 'online',
@@ -73,19 +73,11 @@ export function Projects({ course, clientId }: { course: CourseItem; clientId: C
                       notificationIO.warning('No internet connection', 5)();
                       return taskEither.right(undefined);
                     },
-                    () =>
-                      pipe(
-                        projectRepository.getProject(projectId),
-                        taskEither.fromTaskOption(() => {
-                          panic('Project to sync not found');
-                        }),
-                        taskEither.chainFirst((project) => syncProject(project, { force })),
-                        taskEither.map(constVoid),
-                      ),
+                    () => pipe(syncProject(project, { force }), taskEither.map(constVoid)),
                   ),
                 )
               }
-              onRemove={(projectId) =>
+              onRemove={(project) =>
                 pipe(
                   // todo disable buttons instead?
                   connectionStatus === 'online',
@@ -94,17 +86,17 @@ export function Projects({ course, clientId }: { course: CourseItem; clientId: C
                       notificationIO.warning('No internet connection', 5)();
                       return task.of(undefined);
                     },
-                    () => projectRepository.removeProject(projectId),
+                    () => projectRepository.removeProject(project),
                   ),
                 )
               }
               onRevertFile={(projectId, file) =>
                 pipe(
                   projectRepository.getProject(projectId),
-                  taskEither.fromTaskOption(() =>
+                  taskEither.fromOption(() =>
                     panic('Could not revert file in non-existent project'),
                   ),
-                  taskEither.chain(getProjectDir),
+                  taskEither.chainTaskK(getProjectDir),
                   taskEither.chain((projectDir) =>
                     downloadFile(stack)({ projectId, file, projectDir }),
                   ),

@@ -579,7 +579,7 @@ export const useProjectSync = () => {
       return pipe(
         taskEither.Do,
         // setup
-        taskEither.bind('projectDir', () => getProjectDir(project)),
+        taskEither.bindTaskK('projectDir', () => getProjectDir(project)),
         // change detection
         taskEither.let('projectInfoPrevious', () =>
           pipe(
