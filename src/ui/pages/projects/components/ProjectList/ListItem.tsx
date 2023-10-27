@@ -7,7 +7,7 @@ import {
   isoNativePath,
   showPfsPath,
 } from '@/domain/FileSystem';
-import { OpenException } from '@/domain/OpenException';
+import { OpenException, openExceptionADT } from '@/domain/OpenException';
 import { LocalProject, Project, ProjectId, projectADT, projectPrism } from '@/domain/Project';
 import { SyncException, syncExceptionADT } from '@/domain/SyncException';
 import { ActionMenu } from '@/ui/components/ActionMenu';
@@ -88,6 +88,8 @@ export const ListItem = ({ project, onOpen, onSync, onRemove, onRevertFile }: Li
     forcePush: () => runSync(project, 'push'),
     forcePull: () => runSync(project, 'pull'),
     revertFile: (file) => runRevert(project.value.projectId, file),
+    resetProject: () => runSync(project, 'pull'),
+    tryAgain: () => runSync(project),
   };
 
   const openEnv: ViewFromOpenProjectExceptionEnv = {
@@ -172,36 +174,48 @@ const viewFromOpenException: (
 ) => <A>(
   e: remoteEither.RemoteEither<OpenException, A>,
 ) => remoteEither.RemoteEither<React.ReactElement, A> = (env) =>
-  remoteEither.mapLeft((x) => (
-    <>
-      <Typography.Paragraph>
-        Could not open the project for the following reason:
-        <pre>{x.reason}</pre>
-        Please make sure the project files are available at the following path and try again:
-        <HStack align="baseline" gap="xs">
-          <Icon name="folder-regular" />
-          <strong>{isoNativePath.unwrap(x.projectBasePathAbsolute)}</strong>
-        </HStack>
-        Or reset the project from remote.
-      </Typography.Paragraph>
-      <HStack gap="xs" justify="center">
-        <Button onClick={env.resetProject}>Reset from remote</Button>
-        <Button onClick={env.tryAgain}>Try again</Button>
-      </HStack>
-    </>
-  ));
+  remoteEither.mapLeft(
+    openExceptionADT.fold({
+      noSuchDirectory: (x) => (
+        <>
+          <Typography.Paragraph>
+            Could not open the project for the following reason:
+            <pre>{x.reason}</pre>
+            Please make sure the project files are available at the following path and try again:
+            <HStack align="baseline" gap="xs">
+              <Icon name="folder-regular" />
+              <strong>{isoNativePath.unwrap(x.path)}</strong>
+            </HStack>
+            Or reset the project from remote.
+          </Typography.Paragraph>
+          <HStack gap="xs" justify="center">
+            <Button onClick={env.resetProject}>Reset from remote</Button>
+            <Button onClick={env.tryAgain}>Try again</Button>
+          </HStack>
+        </>
+      ),
+    }),
+  );
 
 interface ViewFromSyncExceptionEnv {
   forcePush: () => void;
   forcePull: () => void;
   revertFile: (file: RemoteFileInfo) => void;
+  resetProject: io.IO<void>;
+  tryAgain: io.IO<void>;
 }
 
 const viewFromSyncException: (
   env: ViewFromSyncExceptionEnv,
 ) => <A>(
   e: remoteEither.RemoteEither<SyncException, A>,
-) => remoteEither.RemoteEither<React.ReactElement, A> = ({ forcePush, forcePull, revertFile }) =>
+) => remoteEither.RemoteEither<React.ReactElement, A> = ({
+  forcePush,
+  forcePull,
+  revertFile,
+  tryAgain,
+  resetProject,
+}) =>
   remoteEither.mapLeft(
     syncExceptionADT.fold({
       conflictingChanges: () => (
@@ -291,6 +305,24 @@ const viewFromSyncException: (
               },
             ]}
           ></Collapse>
+        </>
+      ),
+      noSuchDirectory: (x: OpenException['value']) => (
+        <>
+          <Typography.Paragraph>
+            Could not sync the project for the following reason:
+            <pre>{x.reason}</pre>
+            Please make sure the project files are available at the following path and try again:
+            <HStack align="baseline" gap="xs">
+              <Icon name="folder-regular" />
+              <strong>{isoNativePath.unwrap(x.path)}</strong>
+            </HStack>
+            Or reset the project from remote.
+          </Typography.Paragraph>
+          <HStack gap="xs" justify="center">
+            <Button onClick={resetProject}>Reset from remote</Button>
+            <Button onClick={tryAgain}>Try again</Button>
+          </HStack>
         </>
       ),
     }),

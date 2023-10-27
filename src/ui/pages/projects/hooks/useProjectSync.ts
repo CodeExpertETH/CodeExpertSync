@@ -54,6 +54,7 @@ import {
   showPfsPath,
 } from '@/domain/FileSystem';
 import { FileSystemStack, fileSystemStack } from '@/domain/FileSystem/fileSystemStack';
+import { OpenException } from '@/domain/OpenException';
 import {
   LocalProject,
   Project,
@@ -123,13 +124,6 @@ const excludeSystemNodes: (
     ),
   );
 
-/**
- * Possible Exceptions:
- * - has been synced before, but dir not present
- * - can't read dir or subdir
- *
- * By requiring {@link LocalProject} we have handled case 1. Case 2 & 3 are textbook exception, no need to differentiate
- */
 const getProjectInfoLocal =
   (stack: FileSystemStack) =>
   (
@@ -568,6 +562,33 @@ const getSyncActions: (
       ),
     );
 
+const verifyLocalProjectDirExists: (
+  stack: FileSystemStack,
+) => (
+  projectDir: ProjectDir,
+  localProject: LocalProject,
+) => taskEither.TaskEither<OpenException, LocalProject> = (stack) => (projectDir, localProject) =>
+  pipe(
+    projectDirToNativePath(stack)(projectDir),
+    task.chain((projectDirPath) =>
+      pipe(
+        stack.exists(projectDirPath),
+        task.map(
+          boolean.fold(
+            () =>
+              either.left(
+                syncExceptionADT.noSuchDirectory({
+                  reason: 'Project directory does not exist',
+                  path: projectDirPath,
+                }),
+              ),
+            () => either.right(localProject),
+          ),
+        ),
+      ),
+    ),
+  );
+
 export const useProjectSync = () => {
   const time = useTimeContext();
   const { projectRepository } = useGlobalContext();
@@ -580,36 +601,30 @@ export const useProjectSync = () => {
         taskEither.Do,
         // setup
         taskEither.bindTaskK('projectDir', () => getProjectDir(project)),
-        // localProject is only Some if it indeed still exists where we expect it to
-        taskEither.bindTaskK('localProject', ({ projectDir }) =>
-          pipe(
-            projectPrism.local.getOption(project),
-            taskOption.fromOption,
-            taskOption.chainFirst(() =>
-              pipe(
-                projectDirToNativePath(stack)(projectDir),
-                task.chain((supposedProjectDir) => stack.exists(supposedProjectDir)),
-                task.map(option.fromBoolean(constVoid)),
-              ),
-            ),
-          ),
-        ),
+        taskEither.let('localProject', () => pipe(projectPrism.local.getOption(project))),
         taskEither.let('projectInfoPrevious', ({ localProject }) =>
           pipe(
-            localProject, // only lookup previous sync info, if the project still exists where we expect it to
+            localProject,
             option.map(({ value: { files } }) => files),
           ),
         ),
         taskEither.bindW('projectInfoRemote', () => getProjectInfoRemote(projectId)),
         taskEither.bind('projectInfoLocal', ({ projectDir, localProject }) =>
           pipe(
-            localProject, // only check FS-state if the project still exists where we expect it to
-            option.traverse(taskEither.ApplicativePar)((project) =>
-              getProjectInfoLocal(stack)(projectDir, project),
+            localProject,
+            option.traverse(taskEither.ApplicativeSeq)((project) =>
+              // if `pull --force`, don't verify, just do
+              force === 'pull'
+                ? taskEither.of(project)
+                : verifyLocalProjectDirExists(stack)(projectDir, project),
+            ),
+            taskEither.chain(
+              option.traverse(taskEither.ApplicativeSeq)((project) =>
+                getProjectInfoLocal(stack)(projectDir, project),
+              ),
             ),
           ),
         ),
-        // fixme: it's an error for projectInfoLocal to be None, but projectInfoPrevious to be Some; except force is 'pull'
         taskEither.bind('actions', ({ projectInfoPrevious, projectInfoLocal, projectInfoRemote }) =>
           getSyncActions(stack)(
             force,

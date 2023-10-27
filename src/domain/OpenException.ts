@@ -1,11 +1,6 @@
+import { tagged } from '@code-expert/prelude';
 import { NativePath } from '@/domain/FileSystem/NativePath';
 
-export interface OpenException {
-  reason: string;
-  projectBasePathAbsolute: NativePath;
-}
+export type OpenException = tagged.Tagged<'noSuchDirectory', { reason: string; path: NativePath }>;
 
-export const mkOpenException = (message: string, projectDir: NativePath): OpenException => ({
-  reason: message,
-  projectBasePathAbsolute: projectDir,
-});
+export const openExceptionADT = tagged.build<OpenException>();
