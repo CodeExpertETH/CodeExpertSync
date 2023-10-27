@@ -25,19 +25,19 @@ const SettingsDiv = styled('div', ({ tokens }) => ({
   padding: tokens.padding,
 }));
 
-function SettingsInner({ projectDir, userInfo }: { projectDir: string; userInfo: UserInfo }) {
+function SettingsInner({ rootDir, userInfo }: { rootDir: string; userInfo: UserInfo }) {
   const { navigateTo } = useRoute();
   const [form] = Form.useForm();
 
   const selectDir = async () => {
-    const projectDir = await open({
+    const rootDir = await open({
       directory: true,
       multiple: false,
       defaultPath: await homeDir(),
     });
-    if (projectDir != null) {
-      form.setFieldsValue({ projectDir });
-      await api.settingWrite('projectDir', projectDir)();
+    if (rootDir != null) {
+      form.setFieldsValue({ rootDir });
+      await api.settingWrite('rootDir', rootDir)();
       void message.success('Saved the settings');
     }
   };
@@ -56,7 +56,7 @@ function SettingsInner({ projectDir, userInfo }: { projectDir: string; userInfo:
         <Form
           requiredMark={false}
           form={form}
-          initialValues={{ projectDir, userName: userInfo.userName }}
+          initialValues={{ rootDir, userName: userInfo.userName }}
         >
           <Form.Item dependencies={['userName']}>
             {({ getFieldValue }) => (
@@ -77,13 +77,13 @@ function SettingsInner({ projectDir, userInfo }: { projectDir: string; userInfo:
               />
             )}
           </Form.Item>
-          <Form.Item dependencies={['projectDir']}>
+          <Form.Item dependencies={['rootDir']}>
             {({ getFieldValue }) => (
               <EditableCard
                 iconName="folder-open-regular"
                 title="Project directory"
                 description="All projects are synced into this directory"
-                value={getFieldValue('projectDir')}
+                value={getFieldValue('rootDir')}
                 actions={[
                   { name: 'Change…', iconName: 'edit', type: 'link', onClick: selectDir },
                   {
@@ -105,18 +105,16 @@ function SettingsInner({ projectDir, userInfo }: { projectDir: string; userInfo:
 }
 
 export function Settings() {
-  const projectDirRD = useSettingsFallback('projectDir', iots.string, '', []);
+  const rootDirRD = useSettingsFallback('rootDir', iots.string, '', []);
   const userInfoRD = useUserInfo();
 
   return (
     <GuardRemote
       value={remote.sequenceS({
-        projectDir: projectDirRD,
+        rootDir: rootDirRD,
         userInfo: userInfoRD,
       })}
-      render={({ projectDir, userInfo }) => (
-        <SettingsInner userInfo={userInfo} projectDir={projectDir} />
-      )}
+      render={({ rootDir, userInfo }) => <SettingsInner userInfo={userInfo} rootDir={rootDir} />}
     />
   );
 }

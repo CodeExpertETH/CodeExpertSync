@@ -3,13 +3,13 @@ import React from 'react';
 import { SetupState, setupState } from '@/domain/Setup';
 import { VStack } from '@/ui/foundation/Layout';
 import { LoginStep } from '@/ui/pages/setup/LoginStep';
-import { ProjectDirStep } from '@/ui/pages/setup/ProjectDirStep';
+import { RootDirStep } from '@/ui/pages/setup/RootDirStep';
 import { SyncStep } from '@/ui/pages/setup/SyncStep';
 
 export function Setup({ state }: { state: SetupState }) {
   const step = setupState.fold(state, {
     notAuthorized: () => 0,
-    noProjectDir: () => 1,
+    noRootDir: () => 1,
     noProjectSync: () => 2,
   });
 
@@ -21,7 +21,7 @@ export function Setup({ state }: { state: SetupState }) {
       <Typography.Title level={1} style={{ marginTop: 0 }}>
         {setupState.fold(state, {
           notAuthorized: () => 'Log in',
-          noProjectDir: () => 'Project directory',
+          noRootDir: () => 'Project directory',
           noProjectSync: () => 'Synchronise tasks',
         })}
       </Typography.Title>
@@ -39,7 +39,7 @@ export function Setup({ state }: { state: SetupState }) {
           },
           {
             title: 'Project directory',
-            description: step === 1 ? <ProjectDirStep /> : null,
+            description: step === 1 ? <RootDirStep /> : null,
           },
           {
             title: 'Synchronise tasks',

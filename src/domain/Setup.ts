@@ -15,7 +15,7 @@ import { ProjectRepository } from '@/domain/ProjectRepository';
 
 export type SetupState =
   | tagged.Tagged<'notAuthorized'>
-  | tagged.Tagged<'noProjectDir'>
+  | tagged.Tagged<'noRootDir'>
   | tagged.Tagged<'noProjectSync', { clientId: ClientId }>;
 export const setupState = tagged.build<SetupState>();
 
@@ -26,7 +26,7 @@ export type GlobalSetupState =
   | tagged.Tagged<'setupDone', { clientId: ClientId }>;
 
 const notAuthorized = globalSetupState.wide.setup({ state: setupState.notAuthorized() });
-const noProjectDir = globalSetupState.wide.setup({ state: setupState.noProjectDir() });
+const noRootDir = globalSetupState.wide.setup({ state: setupState.noRootDir() });
 const noProjectSync = (clientId: ClientId) =>
   globalSetupState.wide.setup({ state: setupState.noProjectSync({ clientId }) });
 
@@ -44,8 +44,8 @@ export const getSetupState = (projectRepository: ProjectRepository): task.Task<G
     ),
     taskEither.chainFirst(() =>
       pipe(
-        api.settingRead('projectDir', iots.string),
-        taskEither.fromTaskOption(() => noProjectDir),
+        api.settingRead('rootDir', iots.string),
+        taskEither.fromTaskOption(() => noRootDir),
       ),
     ),
     taskEither.chainFirstEitherK((clientId) =>

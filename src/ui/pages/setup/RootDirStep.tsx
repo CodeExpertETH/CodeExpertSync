@@ -8,22 +8,22 @@ import { getSetupState } from '@/domain/Setup';
 import { useGlobalContextWithActions } from '@/ui/GlobalContext';
 import { EditableCard } from '@/ui/components/EditableCard';
 
-const selectProjectDir: task.Task<string | Array<string> | null> = async () =>
+const selectRootDir: task.Task<string | Array<string> | null> = async () =>
   open({
     directory: true,
     multiple: false,
     defaultPath: await homeDir(),
   });
 
-export const ProjectDirStep = () => {
+export const RootDirStep = () => {
   const [{ projectRepository }, dispatch] = useGlobalContextWithActions();
 
   const selectDir: task.Task<void> = pipe(
-    selectProjectDir,
-    task.map(option.fromPredicate((projectDir) => typeof projectDir === 'string')),
-    taskOption.chainTaskK((projectDir) =>
+    selectRootDir,
+    task.map(option.fromPredicate((rootDir) => typeof rootDir === 'string')),
+    taskOption.chainTaskK((rootDir) =>
       pipe(
-        api.settingWrite('projectDir', projectDir),
+        api.settingWrite('rootDir', rootDir),
         task.chain(() => getSetupState(projectRepository)),
       ),
     ),

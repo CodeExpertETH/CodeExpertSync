@@ -45,7 +45,7 @@ export const getProjectDir = (project: Project): task.Task<ProjectDir> =>
     task.let('base', () => getProjectBasePath(project)),
     task.bind('rootDir', () =>
       pipe(
-        api.settingRead('projectDir', NativePathFromStringC), // FIXME: this is called 'rootDir' now
+        api.settingRead('rootDir', NativePathFromStringC),
         taskOption.getOrElse(() => panic('Root Directory is not set')),
       ),
     ),
