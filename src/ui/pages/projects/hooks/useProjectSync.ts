@@ -126,10 +126,8 @@ const excludeSystemNodes: (
 
 const getProjectInfoLocal =
   (stack: FileSystemStack) =>
-  (
-    projectDir: ProjectDir,
-    _: LocalProject,
-  ): taskEither.TaskEither<SyncException, Array<LocalFileInfo>> =>
+  (projectDir: ProjectDir) =>
+  (_: LocalProject): taskEither.TaskEither<SyncException, Array<LocalFileInfo>> =>
     pipe(
       projectDirToNativePath(stack)(projectDir),
       task.chain((nativePath) =>
@@ -566,28 +564,26 @@ const verifyLocalProjectDirExists: (
   stack: FileSystemStack,
 ) => (
   projectDir: ProjectDir,
-  localProject: LocalProject,
-) => taskEither.TaskEither<OpenException, LocalProject> = (stack) => (projectDir, localProject) =>
-  pipe(
-    projectDirToNativePath(stack)(projectDir),
-    task.chain((projectDirPath) =>
-      pipe(
-        stack.exists(projectDirPath),
-        task.map(
-          boolean.fold(
+) => (localProject: LocalProject) => taskEither.TaskEither<OpenException, LocalProject> =
+  (stack) => (projectDir) => (localProject) =>
+    pipe(
+      task.Do,
+      task.bind('projectPath', () => projectDirToNativePath(stack)(projectDir)),
+      task.bind('exists', ({ projectPath }) => stack.exists(projectPath)),
+      task.map(({ projectPath, exists }) =>
+        pipe(
+          exists,
+          either.fromBoolean(
             () =>
-              either.left(
-                syncExceptionADT.noSuchDirectory({
-                  reason: 'Project directory does not exist',
-                  path: projectDirPath,
-                }),
-              ),
-            () => either.right(localProject),
+              syncExceptionADT.noSuchDirectory({
+                reason: 'Project directory does not exist',
+                path: projectPath,
+              }),
+            () => localProject,
           ),
         ),
       ),
-    ),
-  );
+    );
 
 export const useProjectSync = () => {
   const time = useTimeContext();
@@ -601,7 +597,19 @@ export const useProjectSync = () => {
         taskEither.Do,
         // setup
         taskEither.bindTaskK('projectDir', () => getProjectDir(project)),
-        taskEither.let('localProject', () => pipe(projectPrism.local.getOption(project))),
+        taskEither.bind('localProject', ({ projectDir }) =>
+          pipe(
+            projectPrism.local.getOption(project),
+            option.traverse(taskEither.ApplicativeSeq)(
+              verifyLocalProjectDirExists(stack)(projectDir),
+            ),
+            taskEither.orElse((e) =>
+              syncExceptionADT.is.noSuchDirectory(e) && force === 'pull'
+                ? taskEither.right(option.none)
+                : taskEither.left(e),
+            ),
+          ),
+        ),
         taskEither.let('projectInfoPrevious', ({ localProject }) =>
           pipe(
             localProject,
@@ -612,17 +620,7 @@ export const useProjectSync = () => {
         taskEither.bind('projectInfoLocal', ({ projectDir, localProject }) =>
           pipe(
             localProject,
-            option.traverse(taskEither.ApplicativeSeq)((project) =>
-              // if `pull --force`, don't verify, just do
-              force === 'pull'
-                ? taskEither.of(project)
-                : verifyLocalProjectDirExists(stack)(projectDir, project),
-            ),
-            taskEither.chain(
-              option.traverse(taskEither.ApplicativeSeq)((project) =>
-                getProjectInfoLocal(stack)(projectDir, project),
-              ),
-            ),
+            option.traverse(taskEither.ApplicativeSeq)(getProjectInfoLocal(stack)(projectDir)),
           ),
         ),
         taskEither.bind('actions', ({ projectInfoPrevious, projectInfoLocal, projectInfoRemote }) =>

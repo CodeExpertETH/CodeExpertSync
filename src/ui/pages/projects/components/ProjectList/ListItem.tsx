@@ -1,6 +1,15 @@
 import { Alert, Button, Collapse, List, Typography } from 'antd';
 import React from 'react';
-import { constNull, flow, io, remoteEither, task, taskEither } from '@code-expert/prelude';
+import {
+  constNull,
+  flow,
+  io,
+  option,
+  pipe,
+  remoteEither,
+  task,
+  taskEither,
+} from '@code-expert/prelude';
 import {
   RemoteFileInfo,
   invalidFileNameMessage,
@@ -73,7 +82,14 @@ export const ListItem = ({ project, onOpen, onSync, onRemove, onRevertFile }: Li
     ),
   );
 
-  const callWhenSynced = useCallWhenSome(projectPrism.local.getOption(project));
+  const callWhenSynced = useCallWhenSome(
+    pipe(
+      // we need the LocalProject to call runOpen
+      projectPrism.local.getOption(project),
+      // run the callback after syncStateRD actually fulfills.
+      option.chainFirst(() => option.fromPredicate(remoteEither.isRight)(syncStateRD)),
+    ),
+  );
 
   const onOpenClick = React.useCallback(() => {
     if (projectADT.is.local(project)) {
@@ -92,8 +108,11 @@ export const ListItem = ({ project, onOpen, onSync, onRemove, onRevertFile }: Li
     tryAgain: () => runSync(project),
   };
 
-  const openEnv: ViewFromOpenProjectExceptionEnv = {
-    resetProject: () => runSync(project, 'pull'),
+  const openEnv: ViewFromOpenExceptionEnv = {
+    resetProject: () => {
+      callWhenSynced((localProject) => runOpen(localProject));
+      runSync(project, 'pull');
+    },
     tryAgain: onOpenClick,
   };
 
@@ -164,13 +183,13 @@ export const ListItem = ({ project, onOpen, onSync, onRemove, onRevertFile }: Li
 
 // -------------------------------------------------------------------------------------------------
 
-interface ViewFromOpenProjectExceptionEnv {
+interface ViewFromOpenExceptionEnv {
   resetProject: io.IO<void>;
   tryAgain: io.IO<void>;
 }
 
 const viewFromOpenException: (
-  env: ViewFromOpenProjectExceptionEnv,
+  env: ViewFromOpenExceptionEnv,
 ) => <A>(
   e: remoteEither.RemoteEither<OpenException, A>,
 ) => remoteEither.RemoteEither<React.ReactElement, A> = (env) =>
