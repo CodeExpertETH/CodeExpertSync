@@ -195,15 +195,15 @@ const viewFromOpenException: (
 ) => remoteEither.RemoteEither<React.ReactElement, A> = (env) =>
   remoteEither.mapLeft(
     openExceptionADT.fold({
-      noSuchDirectory: (x) => (
+      noSuchDirectory: ({ path, reason }) => (
         <>
           <Typography.Paragraph>
             Could not open the project for the following reason:
-            <pre>{x.reason}</pre>
+            <pre>{reason}</pre>
             Please make sure the project files are available at the following path and try again:
             <HStack align="baseline" gap="xs">
               <Icon name="folder-regular" />
-              <strong>{isoNativePath.unwrap(x.path)}</strong>
+              <strong>{isoNativePath.unwrap(path)}</strong>
             </HStack>
             Or reset the project from remote.
           </Typography.Paragraph>
