@@ -54,7 +54,6 @@ import {
   showPfsPath,
 } from '@/domain/FileSystem';
 import { FileSystemStack, fileSystemStack } from '@/domain/FileSystem/fileSystemStack';
-import { OpenException } from '@/domain/OpenException';
 import {
   LocalProject,
   Project,
@@ -564,7 +563,7 @@ const verifyLocalProjectDirExists: (
   stack: FileSystemStack,
 ) => (
   projectDir: ProjectDir,
-) => (localProject: LocalProject) => taskEither.TaskEither<OpenException, LocalProject> =
+) => (localProject: LocalProject) => taskEither.TaskEither<SyncException, LocalProject> =
   (stack) => (projectDir) => (localProject) =>
     pipe(
       task.Do,
