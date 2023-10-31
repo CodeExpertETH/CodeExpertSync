@@ -1,8 +1,23 @@
 import { Alert, Button, Collapse, List, Typography } from 'antd';
 import React from 'react';
-import { constNull, flow, remoteEither, task, taskEither } from '@code-expert/prelude';
-import { RemoteFileInfo, invalidFileNameMessage, showPfsPath } from '@/domain/FileSystem';
+import {
+  constNull,
+  flow,
+  io,
+  option,
+  pipe,
+  remoteEither,
+  task,
+  taskEither,
+} from '@code-expert/prelude';
+import {
+  RemoteFileInfo,
+  invalidFileNameMessage,
+  isoNativePath,
+  showPfsPath,
+} from '@/domain/FileSystem';
 import { LocalProject, Project, ProjectId, projectADT, projectPrism } from '@/domain/Project';
+import { ShellException, shellExceptionADT } from '@/domain/ShellException';
 import { SyncException, syncExceptionADT } from '@/domain/SyncException';
 import { ActionMenu } from '@/ui/components/ActionMenu';
 import { GuardRemoteEither } from '@/ui/components/GuardRemoteData';
@@ -45,7 +60,7 @@ const StyledButton = styled(Button, ({ tokens }) => ({
 
 export interface ListItemProps {
   project: Project;
-  onOpen: (project: LocalProject) => taskEither.TaskEither<string, void>;
+  onOpen: (project: LocalProject) => taskEither.TaskEither<ShellException, void>;
   onSync: (
     project: Project,
     force?: ForceSyncDirection,
@@ -67,7 +82,14 @@ export const ListItem = ({ project, onOpen, onSync, onRemove, onRevertFile }: Li
     ),
   );
 
-  const callWhenSynced = useCallWhenSome(projectPrism.local.getOption(project));
+  const callWhenSynced = useCallWhenSome(
+    pipe(
+      // we need the LocalProject to call runOpen
+      projectPrism.local.getOption(project),
+      // run the callback after syncStateRD actually fulfills.
+      option.chainFirst(() => option.fromPredicate(remoteEither.isRight)(syncStateRD)),
+    ),
+  );
 
   const onOpenClick = React.useCallback(() => {
     if (projectADT.is.local(project)) {
@@ -82,11 +104,21 @@ export const ListItem = ({ project, onOpen, onSync, onRemove, onRevertFile }: Li
     forcePush: () => runSync(project, 'push'),
     forcePull: () => runSync(project, 'pull'),
     revertFile: (file) => runRevert(project.value.projectId, file),
+    resetProject: () => runSync(project, 'pull'),
+    tryAgain: () => runSync(project),
+  };
+
+  const openEnv: ViewFromShellExceptionEnv = {
+    resetProject: () => {
+      callWhenSynced((localProject) => runOpen(localProject));
+      runSync(project, 'pull');
+    },
+    tryAgain: onOpenClick,
   };
 
   // All states combined. Order matters: the first failure gets precedence.
   const actionStates = remoteEither.sequenceT(
-    viewFromStringException(openStateRD),
+    viewFromShellException(openEnv)(openStateRD),
     viewFromSyncException(syncEnv)(revertFileStateRD),
     viewFromSyncException(syncEnv)(syncStateRD),
   );
@@ -151,21 +183,58 @@ export const ListItem = ({ project, onOpen, onSync, onRemove, onRevertFile }: Li
 
 // -------------------------------------------------------------------------------------------------
 
-const viewFromStringException: <A>(
-  e: remoteEither.RemoteEither<string, A>,
-) => remoteEither.RemoteEither<React.ReactElement, A> = remoteEither.mapLeft((x) => <>{x}</>);
+interface ViewFromShellExceptionEnv {
+  resetProject: io.IO<void>;
+  tryAgain: io.IO<void>;
+}
+
+const viewFromShellException: (
+  env: ViewFromShellExceptionEnv,
+) => <A>(
+  e: remoteEither.RemoteEither<ShellException, A>,
+) => remoteEither.RemoteEither<React.ReactElement, A> = (env) =>
+  remoteEither.mapLeft(
+    shellExceptionADT.fold({
+      noSuchDirectory: ({ path, reason }) => (
+        <>
+          <Typography.Paragraph>
+            Could not open the project for the following reason:
+            <pre>{reason}</pre>
+            Please make sure the project files are available at the following path and try again:
+            <HStack align="baseline" gap="xs">
+              <Icon name="folder-regular" />
+              <strong>{isoNativePath.unwrap(path)}</strong>
+            </HStack>
+            Or reset the project from remote.
+          </Typography.Paragraph>
+          <HStack gap="xs" justify="center">
+            <Button onClick={env.resetProject}>Reset from remote</Button>
+            <Button onClick={env.tryAgain}>Try again</Button>
+          </HStack>
+        </>
+      ),
+    }),
+  );
 
 interface ViewFromSyncExceptionEnv {
   forcePush: () => void;
   forcePull: () => void;
   revertFile: (file: RemoteFileInfo) => void;
+  resetProject: io.IO<void>;
+  tryAgain: io.IO<void>;
 }
 
 const viewFromSyncException: (
   env: ViewFromSyncExceptionEnv,
 ) => <A>(
   e: remoteEither.RemoteEither<SyncException, A>,
-) => remoteEither.RemoteEither<React.ReactElement, A> = ({ forcePush, forcePull, revertFile }) =>
+) => remoteEither.RemoteEither<React.ReactElement, A> = ({
+  forcePush,
+  forcePull,
+  revertFile,
+  tryAgain,
+  resetProject,
+}) =>
   remoteEither.mapLeft(
     syncExceptionADT.fold({
       conflictingChanges: () => (
@@ -255,6 +324,24 @@ const viewFromSyncException: (
               },
             ]}
           ></Collapse>
+        </>
+      ),
+      noSuchDirectory: ({ path, reason }) => (
+        <>
+          <Typography.Paragraph>
+            Could not sync the project for the following reason:
+            <pre>{reason}</pre>
+            Please make sure the project files are available at the following path and try again:
+            <HStack align="baseline" gap="xs">
+              <Icon name="folder-regular" />
+              <strong>{isoNativePath.unwrap(path)}</strong>
+            </HStack>
+            Or reset the project from remote.
+          </Typography.Paragraph>
+          <HStack gap="xs" justify="center">
+            <Button onClick={resetProject}>Reset from remote</Button>
+            <Button onClick={tryAgain}>Try again</Button>
+          </HStack>
         </>
       ),
     }),

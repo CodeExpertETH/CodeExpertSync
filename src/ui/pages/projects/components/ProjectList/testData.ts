@@ -2,6 +2,7 @@ import { constVoid, iots, task, taskEither } from '@code-expert/prelude';
 import { PfsFile, UNSAFE_ProjectBasePathFromPath } from '@/domain/FileSystem';
 import { LocalProject, Project, ProjectId, projectADT } from '@/domain/Project';
 import { ProjectMetadata } from '@/domain/ProjectMetadata';
+import { ShellException } from '@/domain/ShellException';
 import { SyncException } from '@/domain/SyncException';
 import { changesADT, syncStateADT } from '@/domain/SyncState';
 
@@ -32,7 +33,9 @@ export const localProject = projectADT.local({
 // A value that is not a multiple of the rotation duration (to see how the animation is interrupted)
 const DELAY = 1250;
 
-export const openProject: (project: LocalProject) => taskEither.TaskEither<string, void> = () =>
+export const openProject: (
+  project: LocalProject,
+) => taskEither.TaskEither<ShellException, void> = () =>
   task.delay(DELAY)(taskEither.fromIO(constVoid));
 
 export const syncProject: (project: Project) => taskEither.TaskEither<SyncException, void> = () =>

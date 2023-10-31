@@ -22,6 +22,7 @@ export interface FileSystemStack {
     filePath: NativePath,
     content: Uint8Array,
   ) => taskEither.TaskEither<TauriException, void>;
+  exists: (path: NativePath) => task.Task<boolean>;
 }
 
 /**
@@ -41,4 +42,5 @@ export const fileSystemStack: FileSystemStack = {
   readBinaryFile: libFs.readBinaryFile,
   readFsTree: libFs.readFsTree,
   writeFileWithAncestors: libFs.writeFileWithAncestors,
+  exists: libFs.exists,
 };

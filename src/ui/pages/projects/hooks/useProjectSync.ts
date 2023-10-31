@@ -123,19 +123,10 @@ const excludeSystemNodes: (
     ),
   );
 
-/**
- * Possible Exceptions:
- * - has been synced before, but dir not present
- * - can't read dir or subdir
- *
- * By requiring {@link LocalProject} we have handled case 1. Case 2 & 3 are textbook exception, no need to differentiate
- */
 const getProjectInfoLocal =
   (stack: FileSystemStack) =>
-  (
-    projectDir: ProjectDir,
-    _: LocalProject,
-  ): taskEither.TaskEither<SyncException, Array<LocalFileInfo>> =>
+  (projectDir: ProjectDir) =>
+  (_: LocalProject): taskEither.TaskEither<SyncException, Array<LocalFileInfo>> =>
     pipe(
       projectDirToNativePath(stack)(projectDir),
       task.chain((nativePath) =>
@@ -537,7 +528,7 @@ const getSyncActions: (
           projectInfoPrevious,
           option.fold(
             // the project has never been synced before
-            () => getRemoteChanges([], projectInfoRemote),
+            () => getRemoteChanges([], projectInfoRemote), // FIXME calling getRemoteChanges with an empty array smells a bit of abusing convenient behaviour
             (previous) => getRemoteChanges(previous, projectInfoRemote),
           ),
           option.filter(() => force == null || force === 'pull'),
@@ -568,6 +559,31 @@ const getSyncActions: (
       ),
     );
 
+const verifyLocalProjectDirExists: (
+  stack: FileSystemStack,
+) => (
+  projectDir: ProjectDir,
+) => (localProject: LocalProject) => taskEither.TaskEither<SyncException, LocalProject> =
+  (stack) => (projectDir) => (localProject) =>
+    pipe(
+      task.Do,
+      task.bind('projectPath', () => projectDirToNativePath(stack)(projectDir)),
+      task.bind('exists', ({ projectPath }) => stack.exists(projectPath)),
+      task.map(({ projectPath, exists }) =>
+        pipe(
+          exists,
+          either.fromBoolean(
+            () =>
+              syncExceptionADT.noSuchDirectory({
+                reason: 'Project directory does not exist',
+                path: projectPath,
+              }),
+            () => localProject,
+          ),
+        ),
+      ),
+    );
+
 export const useProjectSync = () => {
   const time = useTimeContext();
   const { projectRepository } = useGlobalContext();
@@ -580,20 +596,30 @@ export const useProjectSync = () => {
         taskEither.Do,
         // setup
         taskEither.bindTaskK('projectDir', () => getProjectDir(project)),
-        // change detection
-        taskEither.let('projectInfoPrevious', () =>
+        taskEither.bind('localProject', ({ projectDir }) =>
           pipe(
             projectPrism.local.getOption(project),
+            option.traverse(taskEither.ApplicativeSeq)(
+              verifyLocalProjectDirExists(stack)(projectDir),
+            ),
+            taskEither.orElse((e) =>
+              syncExceptionADT.is.noSuchDirectory(e) && force === 'pull'
+                ? taskEither.right(option.none)
+                : taskEither.left(e),
+            ),
+          ),
+        ),
+        taskEither.let('projectInfoPrevious', ({ localProject }) =>
+          pipe(
+            localProject,
             option.map(({ value: { files } }) => files),
           ),
         ),
         taskEither.bindW('projectInfoRemote', () => getProjectInfoRemote(projectId)),
-        taskEither.bind('projectInfoLocal', ({ projectDir }) =>
+        taskEither.bind('projectInfoLocal', ({ projectDir, localProject }) =>
           pipe(
-            projectPrism.local.getOption(project),
-            option.traverse(taskEither.ApplicativePar)((project) =>
-              getProjectInfoLocal(stack)(projectDir, project),
-            ),
+            localProject,
+            option.traverse(taskEither.ApplicativeSeq)(getProjectInfoLocal(stack)(projectDir)),
           ),
         ),
         taskEither.bind('actions', ({ projectInfoPrevious, projectInfoLocal, projectInfoRemote }) =>

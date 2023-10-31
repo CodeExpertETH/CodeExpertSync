@@ -1,5 +1,5 @@
 import { tagged } from '@code-expert/prelude';
-import { Conflict, PfsFile, RemoteFileInfo } from '@/domain/FileSystem';
+import { Conflict, NativePath, PfsFile, RemoteFileInfo } from '@/domain/FileSystem';
 import { apiError } from '@/utils/api';
 import { panic } from '@/utils/error';
 
@@ -10,7 +10,8 @@ export type SyncException =
   | tagged.Tagged<'invalidFilename', string>
   // | tagged.Tagged<'fileSizeExceeded'>
   | tagged.Tagged<'fileSystemCorrupted', { path: string; reason: string }>
-  | tagged.Tagged<'networkError', { reason: string }>;
+  | tagged.Tagged<'networkError', { reason: string }>
+  | tagged.Tagged<'noSuchDirectory', { reason: string; path: NativePath }>;
 
 export const syncExceptionADT = tagged.build<SyncException>();
 

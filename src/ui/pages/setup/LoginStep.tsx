@@ -5,7 +5,7 @@ import { flow, pipe, task, taskEither } from '@code-expert/prelude';
 import { getNewClientIdFromApi } from '@/application/registerApp';
 import { authState, getRedirectLink, useAuthState } from '@/domain/AuthState';
 import { getSetupState } from '@/domain/Setup';
-import { open } from '@/lib/tauri/shell';
+import { openWebBrowser } from '@/lib/tauri/shell';
 import { useGlobalContextWithActions } from '@/ui/GlobalContext';
 import { panic } from '@/utils/error';
 
@@ -32,7 +32,7 @@ const AuthWarning = ({
 );
 
 const openInBrowser = flow(
-  open,
+  openWebBrowser,
   taskEither.getOrElse((e) => panic(`Failed to open Code Expert Login in browser: ${e.message}`)),
 );
 

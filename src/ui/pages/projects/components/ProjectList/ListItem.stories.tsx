@@ -2,6 +2,8 @@ import { Meta, StoryObj } from '@storybook/react';
 import { List } from 'antd';
 import React from 'react';
 import { either, flow, taskEither } from '@code-expert/prelude';
+import { isoNativePath } from '@/domain/FileSystem';
+import { shellExceptionADT } from '@/domain/ShellException';
 import { syncExceptionADT } from '@/domain/SyncException';
 import {
   localProject,
@@ -39,7 +41,12 @@ export const FailOpen = {
     onOpen: flow(
       openProject,
       taskEither.chainEitherK(() =>
-        either.left('The project does not exist where it was expected.'),
+        either.left(
+          shellExceptionADT.noSuchDirectory({
+            reason: 'The project does not exist where it was expected.',
+            path: isoNativePath.wrap('file:///foo/bar'),
+          }),
+        ),
       ),
     ),
   },
@@ -59,7 +66,12 @@ export const FailBoth = {
     onOpen: flow(
       openProject,
       taskEither.chainEitherK(() =>
-        either.left('The project does not exist where it was expected.'),
+        either.left(
+          shellExceptionADT.noSuchDirectory({
+            reason: 'The project does not exist where it was expected.',
+            path: isoNativePath.wrap('file:///foo/bar'),
+          }),
+        ),
       ),
     ),
     onSync: flow(
