@@ -1,8 +1,8 @@
 import { flow, pipe, taskEither } from '@code-expert/prelude';
 import { FileSystemStack } from '@/domain/FileSystem/fileSystemStack';
-import { ShellException, shellExceptionADT } from '@/domain/ShellException';
 import { LocalProject } from '@/domain/Project';
 import { ProjectRepository } from '@/domain/ProjectRepository';
+import { ShellException, shellExceptionADT } from '@/domain/ShellException';
 import { openFileBrowser } from '@/lib/tauri/shell';
 import { panic } from '@/utils/error';
 

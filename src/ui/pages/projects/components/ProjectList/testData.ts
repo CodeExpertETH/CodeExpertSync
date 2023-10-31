@@ -1,8 +1,8 @@
 import { constVoid, iots, task, taskEither } from '@code-expert/prelude';
 import { PfsFile, UNSAFE_ProjectBasePathFromPath } from '@/domain/FileSystem';
-import { ShellException } from '@/domain/ShellException';
 import { LocalProject, Project, ProjectId, projectADT } from '@/domain/Project';
 import { ProjectMetadata } from '@/domain/ProjectMetadata';
+import { ShellException } from '@/domain/ShellException';
 import { SyncException } from '@/domain/SyncException';
 import { changesADT, syncStateADT } from '@/domain/SyncState';
 

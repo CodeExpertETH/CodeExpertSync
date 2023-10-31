@@ -16,8 +16,8 @@ import {
   isoNativePath,
   showPfsPath,
 } from '@/domain/FileSystem';
-import { ShellException, shellExceptionADT } from '@/domain/ShellException';
 import { LocalProject, Project, ProjectId, projectADT, projectPrism } from '@/domain/Project';
+import { ShellException, shellExceptionADT } from '@/domain/ShellException';
 import { SyncException, syncExceptionADT } from '@/domain/SyncException';
 import { ActionMenu } from '@/ui/components/ActionMenu';
 import { GuardRemoteEither } from '@/ui/components/GuardRemoteData';
