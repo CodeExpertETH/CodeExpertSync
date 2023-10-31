@@ -2,7 +2,7 @@ import { List as AntList, Card, Typography } from 'antd';
 import React from 'react';
 import { array, pipe, task, taskEither } from '@code-expert/prelude';
 import { RemoteFileInfo } from '@/domain/FileSystem';
-import { OpenException } from '@/domain/OpenException';
+import { ShellException } from '@/domain/ShellException';
 import { LocalProject, Project, ProjectId, ordProjectTask } from '@/domain/Project';
 import { SyncException } from '@/domain/SyncException';
 import { VStack } from '@/ui/foundation/Layout';
@@ -20,7 +20,7 @@ const StyledCard = styled(Card, ({ tokens }) => ({
 export interface ListProps {
   exerciseName: string;
   projects: Array<Project>;
-  onOpen: (project: LocalProject) => taskEither.TaskEither<OpenException, void>;
+  onOpen: (project: LocalProject) => taskEither.TaskEither<ShellException, void>;
   onSync: (
     project: Project,
     force?: ForceSyncDirection,

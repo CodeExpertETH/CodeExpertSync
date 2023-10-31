@@ -3,7 +3,7 @@ import { List } from 'antd';
 import React from 'react';
 import { either, flow, taskEither } from '@code-expert/prelude';
 import { isoNativePath } from '@/domain/FileSystem';
-import { openExceptionADT } from '@/domain/OpenException';
+import { shellExceptionADT } from '@/domain/ShellException';
 import { syncExceptionADT } from '@/domain/SyncException';
 import {
   localProject,
@@ -42,7 +42,7 @@ export const FailOpen = {
       openProject,
       taskEither.chainEitherK(() =>
         either.left(
-          openExceptionADT.noSuchDirectory({
+          shellExceptionADT.noSuchDirectory({
             reason: 'The project does not exist where it was expected.',
             path: isoNativePath.wrap('file:///foo/bar'),
           }),
@@ -67,7 +67,7 @@ export const FailBoth = {
       openProject,
       taskEither.chainEitherK(() =>
         either.left(
-          openExceptionADT.noSuchDirectory({
+          shellExceptionADT.noSuchDirectory({
             reason: 'The project does not exist where it was expected.',
             path: isoNativePath.wrap('file:///foo/bar'),
           }),

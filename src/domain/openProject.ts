@@ -1,6 +1,6 @@
 import { flow, pipe, taskEither } from '@code-expert/prelude';
 import { FileSystemStack } from '@/domain/FileSystem/fileSystemStack';
-import { OpenException, openExceptionADT } from '@/domain/OpenException';
+import { ShellException, shellExceptionADT } from '@/domain/ShellException';
 import { LocalProject } from '@/domain/Project';
 import { ProjectRepository } from '@/domain/ProjectRepository';
 import { openFileBrowser } from '@/lib/tauri/shell';
@@ -9,7 +9,7 @@ import { panic } from '@/utils/error';
 export const openProject: (
   stack: Pick<FileSystemStack, 'exists'>,
   projectRepository: ProjectRepository,
-) => (project: LocalProject) => taskEither.TaskEither<OpenException, void> = (
+) => (project: LocalProject) => taskEither.TaskEither<ShellException, void> = (
   stack,
   projectRepository,
 ) =>
@@ -21,7 +21,7 @@ export const openProject: (
     taskEither.filterOrElse(
       ({ exists }) => exists,
       ({ path }) =>
-        openExceptionADT.noSuchDirectory({ reason: 'Project directory does not exist', path }),
+        shellExceptionADT.noSuchDirectory({ reason: 'Project directory does not exist', path }),
     ),
     taskEither.chainTaskK(({ path }) =>
       pipe(

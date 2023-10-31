@@ -1,6 +1,6 @@
 import { constVoid, iots, task, taskEither } from '@code-expert/prelude';
 import { PfsFile, UNSAFE_ProjectBasePathFromPath } from '@/domain/FileSystem';
-import { OpenException } from '@/domain/OpenException';
+import { ShellException } from '@/domain/ShellException';
 import { LocalProject, Project, ProjectId, projectADT } from '@/domain/Project';
 import { ProjectMetadata } from '@/domain/ProjectMetadata';
 import { SyncException } from '@/domain/SyncException';
@@ -35,7 +35,7 @@ const DELAY = 1250;
 
 export const openProject: (
   project: LocalProject,
-) => taskEither.TaskEither<OpenException, void> = () =>
+) => taskEither.TaskEither<ShellException, void> = () =>
   task.delay(DELAY)(taskEither.fromIO(constVoid));
 
 export const syncProject: (project: Project) => taskEither.TaskEither<SyncException, void> = () =>

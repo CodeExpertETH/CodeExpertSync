@@ -16,7 +16,7 @@ import {
   isoNativePath,
   showPfsPath,
 } from '@/domain/FileSystem';
-import { OpenException, openExceptionADT } from '@/domain/OpenException';
+import { ShellException, shellExceptionADT } from '@/domain/ShellException';
 import { LocalProject, Project, ProjectId, projectADT, projectPrism } from '@/domain/Project';
 import { SyncException, syncExceptionADT } from '@/domain/SyncException';
 import { ActionMenu } from '@/ui/components/ActionMenu';
@@ -60,7 +60,7 @@ const StyledButton = styled(Button, ({ tokens }) => ({
 
 export interface ListItemProps {
   project: Project;
-  onOpen: (project: LocalProject) => taskEither.TaskEither<OpenException, void>;
+  onOpen: (project: LocalProject) => taskEither.TaskEither<ShellException, void>;
   onSync: (
     project: Project,
     force?: ForceSyncDirection,
@@ -108,7 +108,7 @@ export const ListItem = ({ project, onOpen, onSync, onRemove, onRevertFile }: Li
     tryAgain: () => runSync(project),
   };
 
-  const openEnv: ViewFromOpenExceptionEnv = {
+  const openEnv: ViewFromShellExceptionEnv = {
     resetProject: () => {
       callWhenSynced((localProject) => runOpen(localProject));
       runSync(project, 'pull');
@@ -118,7 +118,7 @@ export const ListItem = ({ project, onOpen, onSync, onRemove, onRevertFile }: Li
 
   // All states combined. Order matters: the first failure gets precedence.
   const actionStates = remoteEither.sequenceT(
-    viewFromOpenException(openEnv)(openStateRD),
+    viewFromShellException(openEnv)(openStateRD),
     viewFromSyncException(syncEnv)(revertFileStateRD),
     viewFromSyncException(syncEnv)(syncStateRD),
   );
@@ -183,18 +183,18 @@ export const ListItem = ({ project, onOpen, onSync, onRemove, onRevertFile }: Li
 
 // -------------------------------------------------------------------------------------------------
 
-interface ViewFromOpenExceptionEnv {
+interface ViewFromShellExceptionEnv {
   resetProject: io.IO<void>;
   tryAgain: io.IO<void>;
 }
 
-const viewFromOpenException: (
-  env: ViewFromOpenExceptionEnv,
+const viewFromShellException: (
+  env: ViewFromShellExceptionEnv,
 ) => <A>(
-  e: remoteEither.RemoteEither<OpenException, A>,
+  e: remoteEither.RemoteEither<ShellException, A>,
 ) => remoteEither.RemoteEither<React.ReactElement, A> = (env) =>
   remoteEither.mapLeft(
-    openExceptionADT.fold({
+    shellExceptionADT.fold({
       noSuchDirectory: ({ path, reason }) => (
         <>
           <Typography.Paragraph>
