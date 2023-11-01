@@ -14,7 +14,12 @@ export default defineConfig(({ mode }) => ({
     // See: https://tauri.studio/v1/api/config#buildconfig.beforedevcommand
     'process.env': loadEnv(mode, process.cwd(), [
       'CX_',
-      'TAURI_',
+      'TAURI_PLATFORM', 
+      'TAURI_ARCH', 
+      'TAURI_FAMILY', 
+      'TAURI_PLATFORM_VERSION', 
+      'TAURI_PLATFORM_TYPE', 
+      'TAURI_DEBUG',
       'VITE_',
       'APP_SIGNAL_',
       'GITHUB_',
