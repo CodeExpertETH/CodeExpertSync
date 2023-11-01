@@ -1,6 +1,6 @@
 {
   "name": "@code-expert/sync",
-  "version": "0.0.53",
+  "version": "1.0.0",
   "description": "",
   "scripts": {
     "setup": "scripts/setup",
