@@ -53,8 +53,8 @@
       "identifier": "ch.ethz.code-expert.sync",
       "longDescription": "",
       "macOS": {
-        "entitlements": null,
         "exceptionDomain": "",
+        "entitlements": "../entitlements.plist",
         "frameworks": [],
         "providerShortName": null,
         "signingIdentity": null
