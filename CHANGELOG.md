@@ -12,6 +12,10 @@ corresponding issue number in parentheses at the end, if existing.
 
 ## [Unreleased]
 
+### Fixed
+
+- Mac OS X: Fixed a bug that prevented the application from starting due to failing to write private key (cx-2847).
+
 ## [1.0.0] - 2023-11-01
 
 - Initial release.
