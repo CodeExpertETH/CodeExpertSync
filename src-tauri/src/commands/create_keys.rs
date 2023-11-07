@@ -18,7 +18,7 @@ pub fn create_keys(app_handle: tauri::AppHandle) -> Result<String, String> {
                 })
                 .and_then(|key_path| {
                     fs::write(key_path, kp.sk.to_pem())
-                        .map_err(|_| "Could not write private key".to_string())
+                        .map_err(|_| "Could not write private keyyy".to_string())
                 })
         })
         .map(|_| kp.pk.to_pem())

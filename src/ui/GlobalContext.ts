@@ -110,7 +110,7 @@ export const useGlobalContextWithActions = () => {
   const value = React.useContext(context);
   if (value == null)
     panic(
-      'GlobalContext needs to be defined before use. Did you forget to add a Provider? Or did you use it before it was initialised?',
+      'GlobalContext needs to be defined before use. Did you forget to add a Provider? Or did you use it before it was initialised??',
     );
   return value;
 };
