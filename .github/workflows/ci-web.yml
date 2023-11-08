@@ -8,6 +8,7 @@ on:
   pull_request:
     branches:
       - main
+      - main-2
 
 concurrency:
   group: ci-web-${{ github.event.pull_request.number || github.ref }}
