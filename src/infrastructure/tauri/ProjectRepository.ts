@@ -68,10 +68,11 @@ export const mkProjectRepositoryTauri = (): task.Task<ProjectRepository> => {
     () =>
       projectsDb.set(projects);
 
-  const readProjects = pipe(
+  const loadProjects = pipe(
     projectMetadataStore.findAll(),
     taskOption.getOrElseW(() => task.of([])),
     task.chain(projectsFromMetadata),
+    task.chainIOK(setProjects),
   );
 
   const getProjectDirPath: (project: LocalProject) => task.Task<NativePath> = flow(
@@ -80,8 +81,7 @@ export const mkProjectRepositoryTauri = (): task.Task<ProjectRepository> => {
   );
 
   return pipe(
-    readProjects,
-    task.chainFirstIOK(setProjects),
+    loadProjects,
     task.map(() => ({
       projects: property.newProperty<Array<Project>>(projectsDb.get, projectsDb.subscribe),
 
