@@ -1,4 +1,5 @@
 import React from 'react';
+import { throttle } from 'throttle-debounce';
 import { pipe, remoteEither, tagged, task, taskEither } from '@code-expert/prelude';
 import { config } from '@/config';
 import { ClientId } from '@/domain/ClientId';
@@ -34,6 +35,8 @@ export const useProjectEventUpdate = (
       setSseStatus(remoteEither.initial);
     };
 
+    const onProjectAccess = throttle(1000, onProjectAccessGranted, { noLeading: true });
+
     let timeout: NodeJS.Timeout | null = null;
     const registerEventSource = () => {
       if (sse.current == null) {
@@ -45,7 +48,7 @@ export const useProjectEventUpdate = (
             if (sse.current == null) {
               setSseStatus(remoteEither.pending);
               sse.current = new EventSource(`${config.CX_API_URL}/projectAccess?token=${token}`);
-              sse.current.addEventListener('projectAccess', onProjectAccessGranted);
+              sse.current.addEventListener('projectAccess', onProjectAccess);
               sse.current.addEventListener('error', onError);
               sse.current.addEventListener('open', onConnect);
               sse.current.addEventListener('close', onDisconnect);
@@ -70,7 +73,7 @@ export const useProjectEventUpdate = (
     };
 
     const cleanUp = () => {
-      sse.current?.removeEventListener('projectAccess', onProjectAccessGranted);
+      sse.current?.removeEventListener('projectAccess', onProjectAccess);
       sse.current?.removeEventListener('error', onError);
       sse.current?.removeEventListener('open', onConnect);
       sse.current?.removeEventListener('close', onDisconnect);
