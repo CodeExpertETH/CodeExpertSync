@@ -1,4 +1,5 @@
 import { $Unexpressable } from '@code-expert/type-utils';
+import { monoid, option } from 'fp-ts';
 import * as either from 'fp-ts/Either';
 import { Refinement } from 'fp-ts/Refinement';
 import { flow } from 'fp-ts/function';
@@ -53,6 +54,36 @@ export const URL = t.brand(
   },
   'URL',
 );
+
+// -------------------------------------------------------------------------------------------------
+
+/**
+ * Parse a value, returning either an array of error messages or the parsed value.
+ */
+export const parseEither = <I, A>(
+  decoder: t.Decoder<I, A>,
+): ((i: I) => either.Either<Array<string>, A>) =>
+  flow(decoder.decode, either.mapLeft(formatValidationErrors));
+
+/**
+ * Parse a value, returning an optional value.
+ */
+export const parseOption = <I, A>(decoder: t.Decoder<I, A>): ((i: I) => option.Option<A>) =>
+  flow(decoder.decode, option.fromEither);
+
+/**
+ * Parse a value or fail by throwing a TypeError.
+ */
+export const parseSync = <I, A>(decoder: t.Decoder<I, A>): ((i: I) => A) =>
+  flow(
+    parseEither(decoder),
+    either.mapLeft(monoid.concatAll(string.semicolonSeparated)),
+    either.getOrElseW((err) => {
+      throw new TypeError(err);
+    }),
+  );
+
+// -------------------------------------------------------------------------------------------------
 
 const prefixedString = (prefix: string) =>
   new t.Type<string, string, unknown>(
