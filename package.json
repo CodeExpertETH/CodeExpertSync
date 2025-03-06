@@ -48,6 +48,7 @@
     "@frp-ts/react": "^1.0.0-beta.3",
     "@noble/hashes": "latest",
     "@tauri-apps/api": "^1.5.1",
+    "@types/throttle-debounce": "^5.0.2",
     "antd": "^5.10.3",
     "base64url": "^3.0.1",
     "conditional-type-checks": "^1.0.6",
@@ -70,6 +71,7 @@
     "react-fontawesome-svg-icon": "^1.1.2",
     "react-hotkeys-hook": "latest",
     "tauri-plugin-store-api": "git+https://github.com/tauri-apps/tauri-plugin-store",
+    "throttle-debounce": "^5.0.2",
     "tslib": "latest",
     "vite-plugin-eslint": "^1.8.1",
     "vitest": "latest"
