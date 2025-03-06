@@ -5,7 +5,7 @@ on:
       - 'v*'
   workflow_dispatch:
 env:
-  NODE_OPTIONS: "--max_old_space_size=4096"
+  NODE_OPTIONS: '--max_old_space_size=4096'
   TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
   APP_SIGNAL_REVISION: ${{  github.ref_name }}
   CX_API_URL: ${{ vars.CX_API_URL }}
@@ -50,7 +50,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [ macos-12, macos-13, ubuntu-20.04, windows-latest ]
+        platform: [macos-13, ubuntu-20.04, windows-latest]
 
     runs-on: ${{ matrix.platform }}
     steps:
@@ -73,7 +73,7 @@ jobs:
           sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
       - name: Setup aarch64 requirements
         if: matrix.platform == 'macos-13'
-        run: "rustup target add aarch64-apple-darwin"
+        run: 'rustup target add aarch64-apple-darwin'
       - name: install frontend dependencies
         run: yarn && yarn build
       - name: install AzureSignTool (windows only)
@@ -113,10 +113,10 @@ jobs:
           $jsonContent | ConvertTo-Json | Out-File -FilePath ./secrets.json -Encoding utf8
           # Load content from the file
           $content = Get-Content -Path "./secrets.json" -Raw
-          
+
           # Replace \r\n with \n
           $content = $content -replace "`r`n", "`n"
-          
+
           # Write the content back to the file
           Set-Content -Path "./secrets.json" -Value $content
         shell: powershell
@@ -136,12 +136,11 @@ jobs:
           releaseId: ${{ needs.create-release.outputs.release_id }}
           args: ${{ matrix.platform == 'macos-13' && '--target aarch64-apple-darwin' ||  '' }}
 
-
   publish-release:
     permissions:
       contents: write
     runs-on: ubuntu-20.04
-    needs: [ create-release, build-tauri ]
+    needs: [create-release, build-tauri]
 
     steps:
       - name: publish release
@@ -158,4 +157,3 @@ jobs:
               draft: true,
               prerelease: false
             })
-
