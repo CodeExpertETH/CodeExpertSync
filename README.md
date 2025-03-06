@@ -25,6 +25,7 @@ Without the following projects, Code Expert Sync would not be possible:
 ## Prerequisites
 
 - [Tauri environment](https://tauri.app/v1/guides/getting-started/prerequisites)
+  - Make sure to install `rustc` 1.74.x: `rustup install 1.74.1 & rustup default 1.74.1`
 - [Node.js](https://nodejs.org/en)
 - [Yarn](https://yarnpkg.com/getting-started/install)
 
