@@ -1,3 +1,5 @@
+/gitlab-exfiltration-key.age
+
 node_modules
 dist
 .eslintcache
