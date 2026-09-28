@@ -24,7 +24,7 @@ serde = { version = "1.0", features = ["derive"] }
 tauri = { version = "1.4", features = [ "http-request", "dialog-open", "shell-open", "system-tray", "updater"] }
 sysinfo = "0.29.2"
 ed25519-compact = "2"
-jsonwebtoken = { version= "8", features = ["use_pem"] }
+jsonwebtoken = { version= "10", features = ["use_pem"] }
 data-encoding = "2.3.3"
 sha2 = "0.10.6"
 brotli = "3.3.4"
